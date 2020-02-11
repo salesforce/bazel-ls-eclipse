@@ -10,7 +10,9 @@ Require-Bundle: org.eclipse.equinox.app,
  org.eclipse.ui,
  org.eclipse.ui.genericeditor,
  org.eclipse.jface.text,
- org.eclipse.lsp4e
+ org.eclipse.lsp4e,
+ org.eclipse.tm4e.core;bundle-version="0.4.1",
+ org.eclipse.tm4e.ui;bundle-version="0.4.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: bazel-eclipse
 Bundle-ActivationPolicy: lazy

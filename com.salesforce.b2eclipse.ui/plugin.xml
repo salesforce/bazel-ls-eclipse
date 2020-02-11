@@ -11,6 +11,7 @@
             priority="high">
       </content-type>
    </extension>
+   
    <extension
          point="org.eclipse.ui.editors">
       <editorContentTypeBinding
@@ -18,6 +19,27 @@
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension>
+    
+   <extension
+         point="org.eclipse.ui.genericeditor.presentationReconcilers">
+      <presentationReconciler
+            class="org.eclipse.tm4e.ui.text.TMPresentationReconciler"
+            contentType="com.salesforce.b2eclipse.java">
+      </presentationReconciler>
+   </extension>
+    
+   <extension
+         point="org.eclipse.tm4e.registry.grammars">
+      <grammar
+            path="syntaxes/Java.plist"
+            scopeName="source.java">
+      </grammar>
+      <scopeNameContentTypeBinding
+            contentTypeId="com.salesforce.b2eclipse.java"
+            scopeName="source.java">
+      </scopeNameContentTypeBinding>
+   </extension>
+   
    <extension
          point="org.eclipse.lsp4e.languageServer">
       <server
