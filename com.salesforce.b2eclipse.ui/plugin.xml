@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            id="com.salesforce.b2eclipse.java"
+            name="bazel.eclipse.java"
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="java"
+            priority="high">
+      </content-type>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editorContentTypeBinding
+            contentTypeId="com.salesforce.b2eclipse.java"
+            editorId="org.eclipse.ui.genericeditor.GenericEditor">
+      </editorContentTypeBinding>
+   </extension>
+   <extension
+         point="org.eclipse.lsp4e.languageServer">
+      <server
+            class="com.salesforce.b2eclipse.ui.ConnectionProvider"
+            id="com.salesforce.b2eclipse.server"
+            label="Java Language Server">
+      </server>
+      <contentTypeMapping
+            contentType="com.salesforce.b2eclipse.java"
+            id="com.salesforce.b2eclipse.server">
+      </contentTypeMapping>
+   </extension>
+</plugin>

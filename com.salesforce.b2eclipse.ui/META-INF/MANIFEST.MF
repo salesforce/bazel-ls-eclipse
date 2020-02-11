@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Bazel-eclipse
+Bundle-SymbolicName: b2eclipse.ui;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.salesforce.b2eclipse.ui.Activator
+Bundle-Vendor: com.salesforce.b2eclipse
+Require-Bundle: org.eclipse.equinox.app,
+ org.eclipse.core.runtime,
+ org.eclipse.ui,
+ org.eclipse.ui.genericeditor,
+ org.eclipse.jface.text,
+ org.eclipse.lsp4e
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Automatic-Module-Name: bazel-eclipse
+Bundle-ActivationPolicy: lazy
