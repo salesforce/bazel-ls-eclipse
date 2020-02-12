@@ -57,7 +57,7 @@ import org.eclipse.jdt.launching.StandardClasspathProvider;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.command.BazelCommandManager;
 import com.salesforce.bazel.eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.bazel.eclipse.config.BazelEclipseProjectSupport;
@@ -209,8 +209,8 @@ public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
      * @return
      */
     File getBazelWorkspaceExecRoot(IJavaProject project) throws CoreException {
-		BazelCommandManager bazelCommandManager = Bazel2EclipseExtension.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(Bazel2EclipseExtension.getBazelWorkspaceRootDirectory());
+		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
         return bazelWorkspaceCmdRunner.getBazelWorkspaceOutputBase(null);
     }
@@ -222,8 +222,8 @@ public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
      * @return
      */
     File getBazelBin(IJavaProject project) {
-		BazelCommandManager bazelCommandManager = Bazel2EclipseExtension.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(Bazel2EclipseExtension.getBazelWorkspaceRootDirectory());
+		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
         return bazelWorkspaceCmdRunner.getBazelWorkspaceBin(null);
     }

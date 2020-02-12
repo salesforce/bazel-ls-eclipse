@@ -51,12 +51,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.bazel.eclipse.classpath.BazelClasspathContainer;
 import com.salesforce.bazel.eclipse.command.BazelCommandLineToolConfigurationException;
@@ -87,8 +86,8 @@ public class BazelBuilder extends IncrementalProjectBuilder {
         IProject project = getProject();
         progressMonitor.beginTask("Bazel build", 1);
 
-		BazelCommandManager bazelCommandManager = Bazel2EclipseExtension.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(Bazel2EclipseExtension.getBazelWorkspaceRootDirectory());
+		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
         try {
             boolean buildSuccessful = buildProjects(bazelWorkspaceCmdRunner, Collections.singletonList(project), progressMonitor, monitor);
@@ -97,9 +96,9 @@ public class BazelBuilder extends IncrementalProjectBuilder {
                 buildProjects(bazelWorkspaceCmdRunner, downstreams, progressMonitor, monitor);
             }
         } catch (IOException | InterruptedException e) {
-			JavaLanguageServerPlugin.logException("Failed to build " + project.getName(), e);
+        	BazelJdtPlugin.logException("Failed to build " + project.getName(), e);
         } catch (BazelCommandLineToolConfigurationException e) {
-			JavaLanguageServerPlugin.logError("Bazel not found: " + e.getMessage());
+        	BazelJdtPlugin.logError("Bazel not found: " + e.getMessage());
         } finally {
             progressMonitor.done();
         }
@@ -112,8 +111,8 @@ public class BazelBuilder extends IncrementalProjectBuilder {
         // this may not have a severe performance impact as bazel handles it efficiently but we may want to revisit
         // TODO: revisit if we want to clean only once when multiple targets are selected
 
-		BazelCommandManager bazelCommandManager = Bazel2EclipseExtension.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(Bazel2EclipseExtension.getBazelWorkspaceRootDirectory());
+		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
         if (bazelWorkspaceCmdRunner == null) {
             super.clean(monitor);
@@ -192,9 +191,9 @@ public class BazelBuilder extends IncrementalProjectBuilder {
     }
 
     private static IJavaProject[] getAllJavaProjects() {
-		IWorkspaceRoot workspaceRoot = Bazel2EclipseExtension.getResourceHelper().getEclipseWorkspaceRoot();
+		IWorkspaceRoot workspaceRoot = BazelJdtPlugin.getResourceHelper().getEclipseWorkspaceRoot();
         try {
-			return Bazel2EclipseExtension.getJavaCoreHelper().getJavaModelForWorkspace(workspaceRoot).getJavaProjects();
+			return BazelJdtPlugin.getJavaCoreHelper().getJavaModelForWorkspace(workspaceRoot).getJavaProjects();
         } catch (JavaModelException ex) {
             throw new IllegalStateException(ex);
         }

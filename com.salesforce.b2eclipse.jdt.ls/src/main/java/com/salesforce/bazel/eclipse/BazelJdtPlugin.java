@@ -36,9 +36,21 @@
 package com.salesforce.bazel.eclipse;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.Status;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
+import com.google.common.base.Throwables;
 import com.salesforce.bazel.eclipse.abstractions.BazelAspectLocation;
 import com.salesforce.bazel.eclipse.command.BazelCommandManager;
 import com.salesforce.bazel.eclipse.command.BazelWorkspaceCommandRunner;
@@ -53,7 +65,9 @@ import com.salesforce.bazel.eclipse.runtime.impl.EclipseResourceHelper;
 /**
  * The activator class controls the Bazel Eclipse plugin life cycle
  */
-public class Bazel2EclipseExtension {
+public class BazelJdtPlugin extends Plugin {
+	private static BundleContext context;
+	
     // we log to the LOG object by default, but if we detect it could not be configured, we set this to true and log to sys.err instead
     private static boolean logToSystemErr = false;
 
@@ -63,6 +77,9 @@ public class Bazel2EclipseExtension {
     // The preference key for the bazel workspace root path
     public static final String BAZEL_WORKSPACE_PATH_PREF_NAME = "bazel.workspace.root";
 
+    // The shared instance
+    private static BazelJdtPlugin plugin;
+    
     // GLOBAL COLLABORATORS
     // TODO move the collaborators to some other place, perhaps a dedicated static context object
 
@@ -97,16 +114,27 @@ public class Bazel2EclipseExtension {
     /**
      * The constructor
      */
-    public Bazel2EclipseExtension() {}
+    public BazelJdtPlugin() {}
 
-	static {
+	/*
+	 * (non-Javadoc)
+	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+	 */
+	@Override
+	public void start(BundleContext bundleContext) throws Exception {
+		super.start(bundleContext);
+		
+		BazelJdtPlugin.context = bundleContext;
+		BazelJdtPlugin.plugin = this;
+		
         BazelAspectLocation aspectLocation = new BazelAspectLocationImpl();
 		CommandBuilder commandBuilder = new ShellCommandBuilder();
         ResourceHelper eclipseResourceHelper = new EclipseResourceHelper();
         JavaCoreHelper eclipseJavaCoreHelper = new EclipseJavaCoreHelper();
 
 		startInternal(aspectLocation, commandBuilder, eclipseResourceHelper, eclipseJavaCoreHelper);
-    }
+		
+	}
 
     /**
      * This is the inner entrypoint where the initialization really begins. Both the real activation entrypoint
@@ -151,7 +179,7 @@ public class Bazel2EclipseExtension {
     public static String getBazelWorkspaceRootDirectoryPath() {
         if (bazelWorkspaceRootDirectory == null) {
             new Throwable().printStackTrace();
-			JavaLanguageServerPlugin.logError("BazelPluginActivator was asked for the Bazel workspace root directory before it is determined.");
+            BazelJdtPlugin.logError("BazelPluginActivator was asked for the Bazel workspace root directory before it is determined.");
             return null;
         }
         return bazelWorkspaceRootDirectory.getAbsolutePath();
@@ -165,7 +193,7 @@ public class Bazel2EclipseExtension {
         File workspaceFile = new File(dir, "WORKSPACE");
         if (!workspaceFile.exists()) {
             new Throwable().printStackTrace();
-			JavaLanguageServerPlugin.logError("BazelPluginActivator could not set the Bazel workspace directory as there is no WORKSPACE file here: " + dir.getAbsolutePath());
+            BazelJdtPlugin.logError("BazelPluginActivator could not set the Bazel workspace directory as there is no WORKSPACE file here: " + dir.getAbsolutePath());
             return;
         }
         bazelWorkspaceRootDirectory = dir;
@@ -209,4 +237,42 @@ public class Bazel2EclipseExtension {
     public static JavaCoreHelper getJavaCoreHelper() {
         return javaCoreHelper;
     }
+
+	public static void log(IStatus status) {
+		if (context != null) {
+			Platform.getLog(BazelJdtPlugin.context.getBundle()).log(status);
+		}
+	}
+
+	public static void log(CoreException e) {
+		log(e.getStatus());
+	}
+
+	public static void logError(String message) {
+		if (context != null) {
+			log(new Status(IStatus.ERROR, context.getBundle().getSymbolicName(), message));
+		}
+	}
+
+	public static void logInfo(String message) {
+		if (context != null) {
+			log(new Status(IStatus.INFO, context.getBundle().getSymbolicName(), message));
+		}
+	}
+
+	public static void logException(Throwable ex) {
+		if (context != null) {
+			String message = ex.getMessage();
+			if (message == null) {
+				message = Throwables.getStackTraceAsString(ex);
+			}
+			logException(message, ex);
+		}
+	}
+
+	public static void logException(String message, Throwable ex) {
+		if (context != null) {
+			log(new Status(IStatus.ERROR, context.getBundle().getSymbolicName(), message, ex));
+		}
+	}
 }

@@ -44,7 +44,7 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 import com.google.common.collect.ImmutableList;
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.BazelNature;
 
 /**
@@ -61,7 +61,7 @@ public class BazelEclipseProjectSupport {
      */
     public static List<String> getBazelTargetsForEclipseProject(IProject eclipseProject, boolean addWildcardIfNoTargets) {
         // Get the list of targets from the preferences
-		Preferences eclipseProjectBazelPrefs = Bazel2EclipseExtension.getResourceHelper().getProjectBazelPreferences(eclipseProject);
+		Preferences eclipseProjectBazelPrefs = BazelJdtPlugin.getResourceHelper().getProjectBazelPreferences(eclipseProject);
         ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
 
         boolean addedTarget = false;
@@ -86,7 +86,7 @@ public class BazelEclipseProjectSupport {
      * Returns all Java Projects that have a Bazel Nature.
      */
     public static IJavaProject[] getAllJavaBazelProjects() {
-		IJavaProject[] javaProjects = Bazel2EclipseExtension.getJavaCoreHelper().getAllJavaProjects();
+		IJavaProject[] javaProjects = BazelJdtPlugin.getJavaCoreHelper().getAllJavaProjects();
         List<IJavaProject> bazelProjects = new ArrayList<>(javaProjects.length);
         for (IJavaProject project : javaProjects) {
             if (isBazelProject(project.getProject())) {
@@ -101,8 +101,8 @@ public class BazelEclipseProjectSupport {
      */
     public static List<String> getBazelBuildFlagsForEclipseProject(IProject eclipseProject) {
         // Get the list of build flags from the preferences
-		IScopeContext eclipseProjectScope = Bazel2EclipseExtension.getResourceHelper().getProjectScopeContext(eclipseProject);
-		Preferences eclipseProjectNode = eclipseProjectScope.getNode(Bazel2EclipseExtension.PLUGIN_ID);
+		IScopeContext eclipseProjectScope = BazelJdtPlugin.getResourceHelper().getProjectScopeContext(eclipseProject);
+		Preferences eclipseProjectNode = eclipseProjectScope.getNode(BazelJdtPlugin.PLUGIN_ID);
 
         ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
         for (String property : getKeys(eclipseProjectNode)) {

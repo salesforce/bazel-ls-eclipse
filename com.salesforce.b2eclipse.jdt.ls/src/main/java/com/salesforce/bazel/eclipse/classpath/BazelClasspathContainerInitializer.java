@@ -47,10 +47,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.core.ClasspathContainerInitializer;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.osgi.service.prefs.BackingStoreException;
 
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.command.BazelCommandLineToolConfigurationException;
 
 public class BazelClasspathContainerInitializer extends ClasspathContainerInitializer {
@@ -73,14 +72,14 @@ public class BazelClasspathContainerInitializer extends ClasspathContainerInitia
 
             BazelClasspathContainer container = new BazelClasspathContainer(eclipseProject, eclipseJavaProject);
             if (container.isValid()) {
-                Bazel2EclipseExtension.getJavaCoreHelper().setClasspathContainer(eclipseProjectPath, new IJavaProject[] { eclipseJavaProject },
+                BazelJdtPlugin.getJavaCoreHelper().setClasspathContainer(eclipseProjectPath, new IJavaProject[] { eclipseJavaProject },
                     new IClasspathContainer[] { container }, null);
                 importedProjects.add(eclipseJavaProject.getProject());
             } else {
                 // this is not exactly the package path, it is just the leaf node name
                 corruptPackage = eclipseJavaProject.getPath().toString();
                 String errorMsg = generateImportErrorMessage();
-				JavaLanguageServerPlugin.logError(errorMsg);
+				BazelJdtPlugin.logError(errorMsg);
 
                 if (!isCorrupt.get()) {
                     importedProjects.add(eclipseProject);
@@ -89,16 +88,16 @@ public class BazelClasspathContainerInitializer extends ClasspathContainerInitia
             }
 
         } catch (IOException | InterruptedException | BackingStoreException e) {
-			JavaLanguageServerPlugin.logException("Error while creating Bazel classpath container.", e);
+			BazelJdtPlugin.logException("Error while creating Bazel classpath container.", e);
         } catch (BazelCommandLineToolConfigurationException e) {
-			JavaLanguageServerPlugin.logError("Bazel not found: " + e.getMessage());
+			BazelJdtPlugin.logError("Bazel not found: " + e.getMessage());
         }
     }
 
     // Remove projects imported successfully
     private void undo() throws CoreException {
         synchronized (importedProjects) {
-            if (Bazel2EclipseExtension.getResourceHelper().getEclipseWorkspace().isTreeLocked()) {
+            if (BazelJdtPlugin.getResourceHelper().getEclipseWorkspace().isTreeLocked()) {
                 // cannot delete projects, as the workspace is locked
                 return;
             }

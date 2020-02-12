@@ -33,11 +33,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.abstractions.BazelAspectLocation;
 import com.salesforce.bazel.eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.bazel.eclipse.command.BazelCommandLineToolConfigurationException;
@@ -176,18 +175,18 @@ public class BazelWorkspaceAspectHelper {
 
         AspectPackageInfo aspectInfo = aspectInfoCache_current.get(target);
         if (aspectInfo != null) {
-			JavaLanguageServerPlugin.logInfo("ASPECT CACHE HIT target: " + target + logstr);
+        	BazelJdtPlugin.logInfo("ASPECT CACHE HIT target: " + target + logstr);
             resultMap.put(target, aspectInfo);
             this.numberCacheHits++;
         } else {
-			JavaLanguageServerPlugin.logInfo("ASPECT CACHE MISS target: " + target + logstr);
+        	BazelJdtPlugin.logInfo("ASPECT CACHE MISS target: " + target + logstr);
             List<String> lookupTargets = new ArrayList<>();
             lookupTargets.add(target);
             List<String> discoveredAspectFilePaths = generateAspectPackageInfoFiles(lookupTargets, progressMonitor);
             ImmutableMap<String, AspectPackageInfo> map = AspectPackageInfo.loadAspectFilePaths(discoveredAspectFilePaths);
             resultMap.putAll(map);
             for (String resultTarget : map.keySet()) {
-				JavaLanguageServerPlugin.logInfo("ASPECT CACHE LOAD target: " + resultTarget + logstr);
+            	BazelJdtPlugin.logInfo("ASPECT CACHE LOAD target: " + resultTarget + logstr);
                 aspectInfoCache_current.put(resultTarget, map.get(resultTarget));
                 aspectInfoCache_lastgood.put(resultTarget, map.get(resultTarget));
             }
@@ -201,7 +200,7 @@ public class BazelWorkspaceAspectHelper {
                 if (aspectInfo != null) {
                     resultMap.put(target, aspectInfo);
                 } else {
-					JavaLanguageServerPlugin.logInfo("ASPECT CACHE FAIL target: " + target + logstr);
+                	BazelJdtPlugin.logInfo("ASPECT CACHE FAIL target: " + target + logstr);
                 }
             }
         }

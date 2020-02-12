@@ -41,9 +41,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
-
 import com.google.common.annotations.VisibleForTesting;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 
 public class BazelBuildFileHelper {
     /**
@@ -75,7 +74,7 @@ public class BazelBuildFileHelper {
         try (InputStream is = new FileInputStream(buildFile)) {
             hasJavaRules = hasJavaRules(is);
         } catch (Exception anyE) {
-			JavaLanguageServerPlugin.logException(anyE.getMessage(), anyE);
+        	BazelJdtPlugin.logException(anyE.getMessage(), anyE);
         }
         return hasJavaRules;
     }
@@ -98,7 +97,7 @@ public class BazelBuildFileHelper {
             }
 
         } catch (IOException e) {
-			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+        	BazelJdtPlugin.logException(e.getMessage(), e);
         }
         return false;
     }

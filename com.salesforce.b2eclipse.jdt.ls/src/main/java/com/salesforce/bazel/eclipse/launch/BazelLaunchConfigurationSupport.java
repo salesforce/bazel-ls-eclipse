@@ -44,7 +44,7 @@ import java.util.Objects;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.bazel.eclipse.command.BazelCommandLineToolConfigurationException;
 import com.salesforce.bazel.eclipse.command.BazelWorkspaceCommandRunner;
@@ -174,7 +174,7 @@ class BazelLaunchConfigurationSupport {
      * Returns all AspectPackageInfo instances that represent targets of the specified type, for the specified project.
      */
     Collection<AspectPackageInfo> getAspectPackageInfosForProject(IProject project, EnumSet<TargetKind> targetTypes) {
-		BazelWorkspaceCommandRunner bazelRunner = Bazel2EclipseExtension.getWorkspaceCommandRunner();
+		BazelWorkspaceCommandRunner bazelRunner = BazelJdtPlugin.getWorkspaceCommandRunner();
         AspectPackageInfos apis = computeAspectPackageInfos(project, bazelRunner, WorkProgressMonitor.NOOP);
         return apis.lookupByTargetKind(targetTypes);
     }

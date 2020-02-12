@@ -55,10 +55,9 @@ import org.eclipse.debug.core.sourcelookup.ISourceLookupDirector;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.launching.IVMConnector;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 
 import com.google.common.collect.ImmutableMap;
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.command.BazelProcessBuilder;
 import com.salesforce.bazel.eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.bazel.eclipse.command.Command;
@@ -92,15 +91,15 @@ public class BazelLaunchConfigurationDelegate implements ILaunchConfigurationDel
         BazelLabel label = new BazelLabel(getAttributeValue(configuration, BazelLaunchConfigAttributes.LABEL));
         String targetKindStr = getAttributeValueWithDefault(configuration, BazelLaunchConfigAttributes.TARGET_KIND, "java_binary");
         TargetKind targetKind = TargetKind.valueOfIgnoresCaseRequiresMatch(targetKindStr);
-		IProject project = Bazel2EclipseExtension.getResourceHelper().getProjectByName(projectName);
-		BazelWorkspaceCommandRunner bazelCommandRunner = Bazel2EclipseExtension.getWorkspaceCommandRunner();
+		IProject project = BazelJdtPlugin.getResourceHelper().getProjectByName(projectName);
+		BazelWorkspaceCommandRunner bazelCommandRunner = BazelJdtPlugin.getWorkspaceCommandRunner();
 
         Command cmd = bazelCommandRunner.getBazelLauncherBuilder().setLabel(label).setTargetKind(targetKind).setArgs(bazelArgs)
                 .setDebugMode(isDebugMode, DEBUG_HOST, DEBUG_PORT).build();
         BazelProcessBuilder processBuilder = cmd.getProcessBuilder();
 
         List<String> commandTokens = processBuilder.command();
-        JavaLanguageServerPlugin.logInfo("Launching Bazel: " + String.join(" ", commandTokens));
+        BazelJdtPlugin.logInfo("Launching Bazel: " + String.join(" ", commandTokens));
 
         launchExec(configuration, project, commandTokens, processBuilder, launch, monitor);
     }
@@ -108,7 +107,7 @@ public class BazelLaunchConfigurationDelegate implements ILaunchConfigurationDel
     // OVERRIDABLE FOR TESTS
 
     protected IProject getProject(String projectName) {
-		return Bazel2EclipseExtension.getResourceHelper().getProjectByName(projectName);
+		return BazelJdtPlugin.getResourceHelper().getProjectByName(projectName);
     }
 
     protected void launchExec(ILaunchConfiguration configuration, IProject project, List<String> commandTokens,
@@ -117,7 +116,7 @@ public class BazelLaunchConfigurationDelegate implements ILaunchConfigurationDel
         String[] cmdLine = commandTokens.toArray(new String[commandTokens.size()]);
         File workingDirectory = processBuilder.directory();
 
-        ResourceHelper resourceHelper = Bazel2EclipseExtension.getResourceHelper();
+        ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
 
         // launch the external process, and attach to the output
         Process process = resourceHelper.exec(cmdLine, workingDirectory);
@@ -186,7 +185,7 @@ public class BazelLaunchConfigurationDelegate implements ILaunchConfigurationDel
 
             // logic below copied and adapted from
             // https://github.com/eclipse/eclipse.jdt.debug/blob/master/org.eclipse.jdt.launching/launching/org/eclipse/jdt/internal/launching/JavaRemoteApplicationLaunchConfigurationDelegate.java
-            IJavaProject eclipseJavaProject = Bazel2EclipseExtension.getJavaCoreHelper().getJavaProjectForProject(project);
+            IJavaProject eclipseJavaProject = BazelJdtPlugin.getJavaCoreHelper().getJavaProjectForProject(project);
             ISourceLookupDirector sourceLocator = new BazelJavaSourceLookupDirector(eclipseJavaProject);
             sourceLocator.initializeDefaults(configuration);
             launch.setSourceLocator(sourceLocator);

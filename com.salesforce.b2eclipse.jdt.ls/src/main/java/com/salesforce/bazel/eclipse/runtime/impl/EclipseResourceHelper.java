@@ -41,10 +41,9 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.osgi.service.prefs.Preferences;
 
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.runtime.api.ResourceHelper;
 
 /**
@@ -86,9 +85,9 @@ public class EclipseResourceHelper implements ResourceHelper {
     @Override
     public Preferences getProjectBazelPreferences(IProject project) {
         IScopeContext eclipseProjectScope = new ProjectScope(project);
-		Preferences eclipseProjectPrefs = eclipseProjectScope.getNode(Bazel2EclipseExtension.PLUGIN_ID);
+		Preferences eclipseProjectPrefs = eclipseProjectScope.getNode(BazelJdtPlugin.PLUGIN_ID);
 
-		JavaLanguageServerPlugin.logError("Could not find the Preferences node for the Bazel plugin for project [" + project.getName() + "]");
+		BazelJdtPlugin.logError("Could not find the Preferences node for the Bazel plugin for project [" + project.getName() + "]");
         if (eclipseProjectPrefs == null) {
         }
 

@@ -35,7 +35,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.runtime.api.JavaCoreHelper;
 
 /**
@@ -110,7 +110,7 @@ public class EclipseJavaCoreHelper implements JavaCoreHelper {
 
     @Override
 	public IJavaProject[] getAllJavaProjects() {
-		IWorkspaceRoot eclipseWorkspaceRoot = Bazel2EclipseExtension.getResourceHelper().getEclipseWorkspaceRoot();
+		IWorkspaceRoot eclipseWorkspaceRoot = BazelJdtPlugin.getResourceHelper().getEclipseWorkspaceRoot();
         try {
             IJavaModel eclipseWorkspaceJavaModel = this.getJavaModelForWorkspace(eclipseWorkspaceRoot);
             return eclipseWorkspaceJavaModel.getJavaProjects();

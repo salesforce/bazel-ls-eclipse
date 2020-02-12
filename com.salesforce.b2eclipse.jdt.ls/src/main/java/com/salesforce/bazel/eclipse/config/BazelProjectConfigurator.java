@@ -50,8 +50,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.BazelNature;
 import com.salesforce.bazel.eclipse.model.BazelBuildFileHelper;
 
@@ -108,7 +108,7 @@ public class BazelProjectConfigurator {
                 }
             }
         } catch (Exception anyE) {
-			JavaLanguageServerPlugin.logError("ERROR scanning for Bazel packages: " + anyE.getMessage());
+			BazelJdtPlugin.logError("ERROR scanning for Bazel packages: " + anyE.getMessage());
         }
     }
 
@@ -145,7 +145,7 @@ public class BazelProjectConfigurator {
         try (InputStream is = buildFile.getContents()) {
             hasJavaRule = BazelBuildFileHelper.hasJavaRules(is);
         } catch (Exception anyE) {
-			JavaLanguageServerPlugin.logException(anyE.getMessage(), anyE);
+			BazelJdtPlugin.logException(anyE.getMessage(), anyE);
         }
 
         return hasJavaRule;
@@ -192,7 +192,7 @@ public class BazelProjectConfigurator {
             // TODO when will this be called? we add the nature already when we created the project
             BazelEclipseProjectFactory.addNatureToEclipseProject(project, BazelNature.BAZEL_NATURE_ID);
         } catch (CoreException coreEx) {
-			JavaLanguageServerPlugin.logError("Exception adding Bazel nature: " + coreEx.getMessage());
+			BazelJdtPlugin.logError("Exception adding Bazel nature: " + coreEx.getMessage());
         }
     }
 

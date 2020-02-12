@@ -59,12 +59,11 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 import com.google.common.collect.ImmutableList;
-import com.salesforce.bazel.eclipse.Bazel2EclipseExtension;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.BazelNature;
 import com.salesforce.bazel.eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.bazel.eclipse.builder.BazelBuilder;
@@ -122,7 +121,7 @@ public class BazelEclipseProjectFactory {
 
         // Many collaborators need the Bazel workspace directory location, so we stash it in an accessible global location
         // currently we only support one Bazel workspace in an Eclipse workspace
-		Bazel2EclipseExtension.setBazelWorkspaceRootDirectory(bazelWorkspaceRootDirectory);
+		BazelJdtPlugin.setBazelWorkspaceRootDirectory(bazelWorkspaceRootDirectory);
 
         // Set the flag that an import is in progress
         importInProgress.set(true);
@@ -140,7 +139,7 @@ public class BazelEclipseProjectFactory {
         }
 
         // TODO send this message to the EclipseConsole so the user actually sees it
-		JavaLanguageServerPlugin.logInfo("Starting import of [" + eclipseProjectNameForBazelWorkspace + "]. This may take some time, please be patient.");
+		BazelJdtPlugin.logInfo("Starting import of [" + eclipseProjectNameForBazelWorkspace + "]. This may take some time, please be patient.");
 
         // create the Eclipse project for the Bazel workspace (directory that contains the WORKSPACE file)
         IProject rootEclipseProject = BazelEclipseProjectFactory.createEclipseProjectForBazelPackage(
@@ -236,9 +235,9 @@ public class BazelEclipseProjectFactory {
             //  A new project description file has been created, but some information about the project may have been lost."
             setBuildersOnEclipseProject(eclipseProject);
         } catch (CoreException e) {
-			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+			BazelJdtPlugin.logException(e.getMessage(), e);
         } catch (BackingStoreException e) {
-			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+			BazelJdtPlugin.logException(e.getMessage(), e);
         }
 
         try {
@@ -246,14 +245,14 @@ public class BazelEclipseProjectFactory {
 
             // TODO investigate using the configure() hook in the BazelNature for the configuration part of this createProject() method
             IJavaProject eclipseJavaProject =
-					Bazel2EclipseExtension.getJavaCoreHelper().getJavaProjectForProject(eclipseProject);
+					BazelJdtPlugin.getJavaCoreHelper().getJavaProjectForProject(eclipseProject);
             createBazelClasspathForEclipseProject(new Path(bazelWorkspaceRoot), packageFSPath, packageSourceCodeFSPaths,
                 eclipseJavaProject, javaLanguageVersion);
 
             // lets link to (== include in the project) some well known files
             linkFiles(bazelWorkspaceRoot, packageFSPath, eclipseProject, "WORKSPACE", "BUILD");
         } catch (CoreException e) {
-			JavaLanguageServerPlugin.logException(e.getMessage(), e);
+			BazelJdtPlugin.logException(e.getMessage(), e);
             eclipseProject = null;
         }
 
@@ -264,7 +263,7 @@ public class BazelEclipseProjectFactory {
             List<String> bazelTargets, List<String> bazelBuildFlags) throws BackingStoreException {
 
         Preferences eclipseProjectBazelPrefs =
-				Bazel2EclipseExtension.getResourceHelper().getProjectBazelPreferences(eclipseProject);
+				BazelJdtPlugin.getResourceHelper().getProjectBazelPreferences(eclipseProject);
 
         int i = 0;
         for (String bazelTarget : bazelTargets) {
@@ -289,7 +288,7 @@ public class BazelEclipseProjectFactory {
     }
 
     private static void linkFiles(String bazelWorkspaceRoot, String packageFSPath, IProject eclipseProject, String... fileNames) {
-		ResourceHelper resourceHelper = Bazel2EclipseExtension.getResourceHelper();
+		ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
 
         for (String fileName : fileNames) {
             File f = new File(new File(bazelWorkspaceRoot, packageFSPath), fileName);
@@ -313,12 +312,12 @@ public class BazelEclipseProjectFactory {
                     resourceHelper.createFileLink(projectFile, Path.fromOSString(f.getAbsolutePath()), IResource.NONE, null);
                 } catch (Exception anyE) {
                     // TODO throwing this exception just writes a log message, we need a modal error popup for this error
-					JavaLanguageServerPlugin.logError("Failure to link file [" + f.getAbsolutePath() + "] for project [" +
+					BazelJdtPlugin.logError("Failure to link file [" + f.getAbsolutePath() + "] for project [" +
                             eclipseProject.getName()+"]");
                     throw anyE;
                 }
             } else {
-				JavaLanguageServerPlugin.logError("Tried to link a non-existant file [" + f.getAbsolutePath() + "] for project [" +
+				BazelJdtPlugin.logError("Tried to link a non-existant file [" + f.getAbsolutePath() + "] for project [" +
                         eclipseProject.getName()+"]");
             }
         }
@@ -331,7 +330,7 @@ public class BazelEclipseProjectFactory {
             List<String> packageSourceCodeFSRelativePaths, IJavaProject eclipseProject, int javaLanguageLevel)
             throws CoreException {
         List<IClasspathEntry> classpathEntries = new LinkedList<>();
-		ResourceHelper resourceHelper = Bazel2EclipseExtension.getResourceHelper();
+		ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
 
         for (String path : packageSourceCodeFSRelativePaths) {
             IPath realSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
@@ -347,16 +346,16 @@ public class BazelEclipseProjectFactory {
             }
 
             IPath sourceDir = projectSourceFolder.getFullPath();
-			IClasspathEntry sourceClasspathEntry = Bazel2EclipseExtension.getJavaCoreHelper().newSourceEntry(sourceDir, outputDir, isTestSource);
+			IClasspathEntry sourceClasspathEntry = BazelJdtPlugin.getJavaCoreHelper().newSourceEntry(sourceDir, outputDir, isTestSource);
             classpathEntries.add(sourceClasspathEntry);
         }
 
-		IClasspathEntry bazelClasspathContainerEntry = Bazel2EclipseExtension.getJavaCoreHelper()
+		IClasspathEntry bazelClasspathContainerEntry = BazelJdtPlugin.getJavaCoreHelper()
                 .newContainerEntry(new Path(BazelClasspathContainer.CONTAINER_NAME));
         classpathEntries.add(bazelClasspathContainerEntry);
 
         // add in a JDK to the classpath
-		classpathEntries.add(Bazel2EclipseExtension.getJavaCoreHelper()
+		classpathEntries.add(BazelJdtPlugin.getJavaCoreHelper()
                 .newContainerEntry(new Path(STANDARD_VM_CONTAINER_PREFIX + javaLanguageLevel)));
 
         IClasspathEntry[] newClasspath = classpathEntries.toArray(new IClasspathEntry[classpathEntries.size()]);
@@ -404,7 +403,7 @@ public class BazelEclipseProjectFactory {
 
     private static IProject createBaseEclipseProject(String eclipseProjectName, URI location,
             String bazelWorkspaceRoot) {
-		ResourceHelper resourceHelper = Bazel2EclipseExtension.getResourceHelper();
+		ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
         IProgressMonitor progressMonitor = null;
 
         // Request the project by name, which will create a new shell IProject instance if the project doesn't already exist.
@@ -432,11 +431,11 @@ public class BazelEclipseProjectFactory {
                     resourceHelper.openProject(createdEclipseProject, progressMonitor);
                 }
             } catch (CoreException e) {
-				JavaLanguageServerPlugin.logException(e.getMessage(), e);
+				BazelJdtPlugin.logException(e.getMessage(), e);
                 createdEclipseProject = null;
             }
         } else {
-			JavaLanguageServerPlugin.logError("Project [" + eclipseProjectName + "] already exists, which is unexpected. Project initialization will not occur.");
+			BazelJdtPlugin.logError("Project [" + eclipseProjectName + "] already exists, which is unexpected. Project initialization will not occur.");
             createdEclipseProject = newEclipseProject;
         }
 
@@ -446,7 +445,7 @@ public class BazelEclipseProjectFactory {
     // TODO this code also exists in BazelProjectConfigurator, dedupe
     static void addNatureToEclipseProject(IProject eclipseProject, String nature) throws CoreException {
         if (!eclipseProject.hasNature(nature)) {
-			ResourceHelper resourceHelper = Bazel2EclipseExtension.getResourceHelper();
+			ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
 
             IProjectDescription eclipseProjectDescription = resourceHelper.getProjectDescription(eclipseProject);
             String[] prevNatures = eclipseProjectDescription.getNatureIds();
@@ -512,8 +511,8 @@ public class BazelEclipseProjectFactory {
      */
     private static AspectPackageInfos precomputeBazelAspectsForWorkspace(IProject rootEclipseProject, List<BazelPackageInfo> selectedBazelPackages,
             WorkProgressMonitor progressMonitor) {
-		BazelCommandManager bazelCommandManager = Bazel2EclipseExtension.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(Bazel2EclipseExtension.getBazelWorkspaceRootDirectory());
+		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
         // figure out which Bazel targets will be imported, and generated AspectPackageInfos for each
         // The AspectPackageInfos have useful information that we use during import

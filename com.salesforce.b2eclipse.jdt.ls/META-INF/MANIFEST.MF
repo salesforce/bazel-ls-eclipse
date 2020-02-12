@@ -1,14 +1,12 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: b2eclipse.jdt.ls
-Bundle-SymbolicName: com.salesforce.b2eclipse.jdt.ls
+Bundle-SymbolicName: com.salesforce.b2eclipse.jdt.ls;singleton:=true
 Bundle-Version: 0.1.0.qualifier
-Bundle-Activator: com.salesforce.bazel.eclipse.Activator
+Bundle-Activator: com.salesforce.bazel.eclipse.BazelJdtPlugin
 Bundle-Vendor: com.salesforce.b2eclipse
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.jdt,
  org.eclipse.jdt.core,
- org.eclipse.jdt.ls.core,
  org.eclipse.core.resources,
  org.eclipse.debug.core,
  org.eclipse.jdt.launching,
@@ -19,3 +17,8 @@ Bundle-ActivationPolicy: lazy
 Import-Package: com.google.common.annotations,
  com.google.common.base,
  com.google.common.collect
+Export-Package: com.salesforce.bazel.eclipse.abstractions,
+ com.salesforce.bazel.eclipse.config,
+ com.salesforce.bazel.eclipse.importer,
+ com.salesforce.bazel.eclipse.model,
+ com.salesforce.bazel.eclipse.runtime.impl

@@ -45,9 +45,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
-
 import com.google.common.collect.ImmutableList;
+import com.salesforce.bazel.eclipse.BazelJdtPlugin;
 import com.salesforce.bazel.eclipse.abstractions.BazelAspectLocation;
 import com.salesforce.bazel.eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.bazel.eclipse.command.internal.BazelCommandExecutor;
@@ -352,7 +351,7 @@ public class BazelWorkspaceCommandRunner {
             return Collections.emptyList();
         } else {
             List<BazelMarkerDetails> errorDetails = outputParser.getErrorBazelMarkerDetails(output);
-			JavaLanguageServerPlugin.logError("\n" + String.join("\n", errorDetails.stream().map(d -> d.toString()).collect(Collectors.toList()))
+            BazelJdtPlugin.logError("\n" + String.join("\n", errorDetails.stream().map(d -> d.toString()).collect(Collectors.toList()))
                         + "\n");
             return errorDetails;
         }
