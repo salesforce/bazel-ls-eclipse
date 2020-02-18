@@ -20,6 +20,8 @@
 *.rar
 
 bin/
+target/
+**/lib/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -27,6 +29,10 @@ hs_err_pid*
 # Eclipse
 .settings
 eclipse.sh
+
+# IDEA
+*.iml
+.idea
 
 # OS
 .DS_Store

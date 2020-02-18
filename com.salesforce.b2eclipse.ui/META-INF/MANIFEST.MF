@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Bazel Eclipse Feature
-Bundle-SymbolicName: b2eclipse.ui;singleton:=true
+Bundle-SymbolicName: com.salesforce.b2eclipse.ui;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Activator: com.salesforce.b2eclipse.ui.Activator
 Bundle-Vendor: com.salesforce.b2eclipse
