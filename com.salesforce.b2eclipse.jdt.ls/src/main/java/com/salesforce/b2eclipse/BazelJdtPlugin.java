@@ -35,8 +35,14 @@
  */
 package com.salesforce.b2eclipse;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
@@ -102,6 +108,12 @@ public class BazelJdtPlugin extends Plugin {
      * JavaCoreHelper is a useful singleton for working with Java projects in the Eclipse workspace
      */
     private static JavaCoreHelper javaCoreHelper;
+    
+    // Command to find bazel path on windows
+    public static final String WIN_BAZEL_FINDE_COMMAND = "where bazel";
+    
+    // Command to find bazel path on linux or mac
+    public static final String LINUX_BAZEL_FINDE_COMMAND = "which bazel";
 
     // LIFECYCLE
 
@@ -139,8 +151,24 @@ public class BazelJdtPlugin extends Plugin {
         // global collaborators
         resourceHelper = rh;
         javaCoreHelper = javac;
-
-		File bazelPathFile = new File("/usr/local/bin/bazel");
+        
+        String path = null;
+        String command = null;
+        if (Platform.getOS().equals(Platform.OS_WIN32)) {
+        	command = WIN_BAZEL_FINDE_COMMAND;
+        }
+		if (Platform.getOS().equals(Platform.OS_LINUX) || Platform.getOS().equals(Platform.OS_MACOSX)) {
+			command = LINUX_BAZEL_FINDE_COMMAND;
+		}
+                
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(command).getInputStream()))){
+        	path = reader.lines().findFirst().get();
+		} catch (IOException | NoSuchElementException e) {
+			path = "/usr/local/bin/bazel";
+            BazelJdtPlugin.logError("BazelJDTPlugin could not find Bazel path, was used standart path " + path);
+		}
+        
+        File bazelPathFile = new File(path);
 
 		bazelCommandManager = new BazelCommandManager(aspectLocation, commandBuilder, bazelPathFile);
 
