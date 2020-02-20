@@ -309,7 +309,7 @@ public class BazelEclipseProjectFactory {
                     throw new IllegalStateException(logMsg);
                 }
                 try {
-                    resourceHelper.createFileLink(projectFile, Path.fromOSString(f.getAbsolutePath()), IResource.NONE, null);
+                    resourceHelper.createFileLink(projectFile, Path.fromOSString(f.getAbsolutePath()), IResource.REPLACE, null);
                 } catch (Exception anyE) {
                     // TODO throwing this exception just writes a log message, we need a modal error popup for this error
 					BazelJdtPlugin.logError("Failure to link file [" + f.getAbsolutePath() + "] for project [" +
