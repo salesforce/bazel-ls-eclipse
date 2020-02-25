@@ -10,4 +10,12 @@
          </run>
       </runtime>
    </extension>
+   <extension
+         point="org.eclipse.jdt.core.classpathContainerInitializer">
+      <classpathContainerInitializer
+            class="com.salesforce.b2eclipse.classpath.BazelClasspathContainerInitializer"
+            id="com.salesforce.b2eclipse.BAZEL_CONTAINER">
+      </classpathContainerInitializer>
+   </extension>
+   
 </plugin>

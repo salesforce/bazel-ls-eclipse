@@ -35,8 +35,14 @@
  */
 package com.salesforce.b2eclipse;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
@@ -102,6 +108,16 @@ public class BazelJdtPlugin extends Plugin {
      * JavaCoreHelper is a useful singleton for working with Java projects in the Eclipse workspace
      */
     private static JavaCoreHelper javaCoreHelper;
+    
+    // Command to find bazel path on windows
+    public static final String WIN_BAZEL_FINDE_COMMAND = "where bazel";
+    
+    // Command to find bazel path on linux or mac
+    public static final String LINUX_BAZEL_FINDE_COMMAND = "which bazel";
+    
+    public static final String BAZEL_EXECUTABLE_ENV_VAR = "BAZEL_EXECUTABLE";
+    
+    public static final String BAZEL_EXECUTABLE_DEFAULT_PATH = "/usr/local/bin/bazel";
 
     // LIFECYCLE
 
@@ -134,17 +150,55 @@ public class BazelJdtPlugin extends Plugin {
      * (when running in Eclipse, seen above) and the mocking framework call in here. When running for real,
      * the passed collaborators are all the real ones, when running mock tests the collaborators are mocks.
      */
-	static public void startInternal(BazelAspectLocation aspectLocation, CommandBuilder commandBuilder, ResourceHelper rh, JavaCoreHelper javac) {
-
+     public static void startInternal(BazelAspectLocation aspectLocation, CommandBuilder commandBuilder, ResourceHelper rh, JavaCoreHelper javac) {
         // global collaborators
         resourceHelper = rh;
         javaCoreHelper = javac;
-
-		File bazelPathFile = new File("/usr/local/bin/bazel");
-
+        
+        File bazelPathFile = new File(getBazelPath());
 		bazelCommandManager = new BazelCommandManager(aspectLocation, commandBuilder, bazelPathFile);
 
 	}
+     
+    public static String getBazelPath() {
+        String path = getEnvBazelPath();
+        
+        if (path == null) {
+            path = getOSBazelPath();
+        }
+        
+        if (path == null) {
+            path = BAZEL_EXECUTABLE_DEFAULT_PATH;
+            BazelJdtPlugin.logError("BazelJDTPlugin could not find Bazel path, was used standart path " + path);
+        }
+        
+        return path;
+    }
+     
+    public static String getEnvBazelPath() {
+        return System.getenv(BAZEL_EXECUTABLE_ENV_VAR);
+    }
+    
+    public static String getOSBazelPath() {
+        String path = null;
+        String command = null;
+        if (Platform.getOS().equals(Platform.OS_WIN32)) {
+            command = WIN_BAZEL_FINDE_COMMAND;
+        }
+        if (Platform.getOS().equals(Platform.OS_LINUX) || Platform.getOS().equals(Platform.OS_MACOSX)) {
+            command = LINUX_BAZEL_FINDE_COMMAND;
+        }
+                
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(command).getInputStream()))){
+            path = reader.lines().findFirst().get();
+        } catch (IOException | NoSuchElementException e) {
+            path = null;
+        }
+        
+        return path;
+    }
+	
+	
 
     // COLLABORATORS
     // TODO move the collaborators to some other place, perhaps a dedicated static context object
