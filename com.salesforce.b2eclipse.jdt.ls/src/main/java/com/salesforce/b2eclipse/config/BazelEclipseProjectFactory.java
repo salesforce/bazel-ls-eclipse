@@ -100,6 +100,9 @@ public class BazelEclipseProjectFactory {
 
     // signals that we are in a delicate bootstrapping operation
     public static AtomicBoolean importInProgress = new AtomicBoolean(false);
+    
+    public static String IMPORT_BAZEL_SRC_PATH;
+    public static String IMPORT_BAZEL_TEST_PATH;
 
     /**
      * Imports a workspace. This version does not yet allow the user to be selective - it imports all Java packages that
@@ -475,17 +478,13 @@ public class BazelEclipseProjectFactory {
         // add this node buildable target
         String bazelPackageRootDirectory = packageNode.getWorkspaceRootDirectory().getAbsolutePath();
 
-        // TODO here is where we assume that the Java project is conforming  NON_CONFORMING PROJECT SUPPORT
-        // https://git.soma.salesforce.com/services/bazel-eclipse/blob/master/docs/conforming_java_packages.md
-        String mainSrcRelPath = packageNode.getBazelPackageFSRelativePath() + File.separator + "src" + File.separator
-                + "main" + File.separator + "java";
+        String mainSrcRelPath = packageNode.getBazelPackageFSRelativePath() + IMPORT_BAZEL_SRC_PATH;
         File mainSrcDir = new File(bazelPackageRootDirectory + File.separator + mainSrcRelPath);
         if (mainSrcDir.exists()) {
             packageSourceCodeFSPaths.add(mainSrcRelPath);
             foundSourceCodePaths = true;
         }
-        String testSrcRelPath = packageNode.getBazelPackageFSRelativePath() + File.separator + "src" + File.separator
-                + "test" + File.separator + "java";
+        String testSrcRelPath = packageNode.getBazelPackageFSRelativePath() + IMPORT_BAZEL_TEST_PATH;
         File testSrcDir = new File(bazelPackageRootDirectory + File.separator + testSrcRelPath);
         if (testSrcDir.exists()) {
             packageSourceCodeFSPaths.add(testSrcRelPath);
@@ -534,5 +533,5 @@ public class BazelEclipseProjectFactory {
 
         return aspectPackageInfos;
     }
-
+    
 }
