@@ -16,7 +16,7 @@ jobs:
           java-version: 1.8
 
       - name: Test with Maven
-        run: ./mvnw -B test -f pom.xml
+        run: ./mvnw -B verify -f pom.xml
 
       - name: Build with Maven
         if: github.ref != 'refs/heads/master'
