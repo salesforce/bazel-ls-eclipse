@@ -16,3 +16,5 @@ Require-Bundle: org.eclipse.equinox.app,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: b2eclipse.ui
 Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .,
+ src/main/resources/
