@@ -6,14 +6,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.URI;
 import java.util.Objects;
 
-import org.eclipse.lsp4e.LanguageServerPlugin;
 import org.eclipse.lsp4e.server.StreamConnectionProvider;
 
-@SuppressWarnings("restriction")
-public abstract class SocketStreamConnectionProvider implements StreamConnectionProvider{
+public class SocketStreamConnectionProvider implements StreamConnectionProvider{
 
 	private int port;
 	private Socket socket;
@@ -98,12 +95,11 @@ public abstract class SocketStreamConnectionProvider implements StreamConnection
 			try {
 				socket.close();
 			} catch (IOException e) {
-				LanguageServerPlugin.logError("Stop ", e);
+				B2EPlugin.logError("Stop ", e);
 			}
 		}	
 	}
 	
-
 	@Override
 	public int hashCode() {
 		int result = super.hashCode();
@@ -129,12 +125,9 @@ public abstract class SocketStreamConnectionProvider implements StreamConnection
 	public String toString() {
 		return "SocketStreamConnectionProvider [socket=" + socket + "]"; //$NON-NLS-1$//$NON-NLS-2$
 	}
-	
-	/**
-	 * User provided initialization options.
-	 */
+
 	@Override
-	public Object getInitializationOptions(URI rootUri){
-		return Settings.getSettings();
+	public InputStream getErrorStream() {
+		return null;
 	}
 }
