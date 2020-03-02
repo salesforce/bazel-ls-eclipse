@@ -1,10 +1,5 @@
 package com.salesforce.b2eclipse.ui;
 
-import java.io.FilterInputStream;
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -71,61 +66,6 @@ public class ProcessStreamConnectionProvider extends org.eclipse.lsp4e.server.Pr
 			B2EPlugin.logError(e);
 			throw new RuntimeException();
 		}
-	}
-
-	@Override
-	public InputStream getInputStream() {
-		return new FilterInputStream(super.getInputStream()) {
-			@Override
-			public int read() throws IOException {
-				int res = super.read();
-				System.err.print((char) res);
-				return res;
-			}
-
-			@Override
-			public int read(byte[] b, int off, int len) throws IOException {
-				int bytes = super.read(b, off, len);
-				byte[] payload = new byte[bytes];
-				System.arraycopy(b, off, payload, 0, bytes);
-				System.err.print(new String(payload));
-				return bytes;
-			}
-
-			@Override
-			public int read(byte[] b) throws IOException {
-				int bytes = super.read(b);
-				byte[] payload = new byte[bytes];
-				System.arraycopy(b, 0, payload, 0, bytes);
-				System.err.print(new String(payload));
-				return bytes;
-			}
-		};
-	}
-
-	@Override
-	public OutputStream getOutputStream() {
-		return new FilterOutputStream(super.getOutputStream()) {
-			@Override
-			public void write(int b) throws IOException {
-				System.err.print((char) b);
-				super.write(b);
-			}
-
-			@Override
-			public void write(byte[] b) throws IOException {
-				System.err.print(new String(b));
-				super.write(b);
-			}
-
-			@Override
-			public void write(byte[] b, int off, int len) throws IOException {
-				byte[] actual = new byte[len];
-				System.arraycopy(b, off, actual, 0, len);
-				System.err.print(new String(actual));
-				super.write(b, off, len);
-			}
-		};
 	}
 }
 
