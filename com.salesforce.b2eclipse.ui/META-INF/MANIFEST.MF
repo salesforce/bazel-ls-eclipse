@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Bazel Eclipse Feature
 Bundle-SymbolicName: com.salesforce.b2eclipse.ui;singleton:=true
 Bundle-Version: 0.1.0.qualifier
-Bundle-Activator: com.salesforce.b2eclipse.ui.Activator
+Bundle-Activator: com.salesforce.b2eclipse.ui.B2EPlugin
 Bundle-Vendor: com.salesforce.b2eclipse
 Require-Bundle: org.eclipse.equinox.app,
  org.eclipse.core.runtime,
