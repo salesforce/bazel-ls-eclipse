@@ -41,6 +41,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -248,7 +249,7 @@ public final class AspectPackageInfo {
         this.workspaceRelativePath = workspaceRelativePath;
         this.kind = kind;
         this.label = label;
-        this.deps = deps;
+        this.deps = ImmutableList.copyOf(deps.stream().map(e -> e.replace("\"", "")).collect(Collectors.toList()));
         this.sources = sources;
         this.mainClass = mainClass;
     }
