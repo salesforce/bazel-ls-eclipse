@@ -245,7 +245,7 @@
         </repository>
         <site>
             <id>nexus-site</id>
-            <url>https://${env.NEXUS_HOST}/repository/site/</url>
+            <url>dav:https://${env.NEXUS_HOST}/repository/site/</url>
         </site>
     </distributionManagement>
 </project>
