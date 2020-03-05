@@ -41,14 +41,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 
 /**
@@ -263,8 +266,8 @@ public final class AspectPackageInfo {
 
 	private static ImmutableList<String> jsonToStringArray(JsonArray array) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        for (Object o : array) {
-            builder.add(o.toString());
+        for (JsonElement o : array) {
+            builder.add(o.getAsString());
         }
         return builder.build();
     }

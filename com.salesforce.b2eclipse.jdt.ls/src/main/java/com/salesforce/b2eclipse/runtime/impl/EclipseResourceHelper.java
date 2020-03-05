@@ -87,8 +87,8 @@ public class EclipseResourceHelper implements ResourceHelper {
         IScopeContext eclipseProjectScope = new ProjectScope(project);
 		Preferences eclipseProjectPrefs = eclipseProjectScope.getNode(BazelJdtPlugin.PLUGIN_ID);
 
-		BazelJdtPlugin.logError("Could not find the Preferences node for the Bazel plugin for project [" + project.getName() + "]");
         if (eclipseProjectPrefs == null) {
+    		BazelJdtPlugin.logError("Could not find the Preferences node for the Bazel plugin for project [" + project.getName() + "]");
         }
 
         return eclipseProjectPrefs;

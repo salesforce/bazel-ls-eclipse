@@ -289,7 +289,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
         IWorkspaceRoot rootResource = eclipseWorkspace.getRoot();
         IProject[] projects = rootResource.getProjects();
 
-        String absoluteSourcePathString = BazelJdtPlugin.getBazelWorkspaceRootDirectory().getAbsolutePath() + File.separator + sourcePath;
+        String absoluteSourcePathString = File.separator + sourcePath.replace("\"", "");
         Path absoluteSourcePath = new File(absoluteSourcePathString).toPath();
 
         for (IProject project : projects) {
@@ -309,6 +309,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
                 }
                 IPath projectLocation = res.getLocation();
                 String absProjectRoot = projectLocation.toOSString();
+                absProjectRoot = entry.getPath().toString();
                 if (absProjectRoot != null && !absProjectRoot.isEmpty()) {
                     if (absoluteSourcePath.startsWith(absProjectRoot)) {
                         IPath[] inclusionPatterns = entry.getInclusionPatterns();
