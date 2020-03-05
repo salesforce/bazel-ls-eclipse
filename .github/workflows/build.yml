@@ -22,10 +22,18 @@ jobs:
         if: github.ref != 'refs/heads/master'
         run: ./mvnw -B package -f pom.xml -DskipTests
 
-      - name: Publish to GitHub Repositories
+      - name: Publish artifacts to Maven repo
         env:
           NEXUS_HOST: ${{ secrets.NEXUS_HOST }}
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         if: github.ref == 'refs/heads/master'
         run: ./mvnw -B deploy -f pom.xml -s settings.xml -DskipTests
+
+      - name: Publish p2 repository
+        env:
+          NEXUS_HOST: ${{ secrets.NEXUS_HOST }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        if: github.ref == 'refs/heads/master'
+        run: ./mvnw -B site-deploy -f pom.xml -s settings.xml

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <bundle id="com.salesforce.b2eclipse.jdt.ls" version="0.0.0">
+   	<category name="b2eclipse" />
+   </bundle>
+   <bundle id="com.salesforce.b2eclipse.tests" version="0.0.0">
+   	<category name="b2eclipse.sdk" />
+   </bundle>
+   <bundle id="com.salesforce.b2eclipse.ui" version="0.0.0">
+   	<category name="b2eclipse.ui" />
+   </bundle>
+   <category-def name="b2eclipse" label="B2Eclipse"/>
+   <category-def name="b2eclipse.sdk" label="B2Eclipse (Developer Resources)"/>
+   <category-def name="b2eclipse.ui" label="B2Eclipse UI"/>
+</site>
