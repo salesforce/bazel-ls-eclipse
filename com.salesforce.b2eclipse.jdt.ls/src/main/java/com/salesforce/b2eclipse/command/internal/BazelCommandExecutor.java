@@ -105,11 +105,12 @@ public class BazelCommandExecutor {
        
         CommandBuilder builder = getConfiguredCommandBuilder(consoleType, directory, progressMonitor, args);
         Command command = builder.setStderrLineSelector(selector).build();
-        if (command.run() == 0) {
+        command.run();
+//        if (command.run() == 0) {
             return command.getSelectedErrorLines();
-        }
+//        }
         
-        return ImmutableList.of();
+//        return ImmutableList.of();
     }
     
     

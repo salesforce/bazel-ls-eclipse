@@ -53,6 +53,8 @@ import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
 
 public class BazelClasspathContainerInitializer extends ClasspathContainerInitializer {
+	
+	private static boolean CHECK_IS_VALID_CONTAINER;
 
     private static List<IProject> importedProjects = Collections.synchronizedList(new ArrayList<IProject>());
 
@@ -71,12 +73,9 @@ public class BazelClasspathContainerInitializer extends ClasspathContainerInitia
             }
 
             BazelClasspathContainer container = new BazelClasspathContainer(eclipseProject, eclipseJavaProject);
-            if (container.isValid()) {
-                BazelJdtPlugin.getJavaCoreHelper().setClasspathContainer(eclipseProjectPath, new IJavaProject[] { eclipseJavaProject },
-                    new IClasspathContainer[] { container }, null);
-                importedProjects.add(eclipseJavaProject.getProject());
-            } else {
-                // this is not exactly the package path, it is just the leaf node name
+            
+        	if (CHECK_IS_VALID_CONTAINER && !container.isValid()) {
+        		// this is not exactly the package path, it is just the leaf node name
                 corruptPackage = eclipseJavaProject.getPath().toString();
                 String errorMsg = generateImportErrorMessage();
 				BazelJdtPlugin.logError(errorMsg);
@@ -85,6 +84,10 @@ public class BazelClasspathContainerInitializer extends ClasspathContainerInitia
                     importedProjects.add(eclipseProject);
                 }
                 undo();
+            } else {
+            	 BazelJdtPlugin.getJavaCoreHelper().setClasspathContainer(eclipseProjectPath, new IJavaProject[] { eclipseJavaProject },
+                         new IClasspathContainer[] { container }, null);
+                     importedProjects.add(eclipseJavaProject.getProject());
             }
 
         } catch (IOException | InterruptedException | BackingStoreException e) {
