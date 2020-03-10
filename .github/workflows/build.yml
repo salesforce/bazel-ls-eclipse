@@ -15,6 +15,9 @@ jobs:
         with:
           java-version: 1.8
 
+      - name: Set up Bazel
+        uses: ngalaiko/bazel-action/2.0.0@master
+
       - name: Test with Maven
         run: ./mvnw -B verify -f pom.xml
 
