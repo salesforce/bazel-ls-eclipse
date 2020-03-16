@@ -38,7 +38,7 @@
 		    <unit id="org.eclipse.tm4e.feature.feature.group" version="0.4.1.201912212242"/>
 	    </location>
 	    <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-		    <repository location="http://download.eclipse.org/lsp4e/releases/latest/"/>
+		    <repository location="https://download.eclipse.org/lsp4e/releases/0.13.0/"/>
 		    <unit id="org.eclipse.lsp4e" version="0.13.0.201912071343"/>
 		    <unit id="org.eclipse.lsp4e.debug" version="0.11.0.201911212057"/>
 	    </location>

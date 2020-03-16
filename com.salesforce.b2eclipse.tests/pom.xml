@@ -22,6 +22,9 @@
                     <configuration>
                         <argLine>${tycho.testArgLine} ${os.testArgs}</argLine>
                         <runOrder>random</runOrder>
+                        <explodedBundles>
+	                        <explodedBundle>com.salesforce.b2eclipse.jdt.ls</explodedBundle>
+                    	</explodedBundles>
                     </configuration>
                 </plugin>
             </plugins>
