@@ -36,3 +36,9 @@ eclipse.sh
 
 # OS
 .DS_Store
+
+# Bazel build result
+**/bazel-bazel-ls-demo-project
+**/bazel-bin
+**/bazel-out
+**/bazel-testlogs
