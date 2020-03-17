@@ -18,7 +18,7 @@ Future vision
 -------------
 Will be shipped separately as two independent features: standalone feature and as extension for Eclipse JDT LS.
 
-![Vision diagram](../blob/assets/images/vision-diagram.png?raw=true)
+![Vision diagram](../assets/images/vision-diagram.png?raw=true)
 
 Building from the command line
 ----------------------------
