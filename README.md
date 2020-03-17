@@ -5,7 +5,7 @@
 B2Eclipse
 ===========================
 
-This is the set of Eclipse plugins for developing Bazel projects in Eclipse. Currently supports running in a language server mode only (through the [Eclipse JDT LS](https://github.com/salesforce/bazel-eclipse-ls)).
+This is the set of Eclipse plugins for developing Bazel projects in Eclipse. Currently supports running in a language server mode only (through the [Eclipse JDT LS](https://github.com/eclipse/eclipse.jdt.ls)).
 
 Repository structure
 --------------------
