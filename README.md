@@ -4,3 +4,37 @@
 
 B2Eclipse
 ===========================
+
+This is the set of Eclipse plugins for developing Bazel projects in Eclipse. Currently supports running in a language server mode only (through the [Eclipse JDT LS](https://github.com/eclipse/eclipse.jdt.ls)).
+
+Repository structure
+--------------------
+- **com.salesforce.b2eclipse.jdt.ls** - the code which does all that Bazel-related stuff for building classpaths before they can be further processed by JDT.
+- **com.salesforce.b2eclipse.repository** - here you can find the outcome of the build (packaged plugins).
+- **com.salesforce.b2eclipse.tests** - integration tests for the jdt.ls plugin.
+- **com.salesforce.b2eclipse.ui** - a plugin for the client (the one which is connected to the language server for code interactions). It's rather a simple connection provider to a language server, not a full-fledged UI plugin.
+
+Future vision
+-------------
+Will be shipped separately as two independent features: standalone feature and as extension for Eclipse JDT LS.
+
+![Vision diagram](../assets/images/vision-diagram.png?raw=true)
+
+Building from the command line
+----------------------------
+
+The following command will install [Apache Maven](https://maven.apache.org/) if necessary, then build the server into the  `/com.salesforce.b2eclipse.repository/target/repository` folder:
+```bash
+    $ ./mvnw clean verify
+````
+Note: currently, the build can only run when launched with JDK 8.
+
+Features
+--------------
+* Code completion
+* Code navigation
+
+License
+-------
+This work is dual-licensed under EPL 2.0 and Apache License 2.0. See corresponding files:
+[EPL2.0](LICENSE-EPL2.0.txt), [Apache License 2.0](LICENSE-APACHE2.0.txt).
