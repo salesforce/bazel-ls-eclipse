@@ -34,9 +34,12 @@
 package com.salesforce.b2eclipse.model;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Model class for a Bazel Java package. It is a node in a tree of the hierarchy of packages. The root node in this tree
@@ -299,20 +302,12 @@ public class BazelPackageInfo {
             return computedPackageName;
         }
 
-        // split the file system path by OS path separator
-        String[] pathElements = relativeWorkspacePath.split(File.separator);
-
-        // assemble the path elements into a proper Bazel package name
-        String name = "/";
-        for (String e : pathElements) {
-            if (e.isEmpty()) {
-                continue;
-            }
-            name = name + "/" + e;
-        }
-
         // set computedPackageName only when done computing it, to avoid threading issues
-        computedPackageName = name;
+        computedPackageName = StreamSupport.stream(
+                Paths.get(relativeWorkspacePath).spliterator(),
+                false
+        ).map(Object::toString).collect(Collectors.joining("/", "//", ""));
+        
         // and cache the last segment as well
         getBazelPackageNameLastSegment();
 
