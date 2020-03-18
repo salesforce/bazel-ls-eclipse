@@ -163,24 +163,6 @@
                 <version>${tycho-version}</version>
                 <extensions>true</extensions>
             </plugin>
-            <!-- To publish p2 repo into Nexus -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>3.8.2</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.wagon</groupId>
-                        <artifactId>wagon-webdav-jackrabbit</artifactId>
-                        <version>3.3.4</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.0.0</version>
-            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -234,18 +216,4 @@
             </build>
         </profile>
     </profiles>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>nexus-snapshots</id>
-            <url>https://${env.NEXUS_HOST}/repository/maven-snapshots/</url>
-        </snapshotRepository>
-        <repository>
-            <id>nexus-releases</id>
-            <url>https://${env.NEXUS_HOST}/repository/maven-releases/</url>
-        </repository>
-        <site>
-            <id>nexus-site</id>
-            <url>dav:https://${env.NEXUS_HOST}/repository/site/</url>
-        </site>
-    </distributionManagement>
 </project>

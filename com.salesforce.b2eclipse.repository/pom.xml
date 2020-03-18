@@ -10,27 +10,4 @@
     <artifactId>com.salesforce.b2eclipse.repository</artifactId>
     <packaging>eclipse-repository</packaging>
     <name>${base.name} :: P2 Update site</name>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-repository</id>
-                        <phase>pre-site</phase>
-                        <configuration>
-                            <tasks>
-                                <copy todir="${project.build.directory}/site/repository">
-                                    <fileset dir="${project.build.directory}/repository"/>
-                                </copy>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

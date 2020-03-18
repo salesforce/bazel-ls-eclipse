@@ -31,21 +31,24 @@ jobs:
         run: ./mvnw -B verify -f pom.xml
 
       - name: Build with Maven
-        if: github.ref != 'refs/heads/master'
         run: ./mvnw -B package -f pom.xml -DskipTests
 
-      - name: Publish artifacts to Maven repo
-        env:
-          NEXUS_HOST: ${{ secrets.NEXUS_HOST }}
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        if: github.ref == 'refs/heads/master'
-        run: ./mvnw -B deploy -f pom.xml -s settings.xml -DskipTests
+      - name: Prepare p2 repository
+        run: |
+          cp -avr ./com.salesforce.b2eclipse.repository/target/repository ./repository
+          git add repository/*
+          git stash
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git symbolic-ref HEAD refs/heads/gh-pages
+          rm .git/index
+          git clean -fdx
+          git stash pop
+          git commit -m "Publish p2 repo to GitHub Pages" -a
 
       - name: Publish p2 repository
-        env:
-          NEXUS_HOST: ${{ secrets.NEXUS_HOST }}
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        if: github.ref == 'refs/heads/master'
-        run: ./mvnw -B site-deploy -f pom.xml -s settings.xml
+#        if: github.ref == 'refs/heads/master'
+        uses: ad-m/github-push-action@master
+        with:
+          branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
