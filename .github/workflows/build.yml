@@ -36,7 +36,7 @@ jobs:
       - name: Prepare p2 repository
         run: |
           cp -avr ./com.salesforce.b2eclipse.repository/target/repository ./repository
-          git add repository/*
+          git add -f repository/*
           git stash
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
