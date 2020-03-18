@@ -47,7 +47,7 @@ jobs:
           git commit -m "Publish p2 repo to GitHub Pages" -a
 
       - name: Publish p2 repository
-#        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         uses: ad-m/github-push-action@master
         with:
           branch: gh-pages
