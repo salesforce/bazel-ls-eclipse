@@ -65,9 +65,6 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.graph.GraphBuilder;
-import com.google.common.graph.MutableGraph;
-import com.google.common.graph.Traverser;
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.BazelNature;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
@@ -172,32 +169,14 @@ public class BazelEclipseProjectFactory {
         	aspects = precomputeBazelAspectsForWorkspace(rootEclipseProject, selectedBazelPackages, progressMonitor);
         }
         
-        MutableGraph<BazelPackageInfo> graph = GraphBuilder.undirected().build();
-        
-        graph.addNode(bazelWorkspaceRootPackageInfo);
-        for (BazelPackageInfo childPackageInfo : selectedBazelPackages) {
-        	graph.addNode(childPackageInfo);
-        	graph.putEdge(bazelWorkspaceRootPackageInfo, childPackageInfo);
-        }
-
-        for (BazelPackageInfo childPackageInfo : selectedBazelPackages) {
-        	for (String dep : aspects.lookByPackageName(childPackageInfo.getBazelPackageName()).getDeps()) {
-                for (BazelPackageInfo candidateNode : selectedBazelPackages) {
-                	if (dep.startsWith(candidateNode.getBazelPackageName()) && childPackageInfo != candidateNode) {
-                		graph.putEdge(childPackageInfo, candidateNode);
-                	}
-                }
-        	}
-        }
-        
-        Iterable<BazelPackageInfo> postOrderedModules = Traverser.forGraph(graph).depthFirstPostOrder(bazelWorkspaceRootPackageInfo);
+        Iterable<BazelPackageInfo> postOrderedModules = ImportOrderResolver.resolveModulesImportOrder(bazelWorkspaceRootPackageInfo, selectedBazelPackages, aspects);
         
         // finally, create an Eclipse Project for each Bazel Package being imported
         subMonitor.setTaskName("Importing bazel packages: ");
         for (BazelPackageInfo childPackageInfo : postOrderedModules) {
             subMonitor.subTask("Importing " + childPackageInfo.getBazelPackageName());
             if (childPackageInfo.isWorkspaceRoot()) {
-                // the workspace root node has already been created (above)
+                // the workspace root node has been already created (above)
                 continue;
             }
             List<String> generatedSources = aspects.lookByPackageName(childPackageInfo.getBazelPackageName()).getSources()
