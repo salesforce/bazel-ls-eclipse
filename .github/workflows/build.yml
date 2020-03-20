@@ -47,6 +47,7 @@ jobs:
           git commit -m "Publish p2 repo to GitHub Pages" -a
 
       - name: Delete remote p2 repository
+        if: github.ref == 'refs/heads/master'
         run: git push origin --delete gh-pages
 
       - name: Publish p2 repository
