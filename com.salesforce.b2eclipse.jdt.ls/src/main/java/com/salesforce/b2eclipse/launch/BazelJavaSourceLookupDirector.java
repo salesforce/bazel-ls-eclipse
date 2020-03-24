@@ -60,9 +60,9 @@ public class BazelJavaSourceLookupDirector extends AbstractSourceLookupDirector 
 
     @Override
     public void initializeParticipants() {
-        addParticipants(new ISourceLookupParticipant[] { new JavaSourceLookupParticipant() });
+        addParticipants(new ISourceLookupParticipant[] {new JavaSourceLookupParticipant()});
         ISourceContainer sourceContainer = new JavaProjectSourceContainer(project);
-        setSourceContainers(new ISourceContainer[] { sourceContainer });
+        setSourceContainers(new ISourceContainer[] {sourceContainer});
     }
 
     private static ILaunchManager getLaunchManager() {

@@ -36,12 +36,10 @@ package com.salesforce.b2eclipse.config;
 import java.io.File;
 import java.io.InputStream;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-//import org.eclipse.buildship.core.ProjectConfigurator;
+// import org.eclipse.buildship.core.ProjectConfigurator;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -108,7 +106,7 @@ public class BazelProjectConfigurator {
                 }
             }
         } catch (Exception anyE) {
-			BazelJdtPlugin.logError("ERROR scanning for Bazel packages: " + anyE.getMessage());
+            BazelJdtPlugin.logError("ERROR scanning for Bazel packages: " + anyE.getMessage());
         }
     }
 
@@ -145,7 +143,7 @@ public class BazelProjectConfigurator {
         try (InputStream is = buildFile.getContents()) {
             hasJavaRule = BazelBuildFileHelper.hasJavaRules(is);
         } catch (Exception anyE) {
-			BazelJdtPlugin.logException(anyE.getMessage(), anyE);
+            BazelJdtPlugin.logException(anyE.getMessage(), anyE);
         }
 
         return hasJavaRule;
@@ -192,7 +190,7 @@ public class BazelProjectConfigurator {
             // TODO when will this be called? we add the nature already when we created the project
             BazelEclipseProjectFactory.addNatureToEclipseProject(project, BazelNature.BAZEL_NATURE_ID);
         } catch (CoreException coreEx) {
-			BazelJdtPlugin.logError("Exception adding Bazel nature: " + coreEx.getMessage());
+            BazelJdtPlugin.logError("Exception adding Bazel nature: " + coreEx.getMessage());
         }
     }
 
@@ -233,9 +231,9 @@ public class BazelProjectConfigurator {
      *            the key as a location they can configure for import). Those can be modified and current method is
      *            expected to remove some entries from this map.
      */
-//    public void removeDirtyDirectories(Map<File, List<ProjectConfigurator>> proposals) {
-//        // this is not an issue with Bazel
-//        // there are output directories in the top level workspace root, but they will not have BUILD files in them
-//    }
+    //    public void removeDirtyDirectories(Map<File, List<ProjectConfigurator>> proposals) {
+    //        // this is not an issue with Bazel
+    //        // there are output directories in the top level workspace root, but they will not have BUILD files in them
+    //    }
 
 }

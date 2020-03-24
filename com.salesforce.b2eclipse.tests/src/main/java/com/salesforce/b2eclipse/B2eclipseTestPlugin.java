@@ -30,20 +30,22 @@ import org.osgi.framework.BundleContext;
 
 public class B2eclipseTestPlugin implements BundleActivator {
 
-	public static final String PLUGIN_ID = "com.salesforce.b2eclipse.tests";
+    public static final String PLUGIN_ID = "com.salesforce.b2eclipse.tests";
 
-	/* (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void start(BundleContext context) throws Exception {
-	}
+    /* (non-Javadoc)
+     * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void start(BundleContext context) throws Exception {
 
-	/* (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void stop(BundleContext context) throws Exception {
-	}
+    }
+
+    /* (non-Javadoc)
+     * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void stop(BundleContext context) throws Exception {
+
+    }
 
 }

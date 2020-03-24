@@ -45,10 +45,10 @@ public final class AspectOutputJars {
     private final String jar; // jar
     private final String srcjar; // source_jar
 
-	AspectOutputJars(JsonObject obj) {
-		this.jar = obj.has("jar") ? obj.get("jar").getAsString() : null;
-		this.ijar = obj.has("interface_jar") ? obj.get("interface_jar").getAsString() : null;
-		this.srcjar = obj.has("source_jar") ? obj.get("source_jar").getAsString() : null;
+    AspectOutputJars(JsonObject obj) {
+        this.jar = obj.has("jar") ? obj.get("jar").getAsString() : null;
+        this.ijar = obj.has("interface_jar") ? obj.get("interface_jar").getAsString() : null;
+        this.srcjar = obj.has("source_jar") ? obj.get("source_jar").getAsString() : null;
     }
 
     @Override
@@ -67,6 +67,42 @@ public final class AspectOutputJars {
     @Override
     public int hashCode() {
         return Objects.hash(ijar, jar, srcjar);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        AspectOutputJars other = (AspectOutputJars) obj;
+        if (ijar == null) {
+            if (other.ijar != null) {
+                return false;
+            }
+        } else if (!ijar.equals(other.ijar)) {
+            return false;
+        }
+        if (jar == null) {
+            if (other.jar != null) {
+                return false;
+            }
+        } else if (!jar.equals(other.jar)) {
+            return false;
+        }
+        if (srcjar == null) {
+            if (other.srcjar != null) {
+                return false;
+            }
+        } else if (!srcjar.equals(other.srcjar)) {
+            return false;
+        }
+        return true;
     }
 
     public String getInterfaceJar() {

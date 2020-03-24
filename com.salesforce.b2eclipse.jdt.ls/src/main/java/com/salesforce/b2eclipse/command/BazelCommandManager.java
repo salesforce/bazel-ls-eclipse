@@ -51,9 +51,9 @@ public class BazelCommandManager {
     private final CommandBuilder commandBuilder;
 
     /**
-     * BazelWorkspaceCommandRunner instance that is not tied to a workspace. Used to check the Bazel version, and to do a workspace
-     * lookup given a random file system directory (since we don't know the workspace in advance, we can't use a
-     * workspace specific runner for that).
+     * BazelWorkspaceCommandRunner instance that is not tied to a workspace. Used to check the Bazel version, and to do
+     * a workspace lookup given a random file system directory (since we don't know the workspace in advance, we can't
+     * use a workspace specific runner for that).
      * <p>
      * Be careful about adding new operations using this instance. Prefer to use an instance attached to workspace
      * instead, as that can pass in workspace specific options when running the command.
@@ -61,16 +61,16 @@ public class BazelCommandManager {
     private final BazelWorkspaceCommandRunner genericCommandRunner;
 
     /**
-    * The set of workspace specific command runners. The key is the File workspaceRoot. We don't yet support
-    * multiple Bazel workspaces, but when we do this will be important.
-    */
+     * The set of workspace specific command runners. The key is the File workspaceRoot. We don't yet support multiple
+     * Bazel workspaces, but when we do this will be important.
+     */
     private final Map<File, BazelWorkspaceCommandRunner> workspaceCommandRunners = new TreeMap<>();
 
     /**
      * Create a {@link BazelCommandManager} object, providing the implementation for locating aspect and getting console
      * streams.
      */
-	public BazelCommandManager(BazelAspectLocation aspectLocation, CommandBuilder commandBuilder,
+    public BazelCommandManager(BazelAspectLocation aspectLocation, CommandBuilder commandBuilder,
             File bazelExecutablePath) {
         this.aspectLocation = aspectLocation;
         this.commandBuilder = commandBuilder;
@@ -79,12 +79,11 @@ public class BazelCommandManager {
         this.genericCommandRunner = new BazelWorkspaceCommandRunner(bazelExecutablePath, commandBuilder);
     }
 
-
     // COMMAND RUNNERS
 
     /**
-     * Provides a generic command runner not associated with any workspace. The set of commands that will work correctly using this
-     * runner is very limited. Getting the bazel executable version is one.
+     * Provides a generic command runner not associated with any workspace. The set of commands that will work correctly
+     * using this runner is very limited. Getting the bazel executable version is one.
      */
     public BazelWorkspaceCommandRunner getGlobalCommandRunner() {
         return genericCommandRunner;
@@ -106,12 +105,11 @@ public class BazelCommandManager {
             }
 
             workspaceCommandRunner = new BazelWorkspaceCommandRunner(bazelExecutable, this.aspectLocation,
-					this.commandBuilder, bazelWorkspaceRootDirectory);
+                    this.commandBuilder, bazelWorkspaceRootDirectory);
             workspaceCommandRunners.put(bazelWorkspaceRootDirectory, workspaceCommandRunner);
         }
         return workspaceCommandRunner;
     }
-
 
     // BAZEL EXECUTABLE
 

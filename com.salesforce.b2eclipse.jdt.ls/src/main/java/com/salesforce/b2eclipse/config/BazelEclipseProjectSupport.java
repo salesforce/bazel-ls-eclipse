@@ -50,18 +50,24 @@ import com.salesforce.b2eclipse.BazelNature;
 /**
  * Support class that provides interaction methods for existing Eclipse Bazel projects.
  */
-public class BazelEclipseProjectSupport {
+public final class BazelEclipseProjectSupport {
     static final String WORKSPACE_ROOT_PROPERTY = "bazel.workspace.root";
     static final String TARGET_PROPERTY_PREFIX = "bazel.target";
     static final String BUILDFLAG_PROPERTY_PREFIX = "bazel.build.flag";
+
+    private BazelEclipseProjectSupport() {
+
+    }
 
     /**
      * List the Bazel targets configured for this Eclipse project. Each project configured for Bazel is configured to
      * track certain targets and this function fetches this list from the project preferences.
      */
-    public static List<String> getBazelTargetsForEclipseProject(IProject eclipseProject, boolean addWildcardIfNoTargets) {
+    public static List<String> getBazelTargetsForEclipseProject(IProject eclipseProject,
+            boolean addWildcardIfNoTargets) {
         // Get the list of targets from the preferences
-		Preferences eclipseProjectBazelPrefs = BazelJdtPlugin.getResourceHelper().getProjectBazelPreferences(eclipseProject);
+        Preferences eclipseProjectBazelPrefs =
+                BazelJdtPlugin.getResourceHelper().getProjectBazelPreferences(eclipseProject);
         ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
 
         boolean addedTarget = false;
@@ -86,7 +92,7 @@ public class BazelEclipseProjectSupport {
      * Returns all Java Projects that have a Bazel Nature.
      */
     public static IJavaProject[] getAllJavaBazelProjects() {
-		IJavaProject[] javaProjects = BazelJdtPlugin.getJavaCoreHelper().getAllJavaProjects();
+        IJavaProject[] javaProjects = BazelJdtPlugin.getJavaCoreHelper().getAllJavaProjects();
         List<IJavaProject> bazelProjects = new ArrayList<>(javaProjects.length);
         for (IJavaProject project : javaProjects) {
             if (isBazelProject(project.getProject())) {
@@ -101,8 +107,8 @@ public class BazelEclipseProjectSupport {
      */
     public static List<String> getBazelBuildFlagsForEclipseProject(IProject eclipseProject) {
         // Get the list of build flags from the preferences
-		IScopeContext eclipseProjectScope = BazelJdtPlugin.getResourceHelper().getProjectScopeContext(eclipseProject);
-		Preferences eclipseProjectNode = eclipseProjectScope.getNode(BazelJdtPlugin.PLUGIN_ID);
+        IScopeContext eclipseProjectScope = BazelJdtPlugin.getResourceHelper().getProjectScopeContext(eclipseProject);
+        Preferences eclipseProjectNode = eclipseProjectScope.getNode(BazelJdtPlugin.PLUGIN_ID);
 
         ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
         for (String property : getKeys(eclipseProjectNode)) {

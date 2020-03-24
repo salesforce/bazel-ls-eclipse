@@ -70,7 +70,7 @@ public class BazelProjectImportScanner {
 
     // TODO BazelProjectImportScanner should be moved into the plugin-command project, but will require some refactoring
     // of BazelProjectConfigurator and maybe other collaborators
-    
+
     /**
      * Get a list of candidate Bazel packages to import. This list is provided to the user in the form of a tree
      * control.
@@ -92,7 +92,7 @@ public class BazelProjectImportScanner {
         }
         return getProjects(new File(rootDirectory));
     }
-    
+
     /**
      * Get a list of candidate Bazel packages to import. This list is provided to the user in the form of a tree
      * control.

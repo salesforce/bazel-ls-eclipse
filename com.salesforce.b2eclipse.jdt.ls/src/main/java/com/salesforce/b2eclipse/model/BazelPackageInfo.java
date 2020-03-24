@@ -66,8 +66,8 @@ public class BazelPackageInfo {
 
     private BazelPackageInfo parent;
     private final boolean isWorkspaceRoot;
-    protected final File workspaceRoot;
-    protected BazelPackageInfo workspaceRootNode;
+    private final File workspaceRoot;
+    private BazelPackageInfo workspaceRootNode;
 
     public static final String WORKSPACE_FILENAME = "WORKSPACE";
     public static final String BUILD_FILENAME = "BUILD";
@@ -303,11 +303,9 @@ public class BazelPackageInfo {
         }
 
         // set computedPackageName only when done computing it, to avoid threading issues
-        computedPackageName = StreamSupport.stream(
-                Paths.get(relativeWorkspacePath).spliterator(),
-                false
-        ).map(Object::toString).collect(Collectors.joining("/", "//", ""));
-        
+        computedPackageName = StreamSupport.stream(Paths.get(relativeWorkspacePath).spliterator(), false)
+                .map(Object::toString).collect(Collectors.joining("/", "//", ""));
+
         // and cache the last segment as well
         getBazelPackageNameLastSegment();
 
@@ -398,18 +396,23 @@ public class BazelPackageInfo {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         BazelPackageInfo other = (BazelPackageInfo) obj;
         if (computedPackageName == null) {
-            if (other.computedPackageName != null)
+            if (other.computedPackageName != null) {
                 return false;
-        } else if (!computedPackageName.equals(other.computedPackageName))
+            }
+        } else if (!computedPackageName.equals(other.computedPackageName)) {
             return false;
+        }
         return true;
     }
 

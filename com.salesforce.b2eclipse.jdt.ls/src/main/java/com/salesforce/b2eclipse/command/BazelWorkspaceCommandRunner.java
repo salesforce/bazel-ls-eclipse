@@ -97,7 +97,6 @@ public class BazelWorkspaceCommandRunner {
      */
     private File bazelBinDirectory;
 
-
     // GLOBAL CONFIG
 
     /**
@@ -109,8 +108,7 @@ public class BazelWorkspaceCommandRunner {
     /**
      * Shared class for low level parsing of Bazel command output
      */
-    private static final BazelOutputParser outputParser = new BazelOutputParser();
-
+    private static final BazelOutputParser OUTPUT_PARSER = new BazelOutputParser();
 
     // COLLABORATORS
 
@@ -146,12 +144,11 @@ public class BazelWorkspaceCommandRunner {
      */
     private List<String> buildOptions = Collections.emptyList();
 
-
-
     // CTORS
 
     /**
-     * This constructor creates the 'global' runner, which is a limited runner that only runs commands such as version check.
+     * This constructor creates the 'global' runner, which is a limited runner that only runs commands such as version
+     * check.
      */
     BazelWorkspaceCommandRunner(File bazelExecutable, CommandBuilder commandBuilder) {
 
@@ -168,8 +165,8 @@ public class BazelWorkspaceCommandRunner {
     /**
      * For each Bazel workspace in the Eclipse workspace, there will be an instance of this runner.
      */
-    BazelWorkspaceCommandRunner(File bazelExecutable, BazelAspectLocation aspectLocation,
-			CommandBuilder commandBuilder, File bazelWorkspaceRoot) {
+    BazelWorkspaceCommandRunner(File bazelExecutable, BazelAspectLocation aspectLocation, CommandBuilder commandBuilder,
+            File bazelWorkspaceRoot) {
 
         if (bazelWorkspaceRoot == null || !bazelWorkspaceRoot.exists()) {
             throw new IllegalArgumentException("Bazel workspace root directory cannot be null, and must exist.");
@@ -182,7 +179,6 @@ public class BazelWorkspaceCommandRunner {
         this.bazelVersionChecker = new BazelVersionChecker(this.commandBuilder);
         this.bazelQueryHelper = new BazelQueryHelper(bazelCommandExecutor);
     }
-
 
     // WORKSPACE CONFIG
 
@@ -206,8 +202,8 @@ public class BazelWorkspaceCommandRunner {
                 ImmutableList.Builder<String> argBuilder = ImmutableList.builder();
                 argBuilder.add("info").add("execution_root");
 
-                List<String> outputLines = bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
-                    argBuilder.build(), (t) -> t);
+                List<String> outputLines = bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory,
+                    progressMonitor, argBuilder.build(), (t) -> t);
                 outputLines = BazelCommandExecutor.stripInfoLines(outputLines);
                 bazelExecRootDirectory = new File(String.join("", outputLines));
             } catch (Exception anyE) {
@@ -229,8 +225,8 @@ public class BazelWorkspaceCommandRunner {
                 ImmutableList.Builder<String> argBuilder = ImmutableList.builder();
                 argBuilder.add("info").add("output_base");
 
-                List<String> outputLines = bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
-                    argBuilder.build(), (t) -> t);
+                List<String> outputLines = bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory,
+                    progressMonitor, argBuilder.build(), (t) -> t);
                 outputLines = BazelCommandExecutor.stripInfoLines(outputLines);
                 bazelOutputBaseDirectory = new File(String.join("", outputLines));
 
@@ -253,8 +249,8 @@ public class BazelWorkspaceCommandRunner {
                 ImmutableList.Builder<String> argBuilder = ImmutableList.builder();
                 argBuilder.add("info").add("bazel-bin");
 
-                List<String> outputLines = bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
-                    argBuilder.build(), (t) -> t);
+                List<String> outputLines = bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory,
+                    progressMonitor, argBuilder.build(), (t) -> t);
                 outputLines = BazelCommandExecutor.stripInfoLines(outputLines);
                 bazelBinDirectory = new File(String.join("", outputLines));
             } catch (Exception anyE) {
@@ -276,7 +272,7 @@ public class BazelWorkspaceCommandRunner {
     /**
      * Set the path to the Bazel binary. Allows the user to override the default via the Preferences ui.
      */
-    public synchronized static void setBazelExecutablePath(String bazelExecutablePath) {
+    public static synchronized void setBazelExecutablePath(String bazelExecutablePath) {
         bazelExecutable = new File(bazelExecutablePath);
     }
 
@@ -294,9 +290,7 @@ public class BazelWorkspaceCommandRunner {
         return bazelExecutable.toString();
     }
 
-
     // OPERATIONS
-
 
     // BUILD, BUILD INFO, RUN, TEST OPERATIONS
 
@@ -310,7 +304,8 @@ public class BazelWorkspaceCommandRunner {
      */
     public synchronized List<String> listBazelTargetsInBuildFiles(WorkProgressMonitor progressMonitor,
             File... directories) throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
-        return this.bazelQueryHelper.listBazelTargetsInBuildFiles(bazelWorkspaceRootDirectory, progressMonitor, directories);
+        return this.bazelQueryHelper.listBazelTargetsInBuildFiles(bazelWorkspaceRootDirectory, progressMonitor,
+            directories);
     }
 
     /**
@@ -327,7 +322,8 @@ public class BazelWorkspaceCommandRunner {
      */
     public List<String> getMatchingTargets(String userSearchString, WorkProgressMonitor progressMonitor)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
-        return this.bazelQueryHelper.getMatchingTargets(this.bazelWorkspaceRootDirectory, userSearchString, progressMonitor);
+        return this.bazelQueryHelper.getMatchingTargets(this.bazelWorkspaceRootDirectory, userSearchString,
+            progressMonitor);
     }
 
     /**
@@ -342,16 +338,17 @@ public class BazelWorkspaceCommandRunner {
     public synchronized List<BazelMarkerDetails> runBazelBuild(List<String> bazelTargets,
             WorkProgressMonitor progressMonitor, List<String> extraArgs)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
-        List<String> extraArgsList = ImmutableList.<String> builder().add("build").addAll(this.buildOptions)
+        List<String> extraArgsList = ImmutableList.<String>builder().add("build").addAll(this.buildOptions)
                 .addAll(extraArgs).add("--").addAll(bazelTargets).build();
 
-        List<String> output = this.bazelCommandExecutor.runBazelAndGetErrorLines(bazelWorkspaceRootDirectory, progressMonitor,
-            extraArgsList, new ErrorOutputSelector());
+        List<String> output = this.bazelCommandExecutor.runBazelAndGetErrorLines(bazelWorkspaceRootDirectory,
+            progressMonitor, extraArgsList, new ErrorOutputSelector());
         if (output.isEmpty()) {
             return Collections.emptyList();
         } else {
-            List<BazelMarkerDetails> errorDetails = outputParser.getErrorBazelMarkerDetails(output);
-            BazelJdtPlugin.logError("\n" + String.join("\n", errorDetails.stream().map(d -> d.toString()).collect(Collectors.toList()))
+            List<BazelMarkerDetails> errorDetails = OUTPUT_PARSER.getErrorBazelMarkerDetails(output);
+            BazelJdtPlugin.logError(
+                "\n" + String.join("\n", errorDetails.stream().map(d -> d.toString()).collect(Collectors.toList()))
                         + "\n");
             return errorDetails;
         }
@@ -400,21 +397,20 @@ public class BazelWorkspaceCommandRunner {
         return this.aspectHelper;
     }
 
-
     // CUSTOM OPERATIONS
 
     /**
-     * Returns a builder for issuing custom commands that are not covered in the convenience APIs in this class.
-     * You can use the CommandBuilder to build any command you need. For 'run' or 'test' commands, consider using
-     * the special purpose BazelLauncherBuilder instead.
+     * Returns a builder for issuing custom commands that are not covered in the convenience APIs in this class. You can
+     * use the CommandBuilder to build any command you need. For 'run' or 'test' commands, consider using the special
+     * purpose BazelLauncherBuilder instead.
      */
     public CommandBuilder getBazelCommandBuilder() {
         return this.commandBuilder;
     }
 
     /**
-     * Returns a builder for issuing custom launcher commands (e.g. 'bazel run', 'bazel test'). The builder
-     * comes pre-wired into other collaborators.
+     * Returns a builder for issuing custom launcher commands (e.g. 'bazel run', 'bazel test'). The builder comes
+     * pre-wired into other collaborators.
      */
     public BazelLauncherBuilder getBazelLauncherBuilder() {
         BazelLauncherBuilder launcherBuilder = new BazelLauncherBuilder(this, this.commandBuilder);
@@ -422,9 +418,7 @@ public class BazelWorkspaceCommandRunner {
         return launcherBuilder;
     }
 
-
     // SPECIAL OPERATIONS
-
 
     /**
      * Runs the clean command on the workspace.
@@ -450,9 +444,7 @@ public class BazelWorkspaceCommandRunner {
         bazelVersionChecker.runBazelVersionCheck(bazelExecutable, this.bazelWorkspaceRootDirectory);
     }
 
-
     // HELPERS
-
 
     private static class ErrorOutputSelector implements Function<String, String> {
 

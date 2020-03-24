@@ -34,31 +34,33 @@ import java.util.function.Function;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 
 /**
- * A base builder class to generate a Bazel Command object. This is a low level API
- * and typically there are convenience methods in BazelWorkspaceCommandRunner that
- * will create the commands for you.
+ * A base builder class to generate a Bazel Command object. This is a low level API and typically there are convenience
+ * methods in BazelWorkspaceCommandRunner that will create the commands for you.
  * <p>
- * Specific implementations include the ShellCommandBuilder (which creates actual shell invocations)
- * and the MockCommandBuilder (for running functional tests that simulate shell invocations).
+ * Specific implementations include the ShellCommandBuilder (which creates actual shell invocations) and the
+ * MockCommandBuilder (for running functional tests that simulate shell invocations).
  * <p>
- * As currently implemented, this class is not thread-safe. Meaning a single builder is stateful and
- * can only build one command object at a time. Invoking build() clears the state and makes the builder
- * ready for the next command to build.
+ * As currently implemented, this class is not thread-safe. Meaning a single builder is stateful and can only build one
+ * command object at a time. Invoking build() clears the state and makes the builder ready for the next command to
+ * build.
  */
 public abstract class CommandBuilder {
 
-    protected String consoleName = null;
-    protected File directory;
-    protected List<String> args;
-    protected OutputStream stdout = null;
-    protected OutputStream stderr = null;
-    protected Function<String, String> stdoutSelector;
-    protected Function<String, String> stderrSelector;
-    protected WorkProgressMonitor progressMonitor;
-    protected long timeoutMS;
+    // default timeout
+    private static final int DEFAULT_TIMEOUT = 100000;
 
-	protected CommandBuilder() {
-		// set the initial state
+    private String consoleName = null;
+    private File directory;
+    private List<String> args;
+    private OutputStream stdout = null;
+    private OutputStream stderr = null;
+    private Function<String, String> stdoutSelector;
+    private Function<String, String> stderrSelector;
+    private WorkProgressMonitor progressMonitor;
+    private long timeoutMS;
+
+    protected CommandBuilder() {
+        // set the initial state
         this.reset();
     }
 
@@ -74,7 +76,7 @@ public abstract class CommandBuilder {
         this.progressMonitor = null;
 
         // TODO make Bazel command timeout configurable
-        this.timeoutMS = 100000; // default timeout
+        this.timeoutMS = DEFAULT_TIMEOUT;
     }
 
     /**
@@ -82,9 +84,9 @@ public abstract class CommandBuilder {
      *
      * <p>
      * The console name is used to print result of the program. Only lines not filtered by
-     * {@link #setStderrLineSelector(Function)} and {@link #setStdoutLineSelector(Function)} are printed to the
-     * console. If {@link #setStandardError(OutputStream)} or {@link #setStandardOutput(OutputStream)} have been
-     * used with a non null value, then they intercept all output from being printed to the console.
+     * {@link #setStderrLineSelector(Function)} and {@link #setStdoutLineSelector(Function)} are printed to the console.
+     * If {@link #setStandardError(OutputStream)} or {@link #setStandardOutput(OutputStream)} have been used with a non
+     * null value, then they intercept all output from being printed to the console.
      *
      * <p>
      * If name is null, no output is written to any console.
@@ -95,8 +97,8 @@ public abstract class CommandBuilder {
     }
 
     /**
-     * Set the working directory for the program, it is set to the current working directory of the current java
-     * process by default.
+     * Set the working directory for the program, it is set to the current working directory of the current java process
+     * by default.
      */
     public CommandBuilder setDirectory(File directory) {
         this.directory = directory;
@@ -104,9 +106,9 @@ public abstract class CommandBuilder {
     }
 
     /**
-     * Set an {@link OutputStream} to receive non selected lines from the standard output stream of the program in
-     * lieu of the console. If a selector has been set with {@link #setStdoutLineSelector(Function)}, only the lines
-     * not selected (for which the selector returns null) will be printed to the {@link OutputStream}.
+     * Set an {@link OutputStream} to receive non selected lines from the standard output stream of the program in lieu
+     * of the console. If a selector has been set with {@link #setStdoutLineSelector(Function)}, only the lines not
+     * selected (for which the selector returns null) will be printed to the {@link OutputStream}.
      */
     public CommandBuilder setStandardOutput(OutputStream stdout) {
         this.stdout = stdout;
@@ -114,9 +116,9 @@ public abstract class CommandBuilder {
     }
 
     /**
-     * Set an {@link OutputStream} to receive non selected lines from the standard error stream of the program in
-     * lieu of the console. If a selector has been set with {@link #setStderrLineSelector(Function)}, only the lines
-     * not selected (for which the selector returns null) will be printed to the {@link OutputStream}.
+     * Set an {@link OutputStream} to receive non selected lines from the standard error stream of the program in lieu
+     * of the console. If a selector has been set with {@link #setStderrLineSelector(Function)}, only the lines not
+     * selected (for which the selector returns null) will be printed to the {@link OutputStream}.
      */
     public CommandBuilder setStandardError(OutputStream stderr) {
         this.stderr = stderr;
@@ -132,8 +134,7 @@ public abstract class CommandBuilder {
     }
 
     /**
-     * Add a list of arguments to the command line. The first argument to be added to the builder is the program
-     * name.
+     * Add a list of arguments to the command line. The first argument to be added to the builder is the program name.
      */
     public CommandBuilder addArguments(Iterable<String> args) {
         for (String arg : args) {
@@ -146,10 +147,10 @@ public abstract class CommandBuilder {
      * Set a selector to accumulate lines that are selected from the standard output stream.
      *
      * <p>
-     * The selector is passed all lines that are printed to the standard output. It can either returns null to say
-     * that the line should be passed to the console or to a non null value that will be stored. All values that
-     * have been selected (for which the selector returns a non-null value) will be stored in a list accessible
-     * through {@link Command#getSelectedOutputLines()}. The selected lines will not be printed to the console.
+     * The selector is passed all lines that are printed to the standard output. It can either returns null to say that
+     * the line should be passed to the console or to a non null value that will be stored. All values that have been
+     * selected (for which the selector returns a non-null value) will be stored in a list accessible through
+     * {@link Command#getSelectedOutputLines()}. The selected lines will not be printed to the console.
      */
     public CommandBuilder setStdoutLineSelector(Function<String, String> selector) {
         this.stdoutSelector = selector;
@@ -160,10 +161,10 @@ public abstract class CommandBuilder {
      * Set a selector to accumulate lines that are selected from the standard error stream.
      *
      * <p>
-     * The selector is passed all lines that are printed to the standard error. It can either returns null to say
-     * that the line should be passed to the console or to a non null value that will be stored. All values that
-     * have been selected (for which the selector returns a non-null value) will be stored in a list accessible
-     * through {@link Command#getSelectedErrorLines()}. The selected lines will not be printed to the console.
+     * The selector is passed all lines that are printed to the standard error. It can either returns null to say that
+     * the line should be passed to the console or to a non null value that will be stored. All values that have been
+     * selected (for which the selector returns a non-null value) will be stored in a list accessible through
+     * {@link Command#getSelectedErrorLines()}. The selected lines will not be printed to the console.
      */
     public CommandBuilder setStderrLineSelector(Function<String, String> selector) {
         this.stderrSelector = selector;
@@ -192,7 +193,7 @@ public abstract class CommandBuilder {
     public Command build() throws IOException {
         Command command = null;
         try {
-            command = this.build_impl();
+            command = this.buildImpl();
         } finally {
             this.reset();
         }
@@ -202,6 +203,66 @@ public abstract class CommandBuilder {
     /**
      * Build the specific Command implementation object.
      */
-    protected abstract Command build_impl() throws IOException;
+    protected abstract Command buildImpl() throws IOException;
+
+    public List<String> getArgs() {
+        return args;
+    }
+
+    public void setArgs(List<String> args) {
+        this.args = args;
+    }
+
+    public OutputStream getStdout() {
+        return stdout;
+    }
+
+    public void setStdout(OutputStream stdout) {
+        this.stdout = stdout;
+    }
+
+    public OutputStream getStderr() {
+        return stderr;
+    }
+
+    public void setStderr(OutputStream stderr) {
+        this.stderr = stderr;
+    }
+
+    public Function<String, String> getStdoutSelector() {
+        return stdoutSelector;
+    }
+
+    public void setStdoutSelector(Function<String, String> stdoutSelector) {
+        this.stdoutSelector = stdoutSelector;
+    }
+
+    public Function<String, String> getStderrSelector() {
+        return stderrSelector;
+    }
+
+    public void setStderrSelector(Function<String, String> stderrSelector) {
+        this.stderrSelector = stderrSelector;
+    }
+
+    public long getTimeoutMS() {
+        return timeoutMS;
+    }
+
+    public void setTimeoutMS(long timeoutMS) {
+        this.timeoutMS = timeoutMS;
+    }
+
+    public String getConsoleName() {
+        return consoleName;
+    }
+
+    public File getDirectory() {
+        return directory;
+    }
+
+    public WorkProgressMonitor getProgressMonitor() {
+        return progressMonitor;
+    }
 
 }

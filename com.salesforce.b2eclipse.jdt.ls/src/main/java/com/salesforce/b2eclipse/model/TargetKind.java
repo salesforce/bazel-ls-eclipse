@@ -90,10 +90,10 @@ public enum TargetKind {
             return true;
         }
     };
-    
+
     private final String targetKind;
 
-    private TargetKind(String targetKind) {
+    TargetKind(String targetKind) {
         this.targetKind = targetKind;
     }
 

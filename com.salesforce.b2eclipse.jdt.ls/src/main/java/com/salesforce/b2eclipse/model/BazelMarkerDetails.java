@@ -62,7 +62,8 @@ public class BazelMarkerDetails {
     public String getResourcePathRelativeToBazelPackage(Collection<BazelLabel> labels) {
         for (BazelLabel label : labels) {
             String packagePath = label.getPackagePath();
-            if (resourcePath.startsWith(packagePath + File.separator) && resourcePath.length() > packagePath.length() + 1) {
+            if (resourcePath.startsWith(packagePath + File.separator)
+                    && resourcePath.length() > packagePath.length() + 1) {
                 return resourcePath.substring(packagePath.length());
             }
         }

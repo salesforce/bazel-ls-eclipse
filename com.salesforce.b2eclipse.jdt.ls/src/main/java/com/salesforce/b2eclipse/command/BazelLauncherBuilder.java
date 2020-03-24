@@ -38,14 +38,14 @@ import com.salesforce.b2eclipse.model.BazelLabel;
 import com.salesforce.b2eclipse.model.TargetKind;
 
 /**
- * Convenience class that manufactures Bazel Command instances used for Bazel 'run' or 'test' commands 
- * (e.g. for Eclipse Launch Configs).
+ * Convenience class that manufactures Bazel Command instances used for Bazel 'run' or 'test' commands (e.g. for Eclipse
+ * Launch Configs).
  */
 public class BazelLauncherBuilder {
 
     private final BazelWorkspaceCommandRunner bazelCommandRunner;
     private final CommandBuilder commandBuilder;
-    
+
     private BazelLabel bazelLabel;
     private TargetKind targetKind;
     private Map<String, String> bazelArgs;
@@ -56,14 +56,14 @@ public class BazelLauncherBuilder {
 
     // CTORS
     // Get instances via BazelWorkspaceCommandRunner.getBazelLauncherBuilder()
-    
+
     BazelLauncherBuilder(BazelWorkspaceCommandRunner bazelRunner, CommandBuilder commandBuilder) {
         this.bazelCommandRunner = Objects.requireNonNull(bazelRunner);
         this.commandBuilder = Objects.requireNonNull(commandBuilder);
     }
 
-    BazelLauncherBuilder(BazelWorkspaceCommandRunner bazelRunner, CommandBuilder commandBuilder,
-        BazelLabel bazelLabel, TargetKind targetKind, Map<String, String> bazelArgs) {
+    BazelLauncherBuilder(BazelWorkspaceCommandRunner bazelRunner, CommandBuilder commandBuilder, BazelLabel bazelLabel,
+            TargetKind targetKind, Map<String, String> bazelArgs) {
         this.bazelCommandRunner = Objects.requireNonNull(bazelRunner);
         this.commandBuilder = Objects.requireNonNull(commandBuilder);
         this.bazelLabel = Objects.requireNonNull(bazelLabel);
@@ -71,23 +71,22 @@ public class BazelLauncherBuilder {
         this.bazelArgs = Objects.requireNonNull(bazelArgs);
     }
 
-
     // SETTERS
-    
+
     public BazelLauncherBuilder setLabel(BazelLabel bazelLabel) {
-         this.bazelLabel = bazelLabel;
-         return this;
+        this.bazelLabel = bazelLabel;
+        return this;
     }
 
     public BazelLauncherBuilder setTargetKind(TargetKind targetKind) {
         this.targetKind = targetKind;
         return this;
-   }
+    }
 
     public BazelLauncherBuilder setArgs(Map<String, String> bazelArgs) {
         this.bazelArgs = bazelArgs;
         return this;
-   }
+    }
 
     public BazelLauncherBuilder setDebugMode(boolean isDebugMode, String debugHost, int debugPort) {
         this.isDebugMode = isDebugMode;
@@ -96,15 +95,14 @@ public class BazelLauncherBuilder {
         return this;
     }
 
-
     // BUILD
-    
+
     public Command build() {
         Objects.requireNonNull(bazelCommandRunner);
         Objects.requireNonNull(bazelLabel);
         Objects.requireNonNull(targetKind);
         Objects.requireNonNull(bazelArgs);
-        
+
         List<String> args = new ArrayList<>();
         if (isDebugMode) {
             if (targetKind.isTestable()) {
@@ -120,14 +118,13 @@ public class BazelLauncherBuilder {
         }
 
         try {
-            return targetKind.isTestable()
-                    ? getBazelTestCommand(Collections.singletonList(bazelLabel.toString()), args)
+            return targetKind.isTestable() ? getBazelTestCommand(Collections.singletonList(bazelLabel.toString()), args)
                     : getBazelRunCommand(Collections.singletonList(bazelLabel.toString()), args);
         } catch (IOException | BazelCommandLineToolConfigurationException ex) {
             throw new IllegalStateException(ex);
         }
     }
-    
+
     /**
      * Builds and returns a Command instance representing a "bazel run" invocation.
      *
@@ -135,21 +132,17 @@ public class BazelLauncherBuilder {
      */
     private Command getBazelRunCommand(List<String> bazelTargets, List<String> extraArgs)
             throws IOException, BazelCommandLineToolConfigurationException {
-        List<String> args = ImmutableList.<String> builder().add("run").addAll(extraArgs)
-                .add("--").addAll(bazelTargets).build();
+        List<String> args =
+                ImmutableList.<String>builder().add("run").addAll(extraArgs).add("--").addAll(bazelTargets).build();
 
         WorkProgressMonitor progressMonitor = null;
-        
+
         File workspaceDirectory = this.bazelCommandRunner.getBazelWorkspaceRootDirectory();
         String consoleName = ConsoleType.WORKSPACE.getConsoleName(workspaceDirectory);
-        
-        return commandBuilder
-                .setConsoleName(consoleName)
-                .setDirectory(workspaceDirectory)
-                .addArguments(BazelWorkspaceCommandRunner.getBazelExecutablePath())
-                .addArguments(args)
-                .setProgressMonitor(progressMonitor)
-                .build();
+
+        return commandBuilder.setConsoleName(consoleName).setDirectory(workspaceDirectory)
+                .addArguments(BazelWorkspaceCommandRunner.getBazelExecutablePath()).addArguments(args)
+                .setProgressMonitor(progressMonitor).build();
     }
 
     /**
@@ -163,24 +156,19 @@ public class BazelLauncherBuilder {
         // need to add single method support:
         // --test_filter=com.blah.foo.hello.HelloAgain2Test#testHelloAgain2$
 
-        List<String> args = ImmutableList.<String> builder().add("test")
-                .add("--test_output=streamed").add("--test_strategy=exclusive").add("--test_timeout=9999")
-                .add("--nocache_test_results").add("--runs_per_test=1").add("--flaky_test_attempts=1").addAll(extraArgs)
-                .add("--").addAll(bazelTargets).build();
+        List<String> args = ImmutableList.<String>builder().add("test").add("--test_output=streamed")
+                .add("--test_strategy=exclusive").add("--test_timeout=9999").add("--nocache_test_results")
+                .add("--runs_per_test=1").add("--flaky_test_attempts=1").addAll(extraArgs).add("--")
+                .addAll(bazelTargets).build();
 
         WorkProgressMonitor progressMonitor = null;
-        
-        
+
         File workspaceDirectory = this.bazelCommandRunner.getBazelWorkspaceRootDirectory();
         String consoleName = ConsoleType.WORKSPACE.getConsoleName(workspaceDirectory);
-        
-        return commandBuilder
-                .setConsoleName(consoleName)
-                .setDirectory(workspaceDirectory)
-                .addArguments(BazelWorkspaceCommandRunner.getBazelExecutablePath())
-                .addArguments(args)
-                .setProgressMonitor(progressMonitor)
-                .build();
+
+        return commandBuilder.setConsoleName(consoleName).setDirectory(workspaceDirectory)
+                .addArguments(BazelWorkspaceCommandRunner.getBazelExecutablePath()).addArguments(args)
+                .setProgressMonitor(progressMonitor).build();
     }
-    
+
 }

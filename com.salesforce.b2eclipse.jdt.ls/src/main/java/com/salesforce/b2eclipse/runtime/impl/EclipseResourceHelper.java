@@ -48,6 +48,7 @@ import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
 
 /**
  * Resource helper implementation used when running in a live Eclipse runtime.
+ * 
  * @author plaird
  *
  */
@@ -60,11 +61,12 @@ public class EclipseResourceHelper implements ResourceHelper {
     public IProject getProjectByName(String projectName) {
         return getEclipseWorkspaceRoot().getProject(projectName);
     }
+
     /**
      * Creates the project described by newProject, with the passed description.
      */
     @Override
-	public IProject createProject(IProject newProject, IProjectDescription description, IProgressMonitor monitor)
+    public IProject createProject(IProject newProject, IProjectDescription description, IProgressMonitor monitor)
             throws CoreException {
         if (newProject == null) {
             throw new IllegalArgumentException("EclipseResourceHelper.create() was passed a null project.");
@@ -78,17 +80,18 @@ public class EclipseResourceHelper implements ResourceHelper {
      * Opens the project, or no-op if already open
      */
     @Override
-	public void openProject(IProject project, IProgressMonitor monitor) throws CoreException {
+    public void openProject(IProject project, IProgressMonitor monitor) throws CoreException {
         project.open(monitor);
     }
 
     @Override
     public Preferences getProjectBazelPreferences(IProject project) {
         IScopeContext eclipseProjectScope = new ProjectScope(project);
-		Preferences eclipseProjectPrefs = eclipseProjectScope.getNode(BazelJdtPlugin.PLUGIN_ID);
+        Preferences eclipseProjectPrefs = eclipseProjectScope.getNode(BazelJdtPlugin.PLUGIN_ID);
 
         if (eclipseProjectPrefs == null) {
-    		BazelJdtPlugin.logError("Could not find the Preferences node for the Bazel plugin for project [" + project.getName() + "]");
+            BazelJdtPlugin.logError(
+                "Could not find the Preferences node for the Bazel plugin for project [" + project.getName() + "]");
         }
 
         return eclipseProjectPrefs;
@@ -165,7 +168,8 @@ public class EclipseResourceHelper implements ResourceHelper {
     }
 
     @Override
-    public void createFileLink(IFile thisFile, IPath bazelWorkspaceLocation, int updateFlags, IProgressMonitor monitor) {
+    public void createFileLink(IFile thisFile, IPath bazelWorkspaceLocation, int updateFlags,
+            IProgressMonitor monitor) {
         //System.out.println("createFileLink: thisFile="+thisFile.getLocation().toOSString()+" bazelWorkspaceLocation="+bazelWorkspaceLocation.toOSString());
 
         try {
@@ -176,7 +180,8 @@ public class EclipseResourceHelper implements ResourceHelper {
     }
 
     @Override
-    public void createFolderLink(IFolder thisFolder, IPath bazelWorkspaceLocation, int updateFlags, IProgressMonitor monitor) {
+    public void createFolderLink(IFolder thisFolder, IPath bazelWorkspaceLocation, int updateFlags,
+            IProgressMonitor monitor) {
         //System.out.println("createFolderLink: thisFolder="+thisFolder.getLocation().toOSString()+" bazelWorkspaceLocation="+bazelWorkspaceLocation.toOSString());
 
         try {
@@ -185,11 +190,12 @@ public class EclipseResourceHelper implements ResourceHelper {
             throw new IllegalArgumentException(anyE);
         }
     }
+
     @Override
     public Process exec(String[] cmdLine, File workingDirectory) throws CoreException {
         return DebugPlugin.exec(cmdLine, workingDirectory);
     }
-    
+
     @Override
     public IProcess newProcess(ILaunch launch, Process process, String label) {
         return DebugPlugin.newProcess(launch, process, label);

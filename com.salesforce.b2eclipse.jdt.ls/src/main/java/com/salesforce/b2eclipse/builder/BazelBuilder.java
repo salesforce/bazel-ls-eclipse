@@ -86,19 +86,20 @@ public class BazelBuilder extends IncrementalProjectBuilder {
         IProject project = getProject();
         progressMonitor.beginTask("Bazel build", 1);
 
-		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
-
+        BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+        BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
+                bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
         try {
-            boolean buildSuccessful = buildProjects(bazelWorkspaceCmdRunner, Collections.singletonList(project), progressMonitor, monitor);
+            boolean buildSuccessful = buildProjects(bazelWorkspaceCmdRunner, Collections.singletonList(project),
+                progressMonitor, monitor);
             if (buildSuccessful && !importInProgress()) {
                 Set<IProject> downstreams = getDownstreamProjectsOf(project);
                 buildProjects(bazelWorkspaceCmdRunner, downstreams, progressMonitor, monitor);
             }
         } catch (IOException | InterruptedException e) {
-        	BazelJdtPlugin.logException("Failed to build " + project.getName(), e);
+            BazelJdtPlugin.logException("Failed to build " + project.getName(), e);
         } catch (BazelCommandLineToolConfigurationException e) {
-        	BazelJdtPlugin.logError("Bazel not found: " + e.getMessage());
+            BazelJdtPlugin.logError("Bazel not found: " + e.getMessage());
         } finally {
             progressMonitor.done();
         }
@@ -109,10 +110,10 @@ public class BazelBuilder extends IncrementalProjectBuilder {
     protected void clean(IProgressMonitor monitor) throws CoreException {
         // When cleaning the entire workspace, this clean method runs multiple times for every bazel package
         // this may not have a severe performance impact as bazel handles it efficiently but we may want to revisit
-        // TODO: revisit if we want to clean only once when multiple targets are selected
 
-		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
+        BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+        BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
+                bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
         if (bazelWorkspaceCmdRunner == null) {
             super.clean(monitor);
@@ -124,9 +125,9 @@ public class BazelBuilder extends IncrementalProjectBuilder {
         BazelClasspathContainer.clean();
     }
 
-    private boolean buildProjects(BazelWorkspaceCommandRunner cmdRunner, Collection<IProject> projects, WorkProgressMonitor progressMonitor, IProgressMonitor monitor)
-            throws IOException, InterruptedException, BazelCommandLineToolConfigurationException
-    {
+    private boolean buildProjects(BazelWorkspaceCommandRunner cmdRunner, Collection<IProject> projects,
+            WorkProgressMonitor progressMonitor, IProgressMonitor monitor)
+            throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
         List<String> bazelTargets = Lists.newArrayList();
         Multimap<IProject, BazelLabel> projectToLabels = HashMultimap.create();
 
@@ -146,14 +147,15 @@ public class BazelBuilder extends IncrementalProjectBuilder {
             // run build
             List<BazelMarkerDetails> errors = cmdRunner.runBazelBuild(bazelTargets, progressMonitor, bazelBuildFlags);
             Multimap<IProject, BazelMarkerDetails> errorsByProject = paritionErrorsByProject(errors, projectToLabels);
-            for (IProject project : projects) {
-				//TODO: `textDocument/publishDiagnostics`
-            }
+            //            for (IProject project : projects) {
+            //TODO: `textDocument/publishDiagnostics`
+            //            }
             return errors.isEmpty();
         }
     }
 
-    private Multimap<IProject, BazelMarkerDetails> paritionErrorsByProject(List<BazelMarkerDetails> errors, Multimap<IProject, BazelLabel> projectToLabels) {
+    private Multimap<IProject, BazelMarkerDetails> paritionErrorsByProject(List<BazelMarkerDetails> errors,
+            Multimap<IProject, BazelLabel> projectToLabels) {
         Multimap<IProject, BazelMarkerDetails> m = HashMultimap.create();
         for (BazelMarkerDetails error : errors) {
             for (IProject project : projectToLabels.keys()) {
@@ -191,9 +193,9 @@ public class BazelBuilder extends IncrementalProjectBuilder {
     }
 
     private static IJavaProject[] getAllJavaProjects() {
-		IWorkspaceRoot workspaceRoot = BazelJdtPlugin.getResourceHelper().getEclipseWorkspaceRoot();
+        IWorkspaceRoot workspaceRoot = BazelJdtPlugin.getResourceHelper().getEclipseWorkspaceRoot();
         try {
-			return BazelJdtPlugin.getJavaCoreHelper().getJavaModelForWorkspace(workspaceRoot).getJavaProjects();
+            return BazelJdtPlugin.getJavaCoreHelper().getJavaModelForWorkspace(workspaceRoot).getJavaProjects();
         } catch (JavaModelException ex) {
             throw new IllegalStateException(ex);
         }
@@ -201,6 +203,6 @@ public class BazelBuilder extends IncrementalProjectBuilder {
 
     private boolean importInProgress() {
         // what's the right way to do this?
-        return BazelEclipseProjectFactory.importInProgress.get();
+        return BazelEclipseProjectFactory.getImportInProgress().get();
     }
 }

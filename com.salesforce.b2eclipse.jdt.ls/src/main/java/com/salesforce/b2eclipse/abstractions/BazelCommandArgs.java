@@ -34,7 +34,7 @@ public enum BazelCommandArgs {
 
     private final String argName;
 
-    private BazelCommandArgs(String argName) {
+    BazelCommandArgs(String argName) {
         this.argName = argName;
     }
 

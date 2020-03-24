@@ -130,7 +130,7 @@
         <!-- Checks for Size Violations.                    -->
         <!-- See https://checkstyle.org/config_sizes.html -->
         <module name="MethodLength"/>
-        <module name="ParameterNumber"/>
+<!--        <module name="ParameterNumber"/> -->
 
         <!-- Checks for whitespace                               -->
         <!-- See https://checkstyle.org/config_whitespace.html -->
@@ -162,8 +162,12 @@
         <!-- See https://checkstyle.org/config_coding.html -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
-        <module name="HiddenField"/>
-        <module name="IllegalInstantiation"/>
+<!-- 		<module name="HiddenField">
+		      <property name="ignoreConstructorParameter" value="true"/>
+		      <property name="ignoreSetter" value="true"/>
+	    </module>      
+--> 
+		<module name="IllegalInstantiation"/>
         <module name="InnerAssignment"/>
         <module name="MagicNumber"/>
         <module name="MissingSwitchDefault"/>
@@ -183,7 +187,9 @@
         <!-- See https://checkstyle.org/config_misc.html -->
         <module name="ArrayTypeStyle"/>
 <!--        <module name="FinalParameters"/>-->
-        <module name="TodoComment"/>
+		<module name="TodoComment">
+		      <property name="severity" value="warning"/>
+	    </module>
         <module name="UpperEll"/>
 
         <!-- https://checkstyle.org/config_filters.html#SuppressionXpathFilter -->

@@ -51,12 +51,12 @@ public interface BazelAspectLocation {
      * bazel-eclipse/resources in the plugin. This has to be done in a special way when the plugin is running inside of
      * Eclipse. See implementor of this interface for details.
      */
-    public File getAspectDirectory();
+    File getAspectDirectory();
 
     /**
      * Returns the label of the aspect in the Bazel workspace (with the function name).
      * <p>
      * For example: "//:bzleclipse_aspect.bzl%bzleclipse_aspect"
      */
-    public String getAspectLabel();
+    String getAspectLabel();
 }
