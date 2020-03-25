@@ -62,21 +62,22 @@ public class BazelCommandExecutor {
 
     // WHEN INTERESTING OUTPUT IS ON STDOUT...
 
-    public synchronized List<String> runBazelAndGetOutputLines(File workingDirectory, WorkProgressMonitor progressMonitor,
-            List<String> args, Function<String, String> selector) throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
+    public synchronized List<String> runBazelAndGetOutputLines(File workingDirectory,
+            WorkProgressMonitor progressMonitor, List<String> args, Function<String, String> selector)
+            throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
 
-        CommandBuilder builder = getConfiguredCommandBuilder(ConsoleType.WORKSPACE, workingDirectory, progressMonitor, args);
+        CommandBuilder builder =
+                getConfiguredCommandBuilder(ConsoleType.WORKSPACE, workingDirectory, progressMonitor, args);
         Command command = builder.setStdoutLineSelector(selector).build();
         command.run();
 
         return command.getSelectedOutputLines();
     }
 
-
     public synchronized List<String> runBazelAndGetOuputLines(ConsoleType consoleType, File workingDirectory,
             WorkProgressMonitor progressMonitor, List<String> args, Function<String, String> selector)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
-        
+
         CommandBuilder builder = getConfiguredCommandBuilder(consoleType, workingDirectory, progressMonitor, args);
         Command command = builder.setStdoutLineSelector(selector).build();
 
@@ -87,11 +88,11 @@ public class BazelCommandExecutor {
     }
 
     // WHEN INTERESTING OUTPUT IS ON STDERR...
-    
+
     public synchronized List<String> runBazelAndGetErrorLines(File directory, WorkProgressMonitor progressMonitor,
             List<String> args, Function<String, String> selector)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
-        
+
         CommandBuilder builder = getConfiguredCommandBuilder(ConsoleType.WORKSPACE, directory, progressMonitor, args);
         Command command = builder.setStderrLineSelector(selector).build();
         command.run();
@@ -102,18 +103,17 @@ public class BazelCommandExecutor {
     public synchronized List<String> runBazelAndGetErrorLines(ConsoleType consoleType, File directory,
             WorkProgressMonitor progressMonitor, List<String> args, Function<String, String> selector)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
-       
+
         CommandBuilder builder = getConfiguredCommandBuilder(consoleType, directory, progressMonitor, args);
         Command command = builder.setStderrLineSelector(selector).build();
         command.run();
-//        if (command.run() == 0) {
-            return command.getSelectedErrorLines();
-//        }
-        
-//        return ImmutableList.of();
+        //        if (command.run() == 0) {
+        return command.getSelectedErrorLines();
+        //        }
+
+        //        return ImmutableList.of();
     }
-    
-    
+
     // HELPERS
 
     /**
@@ -129,22 +129,17 @@ public class BazelCommandExecutor {
         }
         return outputLinesStripped;
     }
-    
-    
+
     // INTERNAL
-    
+
     private CommandBuilder getConfiguredCommandBuilder(ConsoleType type, File directory,
             WorkProgressMonitor progressMonitor, List<String> args) throws BazelCommandLineToolConfigurationException {
-        
+
         String consoleName = type.getConsoleName(directory);
-        
-        return commandBuilder
-                .setConsoleName(consoleName)
-                .setDirectory(directory)
-                .addArguments(this.bazelExecutable.getAbsolutePath())
-                .addArguments(args)
+
+        return commandBuilder.setConsoleName(consoleName).setDirectory(directory)
+                .addArguments(this.bazelExecutable.getAbsolutePath()).addArguments(args)
                 .setProgressMonitor(progressMonitor);
     }
-
 
 }

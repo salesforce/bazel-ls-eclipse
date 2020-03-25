@@ -77,9 +77,8 @@ public class BazelLaunchConfigurationDelegate implements ILaunchConfigurationDel
     static final String ID = "com.salesforce.b2eclipse.launch";
     static final String DEBUG_LISTENER_MSG = "Listening for transport dt_socket at address: ";
 
-    private static int DEBUG_PORT = getAvailablePort();
-    private static String DEBUG_HOST = "localhost";
-
+    private static final int DEBUG_PORT = getAvailablePort();
+    private static final String DEBUG_HOST = "localhost";
 
     @Override
     public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor)
@@ -89,13 +88,14 @@ public class BazelLaunchConfigurationDelegate implements ILaunchConfigurationDel
         String projectName = getAttributeValue(configuration, BazelLaunchConfigAttributes.PROJECT);
         Map<String, String> bazelArgs = getAttributeMap(configuration, BazelLaunchConfigAttributes.INTERNAL_BAZEL_ARGS);
         BazelLabel label = new BazelLabel(getAttributeValue(configuration, BazelLaunchConfigAttributes.LABEL));
-        String targetKindStr = getAttributeValueWithDefault(configuration, BazelLaunchConfigAttributes.TARGET_KIND, "java_binary");
+        String targetKindStr =
+                getAttributeValueWithDefault(configuration, BazelLaunchConfigAttributes.TARGET_KIND, "java_binary");
         TargetKind targetKind = TargetKind.valueOfIgnoresCaseRequiresMatch(targetKindStr);
-		IProject project = BazelJdtPlugin.getResourceHelper().getProjectByName(projectName);
-		BazelWorkspaceCommandRunner bazelCommandRunner = BazelJdtPlugin.getWorkspaceCommandRunner();
+        IProject project = BazelJdtPlugin.getResourceHelper().getProjectByName(projectName);
+        BazelWorkspaceCommandRunner bazelCommandRunner = BazelJdtPlugin.getWorkspaceCommandRunner();
 
-        Command cmd = bazelCommandRunner.getBazelLauncherBuilder().setLabel(label).setTargetKind(targetKind).setArgs(bazelArgs)
-                .setDebugMode(isDebugMode, DEBUG_HOST, DEBUG_PORT).build();
+        Command cmd = bazelCommandRunner.getBazelLauncherBuilder().setLabel(label).setTargetKind(targetKind)
+                .setArgs(bazelArgs).setDebugMode(isDebugMode, DEBUG_HOST, DEBUG_PORT).build();
         BazelProcessBuilder processBuilder = cmd.getProcessBuilder();
 
         List<String> commandTokens = processBuilder.command();
@@ -107,7 +107,7 @@ public class BazelLaunchConfigurationDelegate implements ILaunchConfigurationDel
     // OVERRIDABLE FOR TESTS
 
     protected IProject getProject(String projectName) {
-		return BazelJdtPlugin.getResourceHelper().getProjectByName(projectName);
+        return BazelJdtPlugin.getResourceHelper().getProjectByName(projectName);
     }
 
     protected void launchExec(ILaunchConfiguration configuration, IProject project, List<String> commandTokens,
@@ -155,7 +155,8 @@ public class BazelLaunchConfigurationDelegate implements ILaunchConfigurationDel
         }
     }
 
-    private static String getAttributeValueWithDefault(ILaunchConfiguration configuration, BazelLaunchConfigAttributes attribute, String defaultValue) {
+    private static String getAttributeValueWithDefault(ILaunchConfiguration configuration,
+            BazelLaunchConfigAttributes attribute, String defaultValue) {
         try {
             String value = configuration.getAttribute(attribute.getAttributeName(), defaultValue);
             if (value == null || value.isEmpty()) {

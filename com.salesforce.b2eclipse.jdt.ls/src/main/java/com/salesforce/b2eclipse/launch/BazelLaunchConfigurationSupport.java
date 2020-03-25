@@ -138,7 +138,7 @@ class BazelLaunchConfigurationSupport {
 
         private final String attributeName;
 
-        private BazelLaunchConfigAttributes(String attributeName) {
+        BazelLaunchConfigAttributes(String attributeName) {
             this.attributeName = attributeName;
         }
 
@@ -147,7 +147,8 @@ class BazelLaunchConfigurationSupport {
         }
     }
 
-    void populateBazelLaunchConfig(ILaunchConfigurationWorkingCopy config, String projectName, BazelLabel label, TargetKind targetKind) {
+    void populateBazelLaunchConfig(ILaunchConfigurationWorkingCopy config, String projectName, BazelLabel label,
+            TargetKind targetKind) {
         Objects.requireNonNull(config);
         Objects.requireNonNull(projectName);
 
@@ -160,21 +161,20 @@ class BazelLaunchConfigurationSupport {
         config.setAttribute(BazelLaunchConfigAttributes.TARGET_KIND.getAttributeName(), kindStr);
     }
 
-
     /**
      * Returns all runnable AspectPackageInfo instances for the specified project.
      *
      * @see {@link TargetKind#isRunnable()}
      */
     Collection<AspectPackageInfo> getLaunchableAspectPackageInfosForProject(IProject project) {
-        return getAspectPackageInfosForProject(project, LAUNCHABLE_TARGET_KINDS);
+        return getAspectPackageInfosForProject(project, launchableTargetKinds);
     }
 
     /**
      * Returns all AspectPackageInfo instances that represent targets of the specified type, for the specified project.
      */
     Collection<AspectPackageInfo> getAspectPackageInfosForProject(IProject project, EnumSet<TargetKind> targetTypes) {
-		BazelWorkspaceCommandRunner bazelRunner = BazelJdtPlugin.getWorkspaceCommandRunner();
+        BazelWorkspaceCommandRunner bazelRunner = BazelJdtPlugin.getWorkspaceCommandRunner();
         AspectPackageInfos apis = computeAspectPackageInfos(project, bazelRunner, WorkProgressMonitor.NOOP);
         return apis.lookupByTargetKind(targetTypes);
     }
@@ -185,7 +185,7 @@ class BazelLaunchConfigurationSupport {
      * @see {@link TargetKind#isRunnable()}
      */
     Collection<TypedBazelLabel> getLaunchableBazelTargetsForProject(IProject project) {
-        return getBazelTargetsForProject(project, LAUNCHABLE_TARGET_KINDS);
+        return getBazelTargetsForProject(project, launchableTargetKinds);
     }
 
     /**
@@ -201,8 +201,8 @@ class BazelLaunchConfigurationSupport {
         return typedBazelLabels;
     }
 
-    private static AspectPackageInfos computeAspectPackageInfos(IProject project, BazelWorkspaceCommandRunner bazelRunner,
-            WorkProgressMonitor monitor) {
+    private static AspectPackageInfos computeAspectPackageInfos(IProject project,
+            BazelWorkspaceCommandRunner bazelRunner, WorkProgressMonitor monitor) {
         try {
             List<String> targets = BazelEclipseProjectSupport.getBazelTargetsForEclipseProject(project, false);
             Map<String, AspectPackageInfo> packageInfos = bazelRunner.getAspectPackageInfos(project.getName(), targets,
@@ -213,7 +213,7 @@ class BazelLaunchConfigurationSupport {
         }
     }
 
-    private static EnumSet<TargetKind> LAUNCHABLE_TARGET_KINDS = null;
+    private static EnumSet<TargetKind> launchableTargetKinds = null;
 
     static {
         List<TargetKind> targets = new ArrayList<>();
@@ -222,7 +222,7 @@ class BazelLaunchConfigurationSupport {
                 targets.add(kind);
             }
         }
-        LAUNCHABLE_TARGET_KINDS = EnumSet.copyOf(targets);
+        launchableTargetKinds = EnumSet.copyOf(targets);
     }
 
 }

@@ -45,7 +45,6 @@ import org.osgi.framework.Bundle;
 
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.abstractions.BazelAspectLocation;
-import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 
 /**
  * Implementation of {@link BazelAspectLocation} using Eclipse OSGi Bundle locations.
@@ -58,10 +57,10 @@ public class BazelAspectLocationImpl implements BazelAspectLocation {
     // Returns the path of the resources file from this plugin.
     private static File getAspectWorkspace() {
         try {
-			Bundle bazelCorePlugin = Platform.getBundle(BazelJdtPlugin.PLUGIN_ID);
+            Bundle bazelCorePlugin = Platform.getBundle(BazelJdtPlugin.PLUGIN_ID);
             if (bazelCorePlugin == null) {
-                throw new IllegalStateException("Eclipse OSGi subsystem could not find the core plugin ["
-						+ BazelJdtPlugin.PLUGIN_ID + "]");
+                throw new IllegalStateException(
+                        "Eclipse OSGi subsystem could not find the core plugin [" + BazelJdtPlugin.PLUGIN_ID + "]");
             }
             URL url = bazelCorePlugin.getEntry("resources");
             URL resolved = FileLocator.resolve(url);
@@ -75,7 +74,7 @@ public class BazelAspectLocationImpl implements BazelAspectLocation {
         }
     }
 
-    private static File WORKSPACE_DIRECTORY = getAspectWorkspace();
+    private static final File WORKSPACE_DIRECTORY = getAspectWorkspace();
 
     @Override
     public File getAspectDirectory() {

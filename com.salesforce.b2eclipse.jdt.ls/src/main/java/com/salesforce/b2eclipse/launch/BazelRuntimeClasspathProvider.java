@@ -37,7 +37,6 @@ package com.salesforce.b2eclipse.launch;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -70,8 +69,7 @@ import com.salesforce.b2eclipse.config.BazelEclipseProjectSupport;
  *
  */
 public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
-    public static final String BAZEL_SOURCEPATH_PROVIDER =
-            "com.salesforce.b2eclipse.launchconfig.sourcepathProvider";
+    public static final String BAZEL_SOURCEPATH_PROVIDER = "com.salesforce.b2eclipse.launchconfig.sourcepathProvider";
     public static final String BAZEL_CLASSPATH_PROVIDER = "com.salesforce.b2eclipse.launchconfig.classpathProvider";
 
     static final String BAZEL_DEPLOY_PARAMS_SUFFIX = "_deploy.jar-0.params";
@@ -81,7 +79,7 @@ public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
 
     // computeUnresolvedClassPathEntries() is called multiple times while trying to run a single test,
     // we need this variable to keep track of when to open the error dialog
-    public static AtomicBoolean canOpenErrorDialog = new AtomicBoolean(true);
+    private static AtomicBoolean canOpenErrorDialog = new AtomicBoolean(true);
 
     /**
      * Compute classpath entries for test
@@ -127,7 +125,7 @@ public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
      * @throws InvocationTargetException
      */
     IRuntimeClasspathEntry[] computeUnresolvedClasspath(ILaunchConfiguration configuration, boolean isSource)
-            throws CoreException{
+            throws CoreException {
         List<IRuntimeClasspathEntry> result = new ArrayList<>();
         IJavaProject project = JavaRuntime.getJavaProject(configuration);
         File base = getBazelWorkspaceExecRoot(project);
@@ -140,19 +138,19 @@ public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
         List<String> targets = BazelEclipseProjectSupport.getBazelTargetsForEclipseProject(project.getProject(), false);
         for (String eachTarget : targets) {
             File paramsFile = findParamsJar(project, paramsName, eachTarget);
-			//            if (!paramsFile.exists()) {
-			//                Display.getDefault().asyncExec(new Runnable() {
-			//                    @Override
-			//                    public void run() {
-			//                        if(canOpenErrorDialog.get()) {
-			//                            canOpenErrorDialog.set(false);
-			//                            MessageDialog.openError(Display.getDefault().getActiveShell(), "Unknown Target",
-			//                                "One or all of the tests trying to be executed are not part of a Bazel Java test target");
-			//                        }
-			//                    }
-			//                });
-			//                continue;
-			//            }
+            //            if (!paramsFile.exists()) {
+            //                Display.getDefault().asyncExec(new Runnable() {
+            //                    @Override
+            //                    public void run() {
+            //                        if(canOpenErrorDialog.get()) {
+            //                            canOpenErrorDialog.set(false);
+            //                            MessageDialog.openError(Display.getDefault().getActiveShell(), "Unknown Target",
+            //                                "One or all of the tests trying to be executed are not part of a Bazel Java test target");
+            //                        }
+            //                    }
+            //                });
+            //                continue;
+            //            }
             List<String> jarPaths;
             try {
                 jarPaths = getPathsToJars(paramsFile);
@@ -196,7 +194,7 @@ public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
         if (!paramsFile.exists()) {
             // testJar for single test rule
             //TODO: Add support for test rules where testName is not the same as testClass
-            String testJarName = paramsName.substring(paramsName.lastIndexOf(File.separator)+1);
+            String testJarName = paramsName.substring(paramsName.lastIndexOf(File.separator) + 1);
             paramsFile = new File(new File(getBazelBin(project), targetPath), testJarName);
         }
         return paramsFile;
@@ -209,8 +207,9 @@ public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
      * @return
      */
     File getBazelWorkspaceExecRoot(IJavaProject project) throws CoreException {
-		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
+        BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+        BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
+                bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
         return bazelWorkspaceCmdRunner.getBazelWorkspaceOutputBase(null);
     }
@@ -222,8 +221,9 @@ public class BazelRuntimeClasspathProvider extends StandardClasspathProvider {
      * @return
      */
     File getBazelBin(IJavaProject project) {
-		BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
-		BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
+        BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+        BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
+                bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
         return bazelWorkspaceCmdRunner.getBazelWorkspaceBin(null);
     }

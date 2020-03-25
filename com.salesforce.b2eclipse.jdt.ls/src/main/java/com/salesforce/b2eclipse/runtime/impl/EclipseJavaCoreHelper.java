@@ -86,10 +86,11 @@ public class EclipseJavaCoreHelper implements JavaCoreHelper {
         IClasspathAttribute[] extraAttributes = {};
         if (isTestSource) {
             IClasspathAttribute testAttr = JavaCore.newClasspathAttribute(IClasspathAttribute.TEST, "true");
-            extraAttributes = new IClasspathAttribute[] { testAttr };
+            extraAttributes = new IClasspathAttribute[] {testAttr};
         }
 
-        IClasspathEntry entry = JavaCore.newSourceEntry(sourcePath, inclusionPatterns, exclusionPatterns, outputPath, extraAttributes);
+        IClasspathEntry entry =
+                JavaCore.newSourceEntry(sourcePath, inclusionPatterns, exclusionPatterns, outputPath, extraAttributes);
         return entry;
     }
 
@@ -109,8 +110,8 @@ public class EclipseJavaCoreHelper implements JavaCoreHelper {
     }
 
     @Override
-	public IJavaProject[] getAllJavaProjects() {
-		IWorkspaceRoot eclipseWorkspaceRoot = BazelJdtPlugin.getResourceHelper().getEclipseWorkspaceRoot();
+    public IJavaProject[] getAllJavaProjects() {
+        IWorkspaceRoot eclipseWorkspaceRoot = BazelJdtPlugin.getResourceHelper().getEclipseWorkspaceRoot();
         try {
             IJavaModel eclipseWorkspaceJavaModel = this.getJavaModelForWorkspace(eclipseWorkspaceRoot);
             return eclipseWorkspaceJavaModel.getJavaProjects();

@@ -42,22 +42,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Function;
 
-import org.eclipse.core.runtime.CoreException;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelProcessBuilder;
 import com.salesforce.b2eclipse.command.Command;
-import com.salesforce.b2eclipse.command.CommandBuilder;
 
 /**
- * A utility class to spawn a command in the shell and parse its output. It allows to filter the output,
- * redirecting part of it to the console and getting the rest in a list of string.
+ * A utility class to spawn a command in the shell and parse its output. It allows to filter the output, redirecting
+ * part of it to the console and getting the rest in a list of string.
  * <p>
  * This class can only be initialized using a builder created with the {@link #builder()} method.
  */
 public final class ShellCommand implements Command {
+
+    private static final int BUFFER_SIZE = 4096;
 
     private final File directory;
     private final ImmutableList<String> args;
@@ -68,9 +67,9 @@ public final class ShellCommand implements Command {
 
     private boolean executed = false;
 
-	ShellCommand(File directory, ImmutableList<String> args,
-            Function<String, String> stdoutSelector, Function<String, String> stderrSelector, OutputStream stdout,
-            OutputStream stderr, WorkProgressMonitor progressMonitor, long timeoutMS) {
+    ShellCommand(File directory, ImmutableList<String> args, Function<String, String> stdoutSelector,
+            Function<String, String> stderrSelector, OutputStream stdout, OutputStream stderr,
+            WorkProgressMonitor progressMonitor, long timeoutMS) {
         this.directory = directory;
         this.args = args;
         this.stderr = new SelectOutputStream(stderr, stderrSelector);
@@ -83,7 +82,7 @@ public final class ShellCommand implements Command {
      * Returns a ProcessBuilder configured to run this Command instance.
      */
     @Override
-	public BazelProcessBuilder getProcessBuilder() {
+    public BazelProcessBuilder getProcessBuilder() {
         BazelProcessBuilder builder = new BazelProcessBuilder(args);
         builder.directory(directory);
         return builder;
@@ -111,7 +110,7 @@ public final class ShellCommand implements Command {
         for (String arg : args) {
             command = command + arg + " ";
         }
-        System.out.println("Executing command: "+command);
+        System.out.println("Executing command: " + command);
 
         try {
             Thread err = copyStream(process.getErrorStream(), stderr);
@@ -126,8 +125,7 @@ public final class ShellCommand implements Command {
             return exitCode;
         } catch (InterruptedException interrupted) {
             throw interrupted;
-        }
-        finally {
+        } finally {
             closeQuietly(stderr);
             closeQuietly(stdout);
         }
@@ -136,7 +134,9 @@ public final class ShellCommand implements Command {
     private static void closeQuietly(OutputStream os) {
         try {
             os.close();
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+
+        }
     }
 
     private static class CopyStreamRunnable implements Runnable {
@@ -150,7 +150,7 @@ public final class ShellCommand implements Command {
 
         @Override
         public void run() {
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[BUFFER_SIZE];
             int read;
             try {
                 while ((read = inputStream.read(buffer)) > 0) {

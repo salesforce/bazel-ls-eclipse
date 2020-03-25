@@ -49,14 +49,14 @@ import com.salesforce.b2eclipse.model.BazelMarkerDetails;
  * @author nishant.dsouza
  *
  */
-public class BazelMarkerManagerSingleton {
+public final class BazelMarkerManagerSingleton {
 
     private static BazelMarkerManagerSingleton singletonInstance = null;
-    
+
     private BazelMarkerManagerSingleton() {
-        
+
     }
-    
+
     public static final String BAZEL_MARKER = "com.salesforce.b2eclipse.bazelmarker";
 
     /**
@@ -81,7 +81,8 @@ public class BazelMarkerManagerSingleton {
      *            the Bazel Labels that were built and resulted in the specified errors
      * @throws CoreException
      */
-    public void publishProblemMarkersForProject(IProject project, Collection<BazelMarkerDetails> errorDetails, Collection<BazelLabel> labels) throws CoreException {
+    public void publishProblemMarkersForProject(IProject project, Collection<BazelMarkerDetails> errorDetails,
+            Collection<BazelLabel> labels) throws CoreException {
         for (BazelMarkerDetails errorDetail : errorDetails) {
             String resourcePath = errorDetail.getResourcePathRelativeToBazelPackage(labels);
             IResource resource = project.findMember(resourcePath);
@@ -93,12 +94,12 @@ public class BazelMarkerManagerSingleton {
             marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
         }
     }
-    
+
     public static BazelMarkerManagerSingleton getInstance() {
-        if(singletonInstance == null) {
+        if (singletonInstance == null) {
             singletonInstance = new BazelMarkerManagerSingleton();
         }
         return singletonInstance;
-        
+
     }
 }

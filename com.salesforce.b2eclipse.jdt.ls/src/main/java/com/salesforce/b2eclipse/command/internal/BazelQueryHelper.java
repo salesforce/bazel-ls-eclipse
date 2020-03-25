@@ -41,7 +41,7 @@ public class BazelQueryHelper {
      * Underlying command invoker which takes built Command objects and executes them.
      */
     private final BazelCommandExecutor bazelCommandExecutor;
-    
+
     public BazelQueryHelper(BazelCommandExecutor bazelCommandExecutor) {
         this.bazelCommandExecutor = bazelCommandExecutor;
     }
@@ -54,19 +54,19 @@ public class BazelQueryHelper {
      *            can be null
      * @throws BazelCommandLineToolConfigurationException
      */
-    public synchronized List<String> listBazelTargetsInBuildFiles(File bazelWorkspaceRootDirectory, WorkProgressMonitor progressMonitor,
-            File... directories) throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
+    public synchronized List<String> listBazelTargetsInBuildFiles(File bazelWorkspaceRootDirectory,
+            WorkProgressMonitor progressMonitor, File... directories)
+            throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
         ImmutableList.Builder<String> argBuilder = ImmutableList.builder();
         argBuilder.add("query");
         for (File f : directories) {
             String directoryPath = f.toURI().relativize(bazelWorkspaceRootDirectory.toURI()).getPath();
-            argBuilder.add(directoryPath+"/...");
+            argBuilder.add(directoryPath + "/...");
         }
-        return bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor, 
+        return bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
             argBuilder.build(), (t) -> t);
     }
 
-    
     /**
      * Gives a list of target completions for the given beginning string. The result is the list of possible completion
      * for a target pattern starting with string.
@@ -79,7 +79,8 @@ public class BazelQueryHelper {
      *
      * @throws BazelCommandLineToolConfigurationException
      */
-    public List<String> getMatchingTargets(File bazelWorkspaceRootDirectory, String userSearchString, WorkProgressMonitor progressMonitor)
+    public List<String> getMatchingTargets(File bazelWorkspaceRootDirectory, String userSearchString,
+            WorkProgressMonitor progressMonitor)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
         if (userSearchString.equals("/") || userSearchString.isEmpty()) {
             return ImmutableList.of("//");
@@ -88,7 +89,7 @@ public class BazelQueryHelper {
             int idx = userSearchString.indexOf(':');
             final String packageName = userSearchString.substring(0, idx);
             final String targetPrefix = userSearchString.substring(idx + 1);
-            List<String> args = ImmutableList.<String> builder().add("query", packageName + ":*").build();
+            List<String> args = ImmutableList.<String>builder().add("query", packageName + ":*").build();
             Function<String, String> selector = line -> {
                 int i = line.indexOf(':');
                 String s = line.substring(i + 1);
@@ -115,7 +116,8 @@ public class BazelQueryHelper {
             final String suffix = lastSlash > 0 ? userSearchString.substring(lastSlash + 1) : userSearchString;
             final String directory = (prefix.isEmpty() || prefix.equals("//")) ? ""
                     : prefix.substring(userSearchString.startsWith("//") ? 2 : 0, prefix.length() - 1);
-            File file = directory.isEmpty() ? bazelWorkspaceRootDirectory : new File(bazelWorkspaceRootDirectory, directory);
+            File file = directory.isEmpty() ? bazelWorkspaceRootDirectory
+                    : new File(bazelWorkspaceRootDirectory, directory);
             ImmutableList.Builder<String> builder = ImmutableList.builder();
             File[] files = file.listFiles((f) -> {
                 // Only give directories whose name starts with suffix...

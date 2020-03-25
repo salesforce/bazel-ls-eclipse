@@ -60,9 +60,7 @@ public class BazelOutputParser {
                         errorSourcePathLine = null;
                         moreDetailsLine = null;
                     }
-                }
-
-                else if (isInitialErrorSourcePathLine(line)) {
+                } else if (isInitialErrorSourcePathLine(line)) {
                     if (errorSourcePathLine == null) {
                         errorSourcePathLine = line;
                     } else {
@@ -103,7 +101,7 @@ public class BazelOutputParser {
         int j = errorSourcePathLine.indexOf(":", i + 1);
         int lineNumber = Integer.parseInt(errorSourcePathLine.substring(i + 1, j));
         String description = errorSourcePathLine.substring(j + 1).trim();
-        for (String errorPrefix : new String[] { "error", "error:", "ERROR", "ERROR:" }) {
+        for (String errorPrefix : new String[] {"error", "error:", "ERROR", "ERROR:"}) {
             if (description.startsWith(errorPrefix) && description.length() > errorPrefix.length() + 1) {
                 description = capitalize(description.substring(errorPrefix.length() + 1).trim());
                 break;

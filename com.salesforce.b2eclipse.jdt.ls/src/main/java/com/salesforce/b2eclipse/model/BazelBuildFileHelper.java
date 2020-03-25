@@ -44,7 +44,12 @@ import java.util.Arrays;
 import com.google.common.annotations.VisibleForTesting;
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 
-public class BazelBuildFileHelper {
+public final class BazelBuildFileHelper {
+
+    private BazelBuildFileHelper() {
+
+    }
+
     /**
      * List of Strings that can be found in BUILD files that will indicate a Bazel package that is supported by the
      * Eclipse plugin. Currently, only Java packages are supported.
@@ -56,7 +61,7 @@ public class BazelBuildFileHelper {
      * If you change the contents of this list, please also update TestBazelWorkspaceCreator.java.
      */
     public static final String[] JAVA_PROJECT_INDICATORS =
-            { "java_binary", "java_library", "java_test", "java_web_test_suite", "springboot", "springboot_test" };
+            {"java_binary", "java_library", "java_test", "java_web_test_suite", "springboot", "springboot_test"};
 
     /**
      * Parses a File, presumed to be a Bazel BUILD file, looking for indications that it contains Java rules.
@@ -74,7 +79,7 @@ public class BazelBuildFileHelper {
         try (InputStream is = new FileInputStream(buildFile)) {
             hasJavaRules = hasJavaRules(is);
         } catch (Exception anyE) {
-        	BazelJdtPlugin.logException(anyE.getMessage(), anyE);
+            BazelJdtPlugin.logException(anyE.getMessage(), anyE);
         }
         return hasJavaRules;
     }
@@ -97,7 +102,7 @@ public class BazelBuildFileHelper {
             }
 
         } catch (IOException e) {
-        	BazelJdtPlugin.logException(e.getMessage(), e);
+            BazelJdtPlugin.logException(e.getMessage(), e);
         }
         return false;
     }

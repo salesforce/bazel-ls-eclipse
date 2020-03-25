@@ -73,14 +73,14 @@ public class AspectPackageInfos {
     public AspectPackageInfo lookupByLabel(String label) {
         return labelToAspectPackageInfo.get(label);
     }
-    
+
     public AspectPackageInfo lookByPackageName(String name) {
-    	for (String key : labelToAspectPackageInfo.keySet()) {
-    		if (key.startsWith(name)) {
-    			return labelToAspectPackageInfo.get(key);
-    		}
-    	}
-    	return null; //TODO: make it better
+        for (String key : labelToAspectPackageInfo.keySet()) {
+            if (key.startsWith(name)) {
+                return labelToAspectPackageInfo.get(key);
+            }
+        }
+        return null; //TODO: make it better
     }
 
     public Collection<AspectPackageInfo> lookupByTargetKind(EnumSet<TargetKind> requestedTargetKinds) {

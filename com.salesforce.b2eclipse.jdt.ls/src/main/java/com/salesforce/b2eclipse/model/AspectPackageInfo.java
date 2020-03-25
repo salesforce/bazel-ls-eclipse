@@ -41,7 +41,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -51,7 +50,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 
 /**
@@ -145,8 +143,8 @@ public final class AspectPackageInfo {
     public static AspectPackageInfo loadAspectFile(File aspectFile) throws IOException, InterruptedException {
         AspectPackageInfo buildInfo = null;
         if (aspectFile.exists()) {
-			JsonParser parser = new JsonParser();
-			JsonObject json = parser.parse(new JsonReader(new FileReader(aspectFile))).getAsJsonObject();
+            JsonParser parser = new JsonParser();
+            JsonObject json = parser.parse(new JsonReader(new FileReader(aspectFile))).getAsJsonObject();
             buildInfo = AspectPackageInfo.loadAspectFromJson(aspectFile, json);
         }
         return buildInfo;
@@ -211,8 +209,7 @@ public final class AspectPackageInfo {
     }
 
     /**
-     * The value of the "main_class" attribute of this target, may be null if this target
-     * doesn't specify a main_class.
+     * The value of the "main_class" attribute of this target, may be null if this target doesn't specify a main_class.
      */
     public String getMainClass() {
         return mainClass;
@@ -220,21 +217,21 @@ public final class AspectPackageInfo {
 
     // INTERNAL
 
-	static AspectPackageInfo loadAspectFromJson(File aspectDataFile, JsonObject object) {
+    static AspectPackageInfo loadAspectFromJson(File aspectDataFile, JsonObject object) {
         AspectPackageInfo info = null;
 
         try {
-			ImmutableList<AspectOutputJars> jars = jsonToJarArray(object.getAsJsonArray("jars"));
-			ImmutableList<AspectOutputJars> generated_jars = jsonToJarArray(object.getAsJsonArray("generated_jars"));
-			String build_file_artifact_location = object.get("build_file_artifact_location").getAsString();
-			String kind = object.get("kind").getAsString();
-			String label = object.get("label").getAsString();
-			ImmutableList<String> deps = jsonToStringArray(object.getAsJsonArray("dependencies"));
-			ImmutableList<String> sources = jsonToStringArray(object.getAsJsonArray("sources"));
-			String mainClass = object.has("main_class") ? object.get("main_class").getAsString() : null;
+            ImmutableList<AspectOutputJars> jars = jsonToJarArray(object.getAsJsonArray("jars"));
+            ImmutableList<AspectOutputJars> generatedJars = jsonToJarArray(object.getAsJsonArray("generated_jars"));
+            String buildFileArtifactLocation = object.get("build_file_artifact_location").getAsString();
+            String kind = object.get("kind").getAsString();
+            String label = object.get("label").getAsString();
+            ImmutableList<String> deps = jsonToStringArray(object.getAsJsonArray("dependencies"));
+            ImmutableList<String> sources = jsonToStringArray(object.getAsJsonArray("sources"));
+            String mainClass = object.has("main_class") ? object.get("main_class").getAsString() : null;
 
-            info = new AspectPackageInfo(aspectDataFile, jars, generated_jars, build_file_artifact_location, kind,
-                label, deps, sources, mainClass);
+            info = new AspectPackageInfo(aspectDataFile, jars, generatedJars, buildFileArtifactLocation, kind, label,
+                    deps, sources, mainClass);
         } catch (Exception anyE) {
             //System.err.println("Error parsing Bazel aspect info from file "+aspectDataFile.getAbsolutePath()+". Error: "+anyE.getMessage());
             throw anyE;
@@ -256,15 +253,15 @@ public final class AspectPackageInfo {
         this.mainClass = mainClass;
     }
 
-	private static ImmutableList<AspectOutputJars> jsonToJarArray(JsonArray array) {
+    private static ImmutableList<AspectOutputJars> jsonToJarArray(JsonArray array) {
         ImmutableList.Builder<AspectOutputJars> builder = ImmutableList.builder();
         for (Object o : array) {
-			builder.add(new AspectOutputJars((JsonObject) o));
+            builder.add(new AspectOutputJars((JsonObject) o));
         }
         return builder.build();
     }
 
-	private static ImmutableList<String> jsonToStringArray(JsonArray array) {
+    private static ImmutableList<String> jsonToStringArray(JsonArray array) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         for (JsonElement o : array) {
             builder.add(o.getAsString());

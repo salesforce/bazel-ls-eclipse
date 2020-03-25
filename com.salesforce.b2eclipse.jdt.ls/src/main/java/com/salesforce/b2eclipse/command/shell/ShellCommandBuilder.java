@@ -30,28 +30,26 @@ import com.google.common.collect.ImmutableList;
 import com.salesforce.b2eclipse.command.CommandBuilder;
 
 /**
- * Implementation of CommandBuilder that builds real command line commands (as opposed to
- * mock commands used in testing). This is the implementation used by the plugin when running
- * in Eclipse.
+ * Implementation of CommandBuilder that builds real command line commands (as opposed to mock commands used in
+ * testing). This is the implementation used by the plugin when running in Eclipse.
  * <p>
  * It creates instances of type ShellCommand.
  */
 public class ShellCommandBuilder extends CommandBuilder {
 
-	public ShellCommandBuilder() {
-		super();
+    public ShellCommandBuilder() {
+        super();
     }
 
     /**
      * Build a Command object.
      */
     @Override
-	public ShellCommand build_impl() throws IOException {
-        Preconditions.checkNotNull(directory);
-        ImmutableList<String> iargs = ImmutableList.copyOf(this.args);
-		ShellCommand command = new ShellCommand(directory, iargs, stdoutSelector, stderrSelector, stdout, stderr,
-            progressMonitor, timeoutMS);
-
+    public ShellCommand buildImpl() throws IOException {
+        Preconditions.checkNotNull(getDirectory());
+        ImmutableList<String> iargs = ImmutableList.copyOf(this.getArgs());
+        ShellCommand command = new ShellCommand(getDirectory(), iargs, getStdoutSelector(), getStderrSelector(),
+                getStdout(), getStderr(), getProgressMonitor(), getTimeoutMS());
         return command;
     }
 
