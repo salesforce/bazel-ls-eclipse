@@ -26,13 +26,93 @@
         <tycho-version>1.6.0</tycho-version>
         <tycho-extras-version>${tycho-version}</tycho-extras-version>
         <tycho.scmUrl>scm:git:https://github.com/salesforce/bazel-eclipse-ls</tycho.scmUrl>
+        <jacoco-version>0.8.3</jacoco-version>
     </properties>
     <modules>
         <module>com.salesforce.b2eclipse.jdt.ls</module>
         <module>com.salesforce.b2eclipse.repository</module>
         <module>com.salesforce.b2eclipse.tests</module>
         <module>com.salesforce.b2eclipse.ui</module>
+        <module>com.salesforce.b2eclipse.report</module>
     </modules>
+    
+    <profiles>
+		<profile>
+			<id>jacoco</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>${jacoco-version}</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>sign</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+		        <plugins>
+		            <plugin>
+		                <groupId>org.eclipse.tycho.extras</groupId>
+		                <artifactId>tycho-pack200a-plugin</artifactId>
+		                <version>${tycho-version}</version>
+		                <executions>
+		                    <execution>
+		                        <id>pack200-normalize</id>
+		                        <goals>
+		                            <goal>normalize</goal>
+		                        </goals>
+		                        <phase>package</phase>
+		                    </execution>
+		                </executions>
+		            </plugin>
+		            <plugin>
+		                <groupId>org.eclipse.tycho.extras</groupId>
+		                <artifactId>tycho-pack200b-plugin</artifactId>
+		                <version>${tycho-version}</version>
+		                <executions>
+		                    <execution>
+		                        <id>pack200-pack</id>
+		                        <goals>
+		                            <goal>pack</goal>
+		                        </goals>
+		                        <phase>package</phase>
+		                    </execution>
+		                </executions>
+		            </plugin>
+		            <plugin>
+		                <groupId>org.eclipse.tycho</groupId>
+		                <artifactId>tycho-p2-plugin</artifactId>
+		                <version>${tycho-version}</version>
+		                <executions>
+		                    <execution>
+		                        <id>p2-metadata</id>
+		                        <goals>
+		                            <goal>p2-metadata</goal>
+		                        </goals>
+		                        <phase>package</phase>
+		                    </execution>
+		                </executions>
+		                <configuration>
+		                    <defaultP2Metadata>false</defaultP2Metadata>
+		                </configuration>
+		            </plugin>
+            	</plugins>
+            </build>
+		</profile>
+	</profiles>
+    
     <build>
         <plugins>
             <plugin>
@@ -51,52 +131,6 @@
                     <jgit.ignore>
                         pom.xml
                     </jgit.ignore>
-                </configuration>
-            </plugin>
-            <!-- Those 4 mojos are for signing and packing -->
-            <plugin>
-                <groupId>org.eclipse.tycho.extras</groupId>
-                <artifactId>tycho-pack200a-plugin</artifactId>
-                <version>${tycho-version}</version>
-                <executions>
-                    <execution>
-                        <id>pack200-normalize</id>
-                        <goals>
-                            <goal>normalize</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.tycho.extras</groupId>
-                <artifactId>tycho-pack200b-plugin</artifactId>
-                <version>${tycho-version}</version>
-                <executions>
-                    <execution>
-                        <id>pack200-pack</id>
-                        <goals>
-                            <goal>pack</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-p2-plugin</artifactId>
-                <version>${tycho-version}</version>
-                <executions>
-                    <execution>
-                        <id>p2-metadata</id>
-                        <goals>
-                            <goal>p2-metadata</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <defaultP2Metadata>false</defaultP2Metadata>
                 </configuration>
             </plugin>
             <plugin>

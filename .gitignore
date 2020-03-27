@@ -28,6 +28,7 @@ hs_err_pid*
 
 # Eclipse
 .settings
+.project
 eclipse.sh
 
 # IDEA
