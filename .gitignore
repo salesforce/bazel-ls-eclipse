@@ -42,3 +42,6 @@ eclipse.sh
 **/bazel-bin
 **/bazel-out
 **/bazel-testlogs
+
+# Checkstyle files
+*.checkstyle
