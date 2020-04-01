@@ -100,6 +100,11 @@ public final class BazelEclipseProjectFactory {
      */
     private static final boolean PRECOMPUTE_ALL_ASPECTS_FOR_WORKSPACE = true;
 
+    /**
+     * The default path is always divided using “/”.
+     */
+    private static final String SPLITTER_FOR_SOURCE_DIRECTORY_PATH = "/";
+
     // signals that we are in a delicate bootstrapping operation
     private static AtomicBoolean importInProgress = new AtomicBoolean(false);
 
@@ -421,7 +426,7 @@ public final class BazelEclipseProjectFactory {
             sourceDirectoryPath = packageSourceCodeFSRelativePath;
         }
 
-        String[] pathComponents = sourceDirectoryPath.split(File.separator);
+        String[] pathComponents = sourceDirectoryPath.split(SPLITTER_FOR_SOURCE_DIRECTORY_PATH);
         IFolder currentFolder = null;
         for (int i = 0; i < pathComponents.length; i++) {
             String pathComponent = pathComponents[i];
