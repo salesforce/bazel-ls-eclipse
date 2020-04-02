@@ -30,17 +30,16 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public final class Config {
+    private static final String PLUGIN_PROPERTIES_FILE = "plugin.properties";
+
+    private static final String INIT_PARAMS_PROPERTIES_FILE = "init_params.properties";
+
     private static final String CP_WORKING_DIR_ENV = "B2E_JDTLS_REPOSITORY";
 
     private static final String CP_SOCKET_PORT = "connectionProvider.socket.port";
-
-    private static final String LS_BAZEL_ENABLED = "java.import.bazel.enabled";
-
-    private static final String LS_BAZEL_SRC_PATH = "java.import.bazel.src.path";
-
-    private static final String LS_BAZEL_TEST_PATH = "java.import.bazel.test.path";
 
     private static volatile Config instance;
 
@@ -51,12 +50,14 @@ public final class Config {
     private LSInitOptions lsInitOptions;
 
     private Config() {
-        Properties properties = readProperties();
+        Properties pluginProperties = readProperties(PLUGIN_PROPERTIES_FILE);
 
-        cpSocketPort = Integer.parseInt(properties.getProperty(CP_SOCKET_PORT));
+        cpSocketPort = Integer.parseInt(pluginProperties.getProperty(CP_SOCKET_PORT));
         cpProcessWorkingDir = System.getenv(CP_WORKING_DIR_ENV);
 
-        lsInitOptions = buildLSInitOptions(properties);
+        Properties initParamsProperties = readProperties(INIT_PARAMS_PROPERTIES_FILE);
+
+        lsInitOptions = buildLSInitOptions(initParamsProperties);
     }
 
     public static Config getInstance() {
@@ -88,10 +89,10 @@ public final class Config {
         return lsInitOptions;
     }
 
-    private Properties readProperties() {
+    private Properties readProperties(String propertiesFile) {
         Properties properties = new Properties();
 
-        try (InputStream propStream = Config.class.getClassLoader().getResourceAsStream("plugin.properties")) {
+        try (InputStream propStream = Config.class.getClassLoader().getResourceAsStream(propertiesFile)) {
             properties.load(propStream);
         } catch (IOException e) {
             B2EPlugin.logError(e);
@@ -102,19 +103,16 @@ public final class Config {
     }
 
     private LSInitOptions buildLSInitOptions(Properties properties) {
-        Map<String, String> settings = new HashMap<>();
-
-        settings.put(LS_BAZEL_ENABLED, properties.getProperty(LS_BAZEL_ENABLED));
-        settings.put(LS_BAZEL_SRC_PATH, properties.getProperty(LS_BAZEL_SRC_PATH));
-        settings.put(LS_BAZEL_TEST_PATH, properties.getProperty(LS_BAZEL_TEST_PATH));
-
+        Map<String, Object> settings = new HashMap<>();
+        settings.putAll(
+            properties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue())));
         return new LSInitOptions(settings);
     }
 
     public static class LSInitOptions {
-        private Map<String, String> settings;
+        private Map<String, Object> settings;
 
-        public LSInitOptions(Map<String, String> settings) {
+        public LSInitOptions(Map<String, Object> settings) {
             this.settings = settings;
         }
     }
