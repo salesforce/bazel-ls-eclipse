@@ -363,8 +363,11 @@ public final class BazelEclipseProjectFactory {
             IPath realSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
             IFolder projectSourceFolder =
                     createFoldersForRelativePackagePath(eclipseProject.getProject(), bazelPackageFSPath, path, false);
-            resourceHelper.createFolderLink(projectSourceFolder, realSourceDir, IResource.REPLACE, null);
-
+            try {
+                resourceHelper.createFolderLink(projectSourceFolder, realSourceDir, IResource.NONE, null);
+            } catch (IllegalArgumentException e) {
+                BazelJdtPlugin.logInfo("Folder link " + projectSourceFolder + " already exists");
+            }
             IPath outputDir = null; // null is a legal value, it means use the default
             boolean isTestSource = false;
             if (path.endsWith("src/test/java")) { // NON_CONFORMING PROJECT SUPPORT
@@ -383,7 +386,11 @@ public final class BazelEclipseProjectFactory {
             if (generatedSourceDir.toFile().exists() && generatedSourceDir.toFile().isDirectory()) {
                 IFolder projectSourceFolder = createFoldersForRelativePackagePath(eclipseProject.getProject(),
                     bazelPackageFSPath, path, true);
-                resourceHelper.createFolderLink(projectSourceFolder, generatedSourceDir, IResource.REPLACE, null);
+                try {
+                    resourceHelper.createFolderLink(projectSourceFolder, generatedSourceDir, IResource.NONE, null);
+                } catch (IllegalArgumentException e) {
+                    BazelJdtPlugin.logInfo("Folder link " + projectSourceFolder + " already exists");
+                }
 
                 IClasspathEntry sourceClasspathEntry = BazelJdtPlugin.getJavaCoreHelper()
                         .newSourceEntry(projectSourceFolder.getFullPath(), null, false);
