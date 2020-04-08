@@ -100,6 +100,11 @@ public class BazelPackageInfo {
             throw new IllegalArgumentException("The path [" + rootDirectory.getAbsolutePath() + "] does not contain a "
                     + WORKSPACE_FILENAME + " file.");
         }
+        
+        File buildFile = new File(this.workspaceRoot, BUILD_FILENAME);
+        if (buildFile.exists()) {
+            throw new IllegalStateException("Root package is not supported. BUILD files should be in subdirectories");
+        }
 
         this.parent = null;
         this.isWorkspaceRoot = true;

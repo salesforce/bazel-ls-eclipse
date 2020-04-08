@@ -14,6 +14,18 @@ Repository structure
 - **com.salesforce.b2eclipse.tests** - integration tests for the jdt.ls plugin.
 - **com.salesforce.b2eclipse.ui** - a plugin for the client (the one which is connected to the language server for code interactions). It's rather a simple connection provider to a language server, not a full-fledged UI plugin.
 
+Properties
+----------
+The following properties are passed from the client to configure the plugin:
+- `java.import.bazel.enabled` - whether Bazel support should be enabled in JDT LS (disabled by default);
+- `java.import.bazel.src.path` - location of sources (relative to a package);
+- `java.import.bazel.test.path` - location of test sources (relative to a package).
+
+Assumptions
+-----------
+- The package is not rooted directly in the workspace directory (i.e. beside the WORKSPACE file) but in a subdirectory;
+- Source files reside in a subdirectory of each package (see above section for corresponding properties).
+
 Future vision
 -------------
 Will be shipped separately as two independent features: standalone feature and as extension for Eclipse JDT LS.

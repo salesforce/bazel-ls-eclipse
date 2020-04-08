@@ -37,6 +37,7 @@ package com.salesforce.b2eclipse.config;
 
 import java.io.File;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -422,7 +423,7 @@ public final class BazelEclipseProjectFactory {
             if (!packageSourceCodeFSRelativePath.startsWith(bazelPackageFSPath)) {
                 throw new IllegalStateException("src code path exepcted to be under bazel package path");
             }
-            if (packageSourceCodeFSRelativePath.equals(bazelPackageFSPath)) {
+            if (Paths.get(packageSourceCodeFSRelativePath).equals(Paths.get(bazelPackageFSPath))) {
                 throw new IllegalStateException("did not expect src code path to be equals to the bazel package path");
             }
             sourceDirectoryPath = packageSourceCodeFSRelativePath.substring(bazelPackageFSPath.length() + 1);
@@ -562,6 +563,9 @@ public final class BazelEclipseProjectFactory {
                 packageTarget = packageTarget.toPackageWildcardLabel();
             }
             bazelTargets.add(packageTarget.getLabel());
+        } else {
+            throw new IllegalStateException(
+                    "Couldn't find sources for the following package: " + packageNode.getBazelPackageName());
         }
     }
 
