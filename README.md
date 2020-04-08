@@ -21,7 +21,7 @@ The following properties are passed from the client to configure the plugin:
 - `java.import.bazel.src.path` - location of sources (relative to a package);
 - `java.import.bazel.test.path` - location of test sources (relative to a package).
 
-Limitations
+Assumptions
 -----------
 - The package is not rooted directly in the workspace directory (i.e. beside the WORKSPACE file) but in a subdirectory;
 - Source files reside in a subdirectory of each package (see above section for corresponding properties).
