@@ -40,12 +40,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.NoSuchElementException;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
+
 import com.google.common.base.Throwables;
 import com.salesforce.b2eclipse.abstractions.BazelAspectLocation;
 import com.salesforce.b2eclipse.command.BazelCommandManager;
@@ -73,11 +78,16 @@ public class BazelJdtPlugin extends Plugin {
     // GLOBAL COLLABORATORS
     // TODO move the collaborators to some other place, perhaps a dedicated static context object
 
+    public static final String PREFERENCE_WORKSPACE_ROOT_DIRECTORY = "bazelWorkspaceRootDirectory";
+
+    private static Preferences pluginPreferences =
+            Platform.getPreferencesService().getRootNode().node(InstanceScope.SCOPE).node(PLUGIN_ID);
+
     /**
      * The location on disk that stores the Bazel workspace associated with the Eclipse workspace. Currently, we only
      * support one Bazel workspace in an Eclipse workspace so this is a static singleton.
      */
-    private static File bazelWorkspaceRootDirectory = null;
+    private static File bazelWorkspaceRootDirectory = getBazelWorkspaceRootDirectoryOnStart();
 
     /**
      * Facade that enables the plugin to execute the bazel command line tool outside of a workspace
@@ -203,6 +213,11 @@ public class BazelJdtPlugin extends Plugin {
         return bazelWorkspaceRootDirectory != null;
     }
 
+    public static File getBazelWorkspaceRootDirectoryOnStart() {
+        String path = pluginPreferences.get(PREFERENCE_WORKSPACE_ROOT_DIRECTORY, null);
+        return path != null ? new File(path) : null;
+    }
+
     /**
      * Returns the location on disk where the Bazel workspace is located. There must be a WORKSPACE file in this
      * location. Prior to importing/opening a Bazel workspace, this location will be null
@@ -238,9 +253,14 @@ public class BazelJdtPlugin extends Plugin {
                         + dir.getAbsolutePath());
             return;
         }
+        pluginPreferences.put(PREFERENCE_WORKSPACE_ROOT_DIRECTORY, dir.getAbsolutePath());
         bazelWorkspaceRootDirectory = dir;
-
-        // write it to the preferences file
+        try {
+            // forces the application to save the preferences
+            pluginPreferences.flush();
+        } catch (BackingStoreException e) {
+            BazelJdtPlugin.logError(e.getMessage());
+        }
     }
 
     /**
