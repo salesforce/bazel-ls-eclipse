@@ -29,6 +29,7 @@ import java.util.List;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import com.google.common.graph.Traverser;
+import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.AspectPackageInfos;
 import com.salesforce.b2eclipse.model.BazelPackageInfo;
 
@@ -57,7 +58,14 @@ final class ImportOrderResolver {
         }
 
         for (BazelPackageInfo childPackageInfo : childModules) {
-            for (String dep : aspects.lookByPackageName(childPackageInfo.getBazelPackageName()).getDeps()) {
+        	AspectPackageInfo packageAspect = aspects.lookByPackageName(childPackageInfo.getBazelPackageName());
+        	
+        	if (packageAspect == null) {
+        		throw new IllegalStateException(
+        				"Package dependencies couldn't be resolved: " + childPackageInfo.getBazelPackageName());
+        	}
+        	 
+            for (String dep : packageAspect.getDeps()) {
                 for (BazelPackageInfo candidateNode : childModules) {
                     if (dep.startsWith(candidateNode.getBazelPackageName()) && childPackageInfo != candidateNode) {
                         graph.putEdge(childPackageInfo, candidateNode);
