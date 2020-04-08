@@ -58,13 +58,13 @@ final class ImportOrderResolver {
         }
 
         for (BazelPackageInfo childPackageInfo : childModules) {
-        	AspectPackageInfo packageAspect = aspects.lookByPackageName(childPackageInfo.getBazelPackageName());
-        	
-        	if (packageAspect == null) {
-        		throw new IllegalStateException(
-        				"Package dependencies couldn't be resolved: " + childPackageInfo.getBazelPackageName());
-        	}
-        	 
+            AspectPackageInfo packageAspect = aspects.lookByPackageName(childPackageInfo.getBazelPackageName());
+            
+            if (packageAspect == null) {
+                throw new IllegalStateException(
+                        "Package dependencies couldn't be resolved: " + childPackageInfo.getBazelPackageName());
+            }
+            
             for (String dep : packageAspect.getDeps()) {
                 for (BazelPackageInfo candidateNode : childModules) {
                     if (dep.startsWith(candidateNode.getBazelPackageName()) && childPackageInfo != candidateNode) {

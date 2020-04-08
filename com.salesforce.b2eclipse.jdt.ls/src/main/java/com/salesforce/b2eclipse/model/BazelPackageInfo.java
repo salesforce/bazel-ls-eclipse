@@ -103,7 +103,7 @@ public class BazelPackageInfo {
         
         File buildFile = new File(this.workspaceRoot, BUILD_FILENAME);
         if (buildFile.exists()) {
-        	throw new IllegalStateException("Root package is not supported. BUILD files should be in subdirectories");
+            throw new IllegalStateException("Root package is not supported. BUILD files should be in subdirectories");
         }
 
         this.parent = null;

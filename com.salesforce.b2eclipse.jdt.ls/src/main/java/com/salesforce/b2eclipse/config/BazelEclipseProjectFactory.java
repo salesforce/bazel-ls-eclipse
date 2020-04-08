@@ -564,8 +564,8 @@ public final class BazelEclipseProjectFactory {
             }
             bazelTargets.add(packageTarget.getLabel());
         } else {
-        	throw new IllegalStateException(
-        			"Couldn't find sources for the following package: " + packageNode.getBazelPackageName());
+            throw new IllegalStateException(
+                    "Couldn't find sources for the following package: " + packageNode.getBazelPackageName());
         }
     }
 
