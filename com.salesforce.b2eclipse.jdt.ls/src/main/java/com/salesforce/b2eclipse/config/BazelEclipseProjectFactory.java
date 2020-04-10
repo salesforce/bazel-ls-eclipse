@@ -73,6 +73,7 @@ import com.salesforce.b2eclipse.classpath.BazelClasspathContainer;
 import com.salesforce.b2eclipse.classpath.BazelClasspathContainerInitializer;
 import com.salesforce.b2eclipse.command.BazelCommandManager;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
+import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.AspectPackageInfos;
 import com.salesforce.b2eclipse.model.BazelLabel;
@@ -108,9 +109,6 @@ public final class BazelEclipseProjectFactory {
 
     // signals that we are in a delicate bootstrapping operation
     private static AtomicBoolean importInProgress = new AtomicBoolean(false);
-
-    private static String importBazelSRCPath;
-    private static String importBazelTestPath;
 
     // add the directory name to the label, if it is meaningful (>3 chars)
     private static final int MIN_NUMBER_OF_CHARACTER_FOR_NAME = 3;
@@ -542,13 +540,17 @@ public final class BazelEclipseProjectFactory {
         // add this node buildable target
         String bazelPackageRootDirectory = packageNode.getWorkspaceRootDirectory().getAbsolutePath();
 
-        String mainSrcRelPath = packageNode.getBazelPackageFSRelativePath() + importBazelSRCPath;
+        B2EPreferncesManager preferencesManager = B2EPreferncesManager.getInstance();
+
+        String mainSrcRelPath =
+                packageNode.getBazelPackageFSRelativePath() + preferencesManager.getImportBazelSrcPath();
         File mainSrcDir = new File(bazelPackageRootDirectory + File.separator + mainSrcRelPath);
         if (mainSrcDir.exists()) {
             packageSourceCodeFSPaths.add(mainSrcRelPath);
             foundSourceCodePaths = true;
         }
-        String testSrcRelPath = packageNode.getBazelPackageFSRelativePath() + importBazelTestPath;
+        String testSrcRelPath =
+                packageNode.getBazelPackageFSRelativePath() + preferencesManager.getImportBazelTestPath();
         File testSrcDir = new File(bazelPackageRootDirectory + File.separator + testSrcRelPath);
         if (testSrcDir.exists()) {
             packageSourceCodeFSPaths.add(testSrcRelPath);
@@ -600,22 +602,6 @@ public final class BazelEclipseProjectFactory {
         }
 
         return aspectPackageInfos;
-    }
-
-    public static String getImportBazelSRCPath() {
-        return importBazelSRCPath;
-    }
-
-    public static void setImportBazelSRCPath(String importBazelSRCPath) {
-        BazelEclipseProjectFactory.importBazelSRCPath = importBazelSRCPath;
-    }
-
-    public static String getImportBazelTestPath() {
-        return importBazelTestPath;
-    }
-
-    public static void setImportBazelTestPath(String importBazelTestPath) {
-        BazelEclipseProjectFactory.importBazelTestPath = importBazelTestPath;
     }
 
     public static AtomicBoolean getImportInProgress() {
