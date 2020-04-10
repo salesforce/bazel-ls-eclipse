@@ -30,7 +30,6 @@ Assumptions
 - Sources of a package cannot reside in the root of it. They should be in a subdir;
 - Subpackages are not supported (i.e. package within package).
 
-
 Future vision
 -------------
 Will be shipped separately as two independent features: standalone feature and as extension for Eclipse JDT LS.
