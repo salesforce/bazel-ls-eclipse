@@ -18,8 +18,8 @@ Properties
 ----------
 The following properties are passed from the client to configure the plugin:
 - `java.import.bazel.enabled` - whether Bazel support should be enabled in JDT LS (disabled by default);
-- `java.import.bazel.src.path` - location of sources (relative to a package). Defaults to `/java/src`;
-- `java.import.bazel.test.path` - location of test sources (relative to a package). Defaults to `/java/test`.
+- `java.import.bazel.src.path` - location of sources (relative to a package). Defaults to `/src/main/java`;
+- `java.import.bazel.test.path` - location of test sources (relative to a package). Defaults to `/src/test/java`.
 
 Assumptions
 -----------
