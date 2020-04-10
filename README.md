@@ -18,13 +18,17 @@ Properties
 ----------
 The following properties are passed from the client to configure the plugin:
 - `java.import.bazel.enabled` - whether Bazel support should be enabled in JDT LS (disabled by default);
-- `java.import.bazel.src.path` - location of sources (relative to a package);
-- `java.import.bazel.test.path` - location of test sources (relative to a package).
+- `java.import.bazel.src.path` - location of sources (relative to a package). Defaults to `/src/main/java`;
+- `java.import.bazel.test.path` - location of test sources (relative to a package). Defaults to `/src/test/java`.
 
 Assumptions
 -----------
-- The package is not rooted directly in the workspace directory (i.e. beside the WORKSPACE file) but in a subdirectory;
-- Source files reside in a subdirectory of each package (see above section for corresponding properties).
+- Root package is not allowed (i.e. there should be no BUILD file beside the WORKSPACE);
+- A project has to be in a valid state (i.e. no unsatisfied  dependencies are allowed);
+- Each package is to have sources;
+- Sources of a package are expected to be under the path specified through the following properties: `java.import.bazel.src.path`, `java.import.bazel.test.path` (details in the [Properties](#properties) section).
+- Sources of a package cannot reside in the root of it. They should be in a subdir;
+- Subpackages are not supported (i.e. package within package).
 
 Future vision
 -------------
