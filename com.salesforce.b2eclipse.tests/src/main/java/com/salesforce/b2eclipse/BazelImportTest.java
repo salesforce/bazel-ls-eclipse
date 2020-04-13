@@ -29,7 +29,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IProject;
@@ -38,6 +40,9 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.eclipse.jdt.ls.core.internal.preferences.Preferences;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,13 +51,14 @@ import com.salesforce.b2eclipse.importer.BazelProjectImportScanner;
 import com.salesforce.b2eclipse.model.BazelPackageInfo;
 import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
+@SuppressWarnings("restriction")
 public class BazelImportTest {
 
-    private IWorkspaceRoot workspaceRoot;
+    private static final String BAZEL_SRC_PATH = "java.import.bazel.src.path";
 
-    static {
-        BazelEclipseProjectFactory.setImportBazelSRCPath("/java/src");
-    }
+    private static final String BAZEL_SRC_PATH_VALUE = "/java/src";
+
+    private IWorkspaceRoot workspaceRoot;
 
     public BazelImportTest() {
         IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -61,6 +67,12 @@ public class BazelImportTest {
 
     @Before
     public void setup() {
+        PreferenceManager manager = new PreferenceManager();
+        Map<String, Object> settings = new HashMap<>();
+        settings.put(BAZEL_SRC_PATH, BAZEL_SRC_PATH_VALUE);
+        Preferences pref = Preferences.createFrom(settings);
+        manager.update(pref);
+        JavaLanguageServerPlugin.setPreferencesManager(manager);
         BazelProjectImportScanner scanner = new BazelProjectImportScanner();
         BazelPackageInfo workspaceRootPackage = scanner.getProjects("projects/bazel-ls-demo-project");
 

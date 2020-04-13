@@ -44,27 +44,27 @@ public final class B2EPreferncesManager {
     /**
      * Preference key to enable/disable bazel importer.
      */
-    public static final String IMPORT_BAZEL_ENABLED = "java.import.bazel.enabled";
+    private static final String IMPORT_BAZEL_ENABLED = "java.import.bazel.enabled";
 
     /**
      * Preference key to change java classes src path for bazel importer.
      */
-    public static final String BAZEL_SRC_PATH = "java.import.bazel.src.path";
+    private static final String BAZEL_SRC_PATH = "java.import.bazel.src.path";
 
     /**
      * Preference key to change java classes test path for bazel importer.
      */
-    public static final String BAZEL_TEST_PATH = "java.import.bazel.test.path";
+    private static final String BAZEL_TEST_PATH = "java.import.bazel.test.path";
 
     /**
      * Default java class src path for bazel importer.
      */
-    public static final String BAZEL_DEFAULT_SRC_PATH = "/src/main/java";
+    private static final String BAZEL_DEFAULT_SRC_PATH = "/src/main/java";
 
     /**
      * Default java class test path for bazel importer.
      */
-    public static final String BAZEL_DEFAULT_TEST_PATH = "/src/test/java";
+    private static final String BAZEL_DEFAULT_TEST_PATH = "/src/test/java";
 
     private static volatile B2EPreferncesManager instance;
 
@@ -73,8 +73,7 @@ public final class B2EPreferncesManager {
     private String importBazelTestPath;
 
     private B2EPreferncesManager() {
-        Map<String, Object> configuration =
-                JavaLanguageServerPlugin.getInstance().getPreferencesManager().getPreferences().asMap();
+        Map<String, Object> configuration = JavaLanguageServerPlugin.getPreferencesManager().getPreferences().asMap();
         importBazelEnabled = MapFlattener.getBoolean(configuration, IMPORT_BAZEL_ENABLED, false);
         importBazelSrcPath = MapFlattener.getString(configuration, BAZEL_SRC_PATH, BAZEL_DEFAULT_SRC_PATH);
         importBazelTestPath = MapFlattener.getString(configuration, BAZEL_TEST_PATH, BAZEL_DEFAULT_TEST_PATH);
