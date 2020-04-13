@@ -13,7 +13,9 @@
     <booleanAttribute key="clearwslog" value="false"/>
     <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/jdt.ls.socket-stream"/>
     <booleanAttribute key="default" value="false"/>
-    <setAttribute key="deselected_workspace_bundles"/>
+    <setAttribute key="deselected_workspace_bundles">
+        <setEntry value="com.salesforce.b2eclipse.tests"/>
+    </setAttribute>
     <stringAttribute key="featureDefaultLocation" value="workspace"/>
     <stringAttribute key="featurePluginResolution" value="workspace"/>
     <booleanAttribute key="includeOptional" value="false"/>
