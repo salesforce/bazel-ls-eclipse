@@ -32,7 +32,6 @@
         <module>com.salesforce.b2eclipse.jdt.ls</module>
         <module>com.salesforce.b2eclipse.repository</module>
         <module>com.salesforce.b2eclipse.tests</module>
-        <module>com.salesforce.b2eclipse.ui</module>
         <module>com.salesforce.b2eclipse.report</module>
     </modules>
     
@@ -142,7 +141,7 @@
                     <target>
                         <artifact>
                             <groupId>com.salesforce.b2eclipse</groupId>
-                            <artifactId>com.salesforce.b2eclipse.ui</artifactId>
+                            <artifactId>com.salesforce.b2eclipse.jdt.ls</artifactId>
                             <version>${project.version}</version>
                         </artifact>
                     </target>
