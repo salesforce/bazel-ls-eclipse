@@ -39,10 +39,7 @@ eclipse.sh
 .DS_Store
 
 # Bazel build result
-**/bazel-bazel-ls-demo-project
-**/bazel-bin
-**/bazel-out
-**/bazel-testlogs
+**/bazel-*
 
 # Checkstyle files
 *.checkstyle
