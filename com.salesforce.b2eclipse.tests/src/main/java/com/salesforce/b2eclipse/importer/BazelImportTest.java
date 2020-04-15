@@ -23,21 +23,48 @@
  *
  */
 
-package com.salesforce.b2eclipse;
+package com.salesforce.b2eclipse.importer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
 
 import org.eclipse.core.resources.IProject;
+
+import org.eclipse.core.runtime.CoreException;
+
+import org.junit.Before;
 import org.junit.Test;
 
-public class BazelNatureTest {
+/**
+ * Test class for importing a general Bazel test project.
+ */
+public class BazelImportTest extends BaseBazelImproterTest {
 
-    @Test
-    public void testGetProject() {
-        IProject expected = null;
-        BazelNature nature = new BazelNature();
-        IProject actual = nature.getProject();
-        assertEquals(actual, expected);
+    public BazelImportTest() {
+        super.setWorkspaceRootPackage(getScanner().getProjects("projects/bazel-ls-demo-project"));
     }
 
+    @Before
+    public void setup() {
+        importProject();
+    }
+
+    @Test
+    public void testImport() throws CoreException {
+        IProject module1Proj = getWorkspaceRoot().getProject("module1");
+        IProject module2Proj = getWorkspaceRoot().getProject("module2");
+        IProject module3Proj = getWorkspaceRoot().getProject("module3");
+
+        IProject[] referencedProjects = module1Proj.getReferencedProjects();
+
+        assertEquals(2, referencedProjects.length);
+
+        assertTrue("Didn't find module2 in the referenced projects list",
+            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module2Proj)));
+
+        assertTrue("Didn't find module3 in the referenced projects list",
+            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module3Proj)));
+    }
 }

@@ -23,21 +23,25 @@
  *
  */
 
-package com.salesforce.b2eclipse;
+package com.salesforce.b2eclipse.importer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
-import org.eclipse.core.resources.IProject;
 import org.junit.Test;
 
-public class BazelNatureTest {
+/**
+ * A test class for importing a Bazel test project in which the BUILD file is located next to the WORKSPACE file.
+ */
+public class BuildWithWorkspaceBazelImportTest extends BaseBazelImproterTest {
 
-    @Test
-    public void testGetProject() {
-        IProject expected = null;
-        BazelNature nature = new BazelNature();
-        IProject actual = nature.getProject();
-        assertEquals(actual, expected);
+    @Test()
+    public void testFailImportProjectBuildWithClass() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            super.setWorkspaceRootPackage(getScanner().getProjects("projects/build-with-workspace"));
+        });
+
+        assertEquals("Root package is not supported. BUILD files should be in subdirectories", exception.getMessage());
     }
 
 }
