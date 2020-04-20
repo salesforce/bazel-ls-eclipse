@@ -63,7 +63,7 @@ public class BazelAspectLocationImpl implements BazelAspectLocation {
                         "Eclipse OSGi subsystem could not find the core plugin [" + BazelJdtPlugin.PLUGIN_ID + "]");
             }
             URL url = bazelCorePlugin.getEntry("resources");
-            URL resolved = FileLocator.resolve(url);
+            URL resolved = FileLocator.toFileURL(url);
             if (resolved == null) {
                 throw new IllegalStateException("Could not load location [" + url + "]");
             }

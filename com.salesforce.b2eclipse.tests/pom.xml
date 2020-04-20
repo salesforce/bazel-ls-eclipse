@@ -11,21 +11,4 @@
     <artifactId>com.salesforce.b2eclipse.tests</artifactId>
     <name>${base.name} :: Tests</name>
     <packaging>eclipse-test-plugin</packaging>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-surefire-plugin</artifactId>
-                    <version>${tycho-version}</version>
-                    <configuration>
-                        <explodedBundles>
-	                        <explodedBundle>com.salesforce.b2eclipse.jdt.ls</explodedBundle>
-                    	</explodedBundles>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
 </project>
