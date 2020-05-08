@@ -108,4 +108,9 @@ public final class B2EPreferncesManager {
         return importBazelTestPath;
     }
 
+    // only for tests
+    public void setImportBazelSrcPath(String importBazelSrcPath) {
+        this.importBazelSrcPath = importBazelSrcPath;
+    }
+
 }

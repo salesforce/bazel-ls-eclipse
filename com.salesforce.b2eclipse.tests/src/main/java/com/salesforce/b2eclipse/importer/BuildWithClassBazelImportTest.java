@@ -28,7 +28,10 @@ package com.salesforce.b2eclipse.importer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
 
 /**
  * A test class for importing a Bazel test project in which a BUILD file is located next to java classes.
@@ -39,14 +42,19 @@ public class BuildWithClassBazelImportTest extends BaseBazelImproterTest {
         super.setWorkspaceRootPackage(getScanner().getProjects("projects/build-with-class"));
     }
 
+    @Before
+    public void setup() {
+        B2EPreferncesManager preferenceManager = B2EPreferncesManager.getInstance();
+        preferenceManager.setImportBazelSrcPath(BAZEL_SRC_PATH_VALUE_FOR_BUILD_WITH_CLASS_TEST);
+    }
+
     @Test()
     public void testFailImportProjectBuildWithClass() {
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
             importProject();
         });
 
-        assertEquals("Couldn't find sources for the following package: //src/main/java/com/example",
-            exception.getMessage());
+        assertEquals("did not expect src code path to be equals to the bazel package path", exception.getMessage());
     }
 
 }

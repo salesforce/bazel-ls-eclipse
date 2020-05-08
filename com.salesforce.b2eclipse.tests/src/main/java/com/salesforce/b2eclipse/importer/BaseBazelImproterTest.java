@@ -48,9 +48,11 @@ import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 @SuppressWarnings("restriction")
 public abstract class BaseBazelImproterTest {
 
-    private static final String BAZEL_SRC_PATH = "java.import.bazel.src.path";
+    public static final String BAZEL_SRC_PATH = "java.import.bazel.src.path";
 
-    private static final String BAZEL_SRC_PATH_VALUE = "/java/src";
+    public static final String BAZEL_SRC_PATH_VALUE = "/java/src";
+
+    public static final String BAZEL_SRC_PATH_VALUE_FOR_BUILD_WITH_CLASS_TEST = "/";
 
     private BazelPackageInfo workspaceRootPackage;
     private IWorkspaceRoot workspaceRoot;
@@ -60,16 +62,16 @@ public abstract class BaseBazelImproterTest {
         IWorkspace workspace = ResourcesPlugin.getWorkspace();
         this.workspaceRoot = workspace.getRoot();
         scanner = new BazelProjectImportScanner();
-    }
 
-    protected void importProject() {
         PreferenceManager manager = new PreferenceManager();
         Map<String, Object> settings = new HashMap<>();
         settings.put(BAZEL_SRC_PATH, BAZEL_SRC_PATH_VALUE);
         Preferences pref = Preferences.createFrom(settings);
         manager.update(pref);
         JavaLanguageServerPlugin.setPreferencesManager(manager);
+    }
 
+    protected void importProject() {
         List<BazelPackageInfo> bazelPackagesToImport =
                 workspaceRootPackage.getChildPackageInfos().stream().collect(Collectors.toList());
 
