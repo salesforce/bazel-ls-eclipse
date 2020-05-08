@@ -419,7 +419,7 @@ public final class BazelEclipseProjectFactory {
 
         if (!generatedSources) {
             if (!packageSourceCodeFSRelativePath.startsWith(bazelPackageFSPath)) {
-                throw new IllegalStateException("src code path exepcted to be under bazel package path");
+                throw new IllegalStateException("src code path expected to be under bazel package path");
             }
             if (Paths.get(packageSourceCodeFSRelativePath).equals(Paths.get(bazelPackageFSPath))) {
                 throw new IllegalStateException("did not expect src code path to be equals to the bazel package path");
