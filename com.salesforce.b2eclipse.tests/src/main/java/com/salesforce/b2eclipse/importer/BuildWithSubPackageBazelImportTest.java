@@ -25,6 +25,7 @@
 
 package com.salesforce.b2eclipse.importer;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import java.util.Arrays;
@@ -54,12 +55,14 @@ public class BuildWithSubPackageBazelImportTest extends BaseBazelImproterTest {
 
     @Test
     public void testFailImportProjectBuildWithSubPackage() throws CoreException {
-        IProject module1Proj = getWorkspaceRoot().getProject("module1");
-        IProject module4Proj = getWorkspaceRoot().getProject("module4");
-        IProject[] referencedProjects = module1Proj.getReferencedProjects();
+        IProject moduleProj = getWorkspaceRoot().getProject("module");
+        IProject subModuleProj = getWorkspaceRoot().getProject("submodule");
+        IProject[] referencedProjects = moduleProj.getReferencedProjects();
 
-        assertFalse("Find module4 in the referenced projects list",
-            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module4Proj)));
+        assertEquals(0, referencedProjects.length);
+
+        assertFalse("Find submodule in the referenced projects list",
+            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(subModuleProj)));
     }
 
 }
