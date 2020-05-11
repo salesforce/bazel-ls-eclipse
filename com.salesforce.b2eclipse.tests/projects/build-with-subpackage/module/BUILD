@@ -4,5 +4,5 @@ java_binary(
     name = "ProjectRunner",
     srcs = glob(["java/src/example/ProjectRunner.java"]),
     main_class = "example.ProjectRunner",
-    deps = ["//module1/module2:greeter"],
+    deps = ["//module/submodule:greeter"],
 )
