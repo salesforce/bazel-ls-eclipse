@@ -34,7 +34,9 @@
 package com.salesforce.b2eclipse.importer;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.salesforce.b2eclipse.config.BazelProjectConfigurator;
 import com.salesforce.b2eclipse.model.BazelPackageInfo;
@@ -121,6 +123,14 @@ public class BazelProjectImportScanner {
         Set<File> projects = configurator.findConfigurableLocations(rootDirectoryFile, null);
 
         BazelPackageInfo workspace = new BazelPackageInfo(rootDirectoryFile);
+        
+        List<File> targetsToLoad = ProjectFileScanner.getConfiguredTargets(rootDirectoryFile);
+        
+        if (targetsToLoad != null) {
+            projects = projects.stream()
+                .filter(targetsToLoad::contains)
+                .collect(Collectors.toSet());
+        }
 
         int sizeOfWorkspacePath = rootDirectory.length();
         for (File project : projects) {
