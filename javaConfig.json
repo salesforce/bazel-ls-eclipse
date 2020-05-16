@@ -1,0 +1,7 @@
+{
+    "projects": [
+        "com.salesforce.b2eclipse.jdt.ls"
+    ],
+
+   "targetPlatform": "com.salesforce.b2eclipse.jdt.ls/com.salesforce.b2eclipse.jdt.ls.target"
+}
