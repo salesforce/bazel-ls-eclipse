@@ -29,6 +29,7 @@ hs_err_pid*
 # Eclipse
 .settings
 .project
+.classpath
 eclipse.sh
 
 # IDEA
@@ -46,3 +47,7 @@ eclipse.sh
 
 # Checkstyle files
 *.checkstyle
+
+#VS Code files
+.vscode/
+!./.vscode/extensions.json
