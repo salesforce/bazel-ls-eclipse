@@ -35,7 +35,6 @@ package com.salesforce.b2eclipse.managers;
 
 import java.util.Map;
 
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.eclipse.jdt.ls.core.internal.handlers.MapFlattener;
 
 @SuppressWarnings("restriction")
@@ -73,10 +72,13 @@ public final class B2EPreferncesManager {
     private String importBazelTestPath;
 
     private B2EPreferncesManager() {
-        Map<String, Object> configuration = JavaLanguageServerPlugin.getPreferencesManager().getPreferences().asMap();
-        importBazelEnabled = MapFlattener.getBoolean(configuration, IMPORT_BAZEL_ENABLED, false);
-        importBazelSrcPath = MapFlattener.getString(configuration, BAZEL_SRC_PATH, BAZEL_DEFAULT_SRC_PATH);
-        importBazelTestPath = MapFlattener.getString(configuration, BAZEL_TEST_PATH, BAZEL_DEFAULT_TEST_PATH);
+
+    }
+
+    public void setConfiguration(Map<String, Object> configuration) {
+        this.importBazelEnabled = MapFlattener.getBoolean(configuration, IMPORT_BAZEL_ENABLED, false);
+        this.importBazelSrcPath = MapFlattener.getString(configuration, BAZEL_SRC_PATH, BAZEL_DEFAULT_SRC_PATH);
+        this.importBazelTestPath = MapFlattener.getString(configuration, BAZEL_TEST_PATH, BAZEL_DEFAULT_TEST_PATH);
     }
 
     public static B2EPreferncesManager getInstance() {
@@ -106,11 +108,6 @@ public final class B2EPreferncesManager {
 
     public String getImportBazelTestPath() {
         return importBazelTestPath;
-    }
-
-    // only for tests
-    public void setImportBazelSrcPath(String importBazelSrcPath) {
-        this.importBazelSrcPath = importBazelSrcPath;
     }
 
 }
