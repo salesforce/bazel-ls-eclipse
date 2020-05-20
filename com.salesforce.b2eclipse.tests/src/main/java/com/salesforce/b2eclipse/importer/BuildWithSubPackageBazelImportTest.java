@@ -46,7 +46,7 @@ public class BuildWithSubPackageBazelImportTest extends BaseBazelImproterTest {
 
     @Before
     public void setup() {
-        setBazelSrcPath(BAZEL_SRC_PATH_VALUE);
+        setSettings(BAZEL_SRC_PATH_VALUE);
         importProject();
     }
 

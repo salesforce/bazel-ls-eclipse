@@ -42,7 +42,7 @@ public class BuildWithClassBazelImportTest extends BaseBazelImproterTest {
 
     @Before
     public void setup() {
-        setBazelSrcPath(BAZEL_SRC_PATH_VALUE_FOR_BUILD_WITH_CLASS_TEST);
+        setSettings(BAZEL_SRC_PATH_VALUE_FOR_BUILD_WITH_CLASS_TEST);
     }
 
     @Test()

@@ -150,13 +150,11 @@ public class BazelJdtPlugin extends Plugin {
         startInternal(aspectLocation, commandBuilder, eclipseResourceHelper, eclipseJavaCoreHelper);
 
         Map<String, Object> configuration = JavaLanguageServerPlugin.getPreferencesManager().getPreferences().asMap();
-        B2EPreferncesManager preferencesManager = B2EPreferncesManager.getInstance();
         if (configuration == null) {
             configuration = new HashMap<>();
-            preferencesManager.setConfiguration(configuration);
-        } else {
-            preferencesManager.setConfiguration(configuration);
         }
+        B2EPreferncesManager preferencesManager = B2EPreferncesManager.getInstance();
+        preferencesManager.setConfiguration(configuration);
     }
 
     /**

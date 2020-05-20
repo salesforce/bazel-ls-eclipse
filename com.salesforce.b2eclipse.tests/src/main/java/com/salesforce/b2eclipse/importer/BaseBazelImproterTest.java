@@ -43,7 +43,6 @@ import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 /**
  * An abstract class for importing a Bazel project.
  */
-@SuppressWarnings("restriction")
 public abstract class BaseBazelImproterTest {
 
     public static final String IMPORT_BAZEL_ENABLED = "java.import.bazel.enabled";
@@ -64,7 +63,7 @@ public abstract class BaseBazelImproterTest {
         scanner = new BazelProjectImportScanner();
     }
 
-    protected void setBazelSrcPath(String path) {
+    protected void setSettings(String path) {
         Map<String, Object> settings = new HashMap<>();
         settings.put(IMPORT_BAZEL_ENABLED, true);
         settings.put(BAZEL_SRC_PATH, path);
