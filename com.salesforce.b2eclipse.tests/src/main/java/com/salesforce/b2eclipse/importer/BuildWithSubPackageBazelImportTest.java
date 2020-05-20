@@ -35,8 +35,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
-
 /**
  * Test class for importing a Bazel test project that contains a sub module.
  */
@@ -48,8 +46,7 @@ public class BuildWithSubPackageBazelImportTest extends BaseBazelImproterTest {
 
     @Before
     public void setup() {
-        B2EPreferncesManager preferenceManager = B2EPreferncesManager.getInstance();
-        preferenceManager.setImportBazelSrcPath(BAZEL_SRC_PATH_VALUE);
+        setBazelSrcPath(BAZEL_SRC_PATH_VALUE);
         importProject();
     }
 

@@ -31,8 +31,6 @@ import static org.junit.Assert.assertThrows;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
-
 /**
  * A test class for importing a Bazel test project in which a BUILD file is located next to java classes.
  */
@@ -44,8 +42,7 @@ public class BuildWithClassBazelImportTest extends BaseBazelImproterTest {
 
     @Before
     public void setup() {
-        B2EPreferncesManager preferenceManager = B2EPreferncesManager.getInstance();
-        preferenceManager.setImportBazelSrcPath(BAZEL_SRC_PATH_VALUE_FOR_BUILD_WITH_CLASS_TEST);
+        setBazelSrcPath(BAZEL_SRC_PATH_VALUE_FOR_BUILD_WITH_CLASS_TEST);
     }
 
     @Test()

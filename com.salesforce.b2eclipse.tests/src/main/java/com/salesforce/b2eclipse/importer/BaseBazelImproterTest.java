@@ -34,11 +34,9 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
-import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
-import org.eclipse.jdt.ls.core.internal.preferences.Preferences;
 
 import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
+import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
 import com.salesforce.b2eclipse.model.BazelPackageInfo;
 import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
@@ -47,6 +45,8 @@ import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
  */
 @SuppressWarnings("restriction")
 public abstract class BaseBazelImproterTest {
+
+    public static final String IMPORT_BAZEL_ENABLED = "java.import.bazel.enabled";
 
     public static final String BAZEL_SRC_PATH = "java.import.bazel.src.path";
 
@@ -62,13 +62,14 @@ public abstract class BaseBazelImproterTest {
         IWorkspace workspace = ResourcesPlugin.getWorkspace();
         this.workspaceRoot = workspace.getRoot();
         scanner = new BazelProjectImportScanner();
+    }
 
-        PreferenceManager manager = new PreferenceManager();
+    protected void setBazelSrcPath(String path) {
         Map<String, Object> settings = new HashMap<>();
-        settings.put(BAZEL_SRC_PATH, BAZEL_SRC_PATH_VALUE);
-        Preferences pref = Preferences.createFrom(settings);
-        manager.update(pref);
-        JavaLanguageServerPlugin.setPreferencesManager(manager);
+        settings.put(IMPORT_BAZEL_ENABLED, true);
+        settings.put(BAZEL_SRC_PATH, path);
+        B2EPreferncesManager preferencesManager = B2EPreferncesManager.getInstance();
+        preferencesManager.setConfiguration(settings);
     }
 
     protected void importProject() {
