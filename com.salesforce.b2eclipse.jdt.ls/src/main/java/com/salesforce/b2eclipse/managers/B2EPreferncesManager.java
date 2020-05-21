@@ -35,6 +35,9 @@ package com.salesforce.b2eclipse.managers;
 
 import java.util.Map;
 
+import org.eclipse.jdt.ls.core.internal.handlers.MapFlattener;
+
+@SuppressWarnings("restriction")
 public final class B2EPreferncesManager {
 
     /**
@@ -73,9 +76,9 @@ public final class B2EPreferncesManager {
     }
 
     public void setConfiguration(Map<String, Object> configuration) {
-        this.importBazelEnabled = (boolean) configuration.getOrDefault(IMPORT_BAZEL_ENABLED, false);
-        this.importBazelSrcPath = (String) configuration.getOrDefault(BAZEL_SRC_PATH, BAZEL_DEFAULT_SRC_PATH);
-        this.importBazelTestPath = (String) configuration.getOrDefault(BAZEL_TEST_PATH, BAZEL_DEFAULT_TEST_PATH);
+        importBazelEnabled = MapFlattener.getBoolean(configuration, IMPORT_BAZEL_ENABLED, false);
+        importBazelSrcPath = MapFlattener.getString(configuration, BAZEL_SRC_PATH, BAZEL_DEFAULT_SRC_PATH);
+        importBazelTestPath = MapFlattener.getString(configuration, BAZEL_TEST_PATH, BAZEL_DEFAULT_TEST_PATH);
     }
 
     public static B2EPreferncesManager getInstance() {
