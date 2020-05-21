@@ -23,21 +23,35 @@
  *
  */
 
-package com.salesforce.b2eclipse;
+package com.salesforce.b2eclipse.importer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
-import org.eclipse.core.resources.IProject;
+import org.junit.Before;
 import org.junit.Test;
 
-public class BazelNatureTest {
+/**
+ * A test class for importing a Bazel test project in which a BUILD file is located next to java classes.
+ */
+public class BuildWithClassBazelImportTest extends BaseBazelImproterTest {
 
-    @Test
-    public void testGetProject() {
-        IProject expected = null;
-        BazelNature nature = new BazelNature();
-        IProject actual = nature.getProject();
-        assertEquals(actual, expected);
+    public BuildWithClassBazelImportTest() {
+        super.setWorkspaceRootPackage(getScanner().getProjects("projects/build-with-class"));
+    }
+
+    @Before
+    public void setup() {
+        setSettings(BAZEL_SRC_PATH_VALUE_FOR_BUILD_WITH_CLASS_TEST);
+    }
+
+    @Test()
+    public void testFailImportProjectBuildWithClass() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            importProject();
+        });
+
+        assertEquals("did not expect src code path to be equals to the bazel package path", exception.getMessage());
     }
 
 }

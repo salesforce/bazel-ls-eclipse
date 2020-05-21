@@ -23,21 +23,43 @@
  *
  */
 
-package com.salesforce.b2eclipse;
+package com.salesforce.b2eclipse.importer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
+import java.util.Arrays;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.junit.Before;
 import org.junit.Test;
 
-public class BazelNatureTest {
+/**
+ * Test class for importing a Bazel test project that contains a sub module.
+ */
+public class BuildWithSubPackageBazelImportTest extends BaseBazelImproterTest {
+
+    public BuildWithSubPackageBazelImportTest() {
+        super.setWorkspaceRootPackage(getScanner().getProjects("projects/build-with-subpackage"));
+    }
+
+    @Before
+    public void setup() {
+        setSettings(BAZEL_SRC_PATH_VALUE);
+        importProject();
+    }
 
     @Test
-    public void testGetProject() {
-        IProject expected = null;
-        BazelNature nature = new BazelNature();
-        IProject actual = nature.getProject();
-        assertEquals(actual, expected);
+    public void testFailImportProjectBuildWithSubPackage() throws CoreException {
+        IProject moduleProj = getWorkspaceRoot().getProject("module");
+        IProject subModuleProj = getWorkspaceRoot().getProject("submodule");
+        IProject[] referencedProjects = moduleProj.getReferencedProjects();
+
+        assertEquals(0, referencedProjects.length);
+
+        assertFalse("Find submodule in the referenced projects list",
+            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(subModuleProj)));
     }
 
 }
