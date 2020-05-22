@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import com.salesforce.b2eclipse.config.BazelProjectConfigurator;
 import com.salesforce.b2eclipse.model.BazelPackageInfo;
+import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
 /**
  * Scans a Bazel workspace looking for Java packages (BUILD files that have java_binary or java_library targets). It is
@@ -114,38 +115,25 @@ public class BazelProjectImportScanner {
             // this is the initialization state of the wizard
             return null;
         }
-        String rootDirectory = rootDirectoryFile.getAbsolutePath();
 
         // TODO the correct way to do this is put the configurator on another thread, and allow it to update the progress monitor.
         // Do it on-thread for now as it is easiest.
 
         BazelProjectConfigurator configurator = new BazelProjectConfigurator();
-        Set<File> projects = configurator.findConfigurableLocations(rootDirectoryFile, null);
+        List<String> projects = configurator.findConfigurableLocations(rootDirectoryFile, new EclipseWorkProgressMonitor(null));
 
         BazelPackageInfo workspace = new BazelPackageInfo(rootDirectoryFile);
         
-        List<File> targetsToLoad = ProjectFileScanner.getConfiguredTargets(rootDirectoryFile);
+        List<String> targetsToLoad = ProjectFileScanner.getConfiguredTargets(rootDirectoryFile);
         
         if (targetsToLoad != null) {
             projects = projects.stream()
                 .filter(targetsToLoad::contains)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
         }
 
-        int sizeOfWorkspacePath = rootDirectory.length();
-        for (File project : projects) {
-            String projectPath = project.getAbsolutePath();
-
-            if (projectPath.equals(rootDirectory)) {
-                // root path, already created the root node
-                continue;
-            }
-
-            // TODO ooh, this bazel package path manipulation seems error prone
-            String relativePath = projectPath.substring(sizeOfWorkspacePath + 1);
-
-            // instantiate the project info object, which will automatically hook itself to the appropriate parents
-            new BazelPackageInfo(workspace, relativePath);
+        for (String project : projects) {
+            new BazelPackageInfo(workspace, project);
         }
 
         return workspace;

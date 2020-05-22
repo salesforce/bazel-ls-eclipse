@@ -31,6 +31,7 @@ import java.util.function.Function;
 import com.google.common.collect.ImmutableList;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
+import com.salesforce.b2eclipse.model.BazelBuildFileHelper;
 
 /**
  * Helper that knows how to run bazel query commands.
@@ -140,6 +141,32 @@ public class BazelQueryHelper {
             }
             return builder.build();
         }
+    }
+    
+    public synchronized List<String> getPackagesForTargets(File bazelWorkspaceRootDirectory, WorkProgressMonitor progressMonitor,
+            List<String> targets) throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
+        
+        ImmutableList.Builder<String> argBuilder = ImmutableList.builder();
+        argBuilder.add("query");
+        argBuilder.add(String.join(" union ", targets));
+        argBuilder.add("--output");
+        argBuilder.add("package");
+        
+        return bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
+            argBuilder.build(), (t) -> t.isEmpty() ? null : t);
+    }
+    
+    public synchronized List<String> getJavaPackages(File bazelWorkspaceRootDirectory, WorkProgressMonitor progressMonitor) throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
+        
+        ImmutableList.Builder<String> argBuilder = ImmutableList.builder();
+        
+        argBuilder.add("query");
+        argBuilder.add("kind(\"" + String.join("|", BazelBuildFileHelper.JAVA_PROJECT_INDICATORS) + "\", //...)");
+        argBuilder.add("--output");
+        argBuilder.add("package");
+        
+        return bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
+            argBuilder.build(), (t) -> t.isEmpty() ? null : t);
     }
 
 }
