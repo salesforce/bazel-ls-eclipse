@@ -36,6 +36,7 @@ package com.salesforce.b2eclipse.config;
 import java.io.File;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -51,7 +52,11 @@ import org.eclipse.core.runtime.Path;
 
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.BazelNature;
+import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
+import com.salesforce.b2eclipse.command.BazelCommandManager;
+import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.model.BazelBuildFileHelper;
+import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
 // copied from m2e MavenProjectConfigurator
 
@@ -71,12 +76,12 @@ public class BazelProjectConfigurator {
      *            the progress monitor
      * @return the children (at any depth) that this configurator suggests to import as project
      */
-    public Set<File> findConfigurableLocations(File root, IProgressMonitor monitor) {
-        Set<File> buildFileLocations = new TreeSet<>();
-
-        findBuildFileLocations(root, monitor, buildFileLocations, 0);
-
-        return buildFileLocations;
+    public List<String> findConfigurableLocations(File root, WorkProgressMonitor monitor) {
+        BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+        BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
+                bazelCommandManager.getWorkspaceCommandRunner(root);
+        
+        return bazelWorkspaceCmdRunner.getJavaPackages(monitor);
     }
 
     // TODO our workspace scanner is looking for Java packages, but uses primitive techniques. switch to use the aspect

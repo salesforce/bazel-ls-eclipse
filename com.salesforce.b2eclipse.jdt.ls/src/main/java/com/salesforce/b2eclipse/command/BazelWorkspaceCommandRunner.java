@@ -46,6 +46,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.abstractions.BazelAspectLocation;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
@@ -443,10 +444,31 @@ public class BazelWorkspaceCommandRunner {
     public void runBazelVersionCheck() throws BazelCommandLineToolConfigurationException {
         bazelVersionChecker.runBazelVersionCheck(bazelExecutable, this.bazelWorkspaceRootDirectory);
     }
+    
+    //  TODO: consider passing exceptions to invocation place
+    public synchronized List<String> getPackagesForTargets(List<String> targets, WorkProgressMonitor progressMonitor) {
+        try {
+            return this.bazelQueryHelper.getPackagesForTargets(bazelWorkspaceRootDirectory, progressMonitor,
+                targets);
+        } catch (IOException | InterruptedException | BazelCommandLineToolConfigurationException e) {
+            e.printStackTrace();
+            return Lists.newArrayList();
+        }
+    }
+
+    //  TODO: consider passing exceptions to invocation place
+    public synchronized List<String> getJavaPackages(WorkProgressMonitor progressMonitor) {
+        try {
+            return this.bazelQueryHelper.getJavaPackages(bazelWorkspaceRootDirectory, progressMonitor);
+        } catch (IOException | InterruptedException | BazelCommandLineToolConfigurationException e) {
+            e.printStackTrace();
+            return Lists.newArrayList();
+        }
+    }
 
     // HELPERS
 
-    private static class ErrorOutputSelector implements Function<String, String> {
+    public static class ErrorOutputSelector implements Function<String, String> {
 
         private boolean keep = false;
 
