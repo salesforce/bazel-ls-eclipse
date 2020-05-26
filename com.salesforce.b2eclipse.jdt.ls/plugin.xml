@@ -25,4 +25,12 @@
             order ="500"
             class = "com.salesforce.b2eclipse.managers.BazelProjectImporter"/>
    </extension>
+      <extension
+   		 id="buildSupporter"
+         point="org.eclipse.jdt.ls.core.buildSupport">
+         <buildSupport
+         	id="bazelSupport"
+         	order="500"
+         	class="com.salesforce.b2eclipse.managers.BazelBuildSupport" />
+   </extension>
 </plugin>
