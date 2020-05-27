@@ -446,9 +446,9 @@ public class BazelWorkspaceCommandRunner {
     }
     
     //  TODO: consider passing exceptions to invocation place
-    public synchronized List<String> getPackagesForTargets(List<String> targets, WorkProgressMonitor progressMonitor) {
+    public synchronized List<String> getPackagesForTargets(File rootFolder, List<String> targets, WorkProgressMonitor progressMonitor) {
         try {
-            return this.bazelQueryHelper.getPackagesForTargets(bazelWorkspaceRootDirectory, progressMonitor,
+            return this.bazelQueryHelper.getPackagesForTargets(rootFolder, progressMonitor,
                 targets);
         } catch (IOException | InterruptedException | BazelCommandLineToolConfigurationException e) {
             e.printStackTrace();
@@ -457,9 +457,9 @@ public class BazelWorkspaceCommandRunner {
     }
 
     //  TODO: consider passing exceptions to invocation place
-    public synchronized List<String> getJavaPackages(WorkProgressMonitor progressMonitor) {
+    public synchronized List<String> getJavaPackages(File rootFolder, WorkProgressMonitor progressMonitor) {
         try {
-            return this.bazelQueryHelper.getJavaPackages(bazelWorkspaceRootDirectory, progressMonitor);
+            return this.bazelQueryHelper.getJavaPackages(rootFolder, progressMonitor);
         } catch (IOException | InterruptedException | BazelCommandLineToolConfigurationException e) {
             e.printStackTrace();
             return Lists.newArrayList();
@@ -468,7 +468,7 @@ public class BazelWorkspaceCommandRunner {
 
     // HELPERS
 
-    public static class ErrorOutputSelector implements Function<String, String> {
+    private static class ErrorOutputSelector implements Function<String, String> {
 
         private boolean keep = false;
 
