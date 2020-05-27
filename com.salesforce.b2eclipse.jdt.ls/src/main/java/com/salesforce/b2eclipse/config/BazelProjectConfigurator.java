@@ -38,9 +38,7 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
-// import org.eclipse.buildship.core.ProjectConfigurator;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -56,7 +54,6 @@ import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelCommandManager;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.model.BazelBuildFileHelper;
-import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
 // copied from m2e MavenProjectConfigurator
 
@@ -76,52 +73,12 @@ public class BazelProjectConfigurator {
      *            the progress monitor
      * @return the children (at any depth) that this configurator suggests to import as project
      */
-    public List<String> findConfigurableLocations(File root, WorkProgressMonitor monitor) {
+    public List<String> findConfigurableLocations(File rootFolder, WorkProgressMonitor monitor) {
         BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
         BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
-                bazelCommandManager.getWorkspaceCommandRunner(root);
+                bazelCommandManager.getWorkspaceCommandRunner(rootFolder);
         
-        return bazelWorkspaceCmdRunner.getJavaPackages(monitor);
-    }
-
-    // TODO our workspace scanner is looking for Java packages, but uses primitive techniques. switch to use the aspect
-    // approach here, like we do with the classpath computation.
-    private void findBuildFileLocations(File dir, IProgressMonitor monitor, Set<File> buildFileLocations, int depth) {
-        if (!dir.isDirectory()) {
-            return;
-        }
-
-        try {
-            File[] dirFiles = dir.listFiles();
-            for (File dirFile : dirFiles) {
-
-                if (shouldIgnore(dirFile, depth)) {
-                    continue;
-                }
-
-                if ("BUILD".equals(dirFile.getName())) {
-
-                    // great, this dir is a Bazel package (but this may be a non-Java package)
-                    // scan the BUILD file looking for java rules, only add if this is a java project
-                    if (BazelBuildFileHelper.hasJavaRules(dirFile)) {
-                        buildFileLocations.add(dir);
-                    }
-                } else if (dirFile.isDirectory()) {
-                    findBuildFileLocations(dirFile, monitor, buildFileLocations, depth + 1);
-                }
-            }
-        } catch (Exception anyE) {
-            BazelJdtPlugin.logError("ERROR scanning for Bazel packages: " + anyE.getMessage());
-        }
-    }
-
-    private static boolean shouldIgnore(File f, int depth) {
-        if (depth == 0 && f.isDirectory() && f.getName().startsWith("bazel-")) {
-            // this is a Bazel internal directory at the root of the project dir, ignore
-            // TODO should this use one of the ignore directory facilities at the bottom of this class?
-            return true;
-        }
-        return false;
+        return bazelWorkspaceCmdRunner.getJavaPackages(rootFolder, monitor);
     }
 
     /**
