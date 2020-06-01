@@ -44,7 +44,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
 
+import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
+import com.salesforce.b2eclipse.command.BazelCommandManager;
 import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
 import com.salesforce.b2eclipse.importer.BazelProjectImportScanner;
 import com.salesforce.b2eclipse.model.BazelPackageInfo;
@@ -77,9 +79,10 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
 
     @Override
     public void importToWorkspace(IProgressMonitor monitor) throws OperationCanceledException, CoreException {
-        BazelProjectImportScanner scanner = new BazelProjectImportScanner();
+        BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+        BazelProjectImportScanner scanner = new BazelProjectImportScanner(bazelCommandManager, rootFolder);
 
-        BazelPackageInfo workspaceRootPackage = scanner.getProjects(rootFolder);
+        BazelPackageInfo workspaceRootPackage = scanner.getProjects(monitor);
 
         if (workspaceRootPackage == null) {
             throw new IllegalArgumentException();

@@ -33,11 +33,19 @@
  */
 package com.salesforce.b2eclipse.importer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.salesforce.b2eclipse.config.BazelProjectConfigurator;
+import org.eclipse.core.runtime.IProgressMonitor;
+
+import com.google.common.collect.Lists;
+import com.salesforce.b2eclipse.BazelJdtPlugin;
+import com.salesforce.b2eclipse.command.BazelCommandManager;
+import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.model.BazelPackageInfo;
 import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
@@ -67,32 +75,19 @@ import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
  * selection picked by the user.
  * 
  * @author plaird
+ * @author siarhei_tsitou@epam.com
  */
 public class BazelProjectImportScanner {
 
-    // TODO BazelProjectImportScanner should be moved into the plugin-command project, but will require some refactoring
-    // of BazelProjectConfigurator and maybe other collaborators
-
-    /**
-     * Get a list of candidate Bazel packages to import. This list is provided to the user in the form of a tree
-     * control.
-     * <p>
-     * Currently, the list returned will always be of size 1. It represents the root node of the scanned Bazel
-     * workspace. The root node has child node references, and the tree expands from there.
-     * <p>
-     * TODO support scanning at an arbitrary location inside of a Bazel workspace (e.g. //projects/libs) and have the
-     * scanner crawl up to the WORKSPACE root from there.
-     * 
-     * @param rootDirectory
-     *            the directory to scan, which must be the root node of a Bazel workspace
-     * @return the workspace root BazelPackageInfo
-     */
-    public BazelPackageInfo getProjects(String rootDirectory) {
-        if (rootDirectory == null || rootDirectory.isEmpty()) {
-            // this is the initialization state of the wizard
-            return null;
-        }
-        return getProjects(new File(rootDirectory));
+    private static final String BAZELTARGETSFILENAME = ".bazeltargets";
+    
+    private BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner;
+    
+    private File rootDirectoryFile;
+    
+    public BazelProjectImportScanner(BazelCommandManager bazelCommandManager, File rootDirectoryFile) {
+        this.rootDirectoryFile = rootDirectoryFile;
+        this.bazelWorkspaceCmdRunner = bazelCommandManager.getWorkspaceCommandRunner(rootDirectoryFile);
     }
 
     /**
@@ -109,7 +104,7 @@ public class BazelProjectImportScanner {
      *            the directory to scan, which must be the root node of a Bazel workspace
      * @return the workspace root BazelPackageInfo
      */
-    public BazelPackageInfo getProjects(File rootDirectoryFile) {
+    public BazelPackageInfo getProjects(IProgressMonitor monitor) {
         if (rootDirectoryFile == null || !rootDirectoryFile.exists() || !rootDirectoryFile.isDirectory()) {
             // this is the initialization state of the wizard
             return null;
@@ -118,24 +113,66 @@ public class BazelProjectImportScanner {
         // TODO the correct way to do this is put the configurator on another thread, and allow it to update the progress monitor.
         // Do it on-thread for now as it is easiest.
 
-        BazelProjectConfigurator configurator = new BazelProjectConfigurator();
-        List<String> projects = configurator.findConfigurableLocations(rootDirectoryFile, new EclipseWorkProgressMonitor(null));
-
-        BazelPackageInfo workspace = new BazelPackageInfo(rootDirectoryFile);
+        List<String> modules = findAllModules(monitor);
         
-        List<String> targetsToLoad = TargetsFileScanner.getConfiguredTargets(rootDirectoryFile);
+        List<String> modulesToLoad = getConfiguredModules(monitor);
         
-        if (targetsToLoad != null) {
-            projects = projects.stream()
-                .filter(targetsToLoad::contains)
+        if (modulesToLoad != null) {
+            modules = modules.stream()
+                .filter(modulesToLoad::contains)
                 .collect(Collectors.toList());
         }
 
-        for (String project : projects) {
+        BazelPackageInfo workspace = new BazelPackageInfo(rootDirectoryFile);
+
+        for (String project : modules) {
             new BazelPackageInfo(workspace, project);
         }
 
         return workspace;
+    }
+
+    /**
+     * From a given {@link File}, detects which directories can/should be imported as projects into the workspace and
+     * configured by this scanner. This first set of directories is then presented to the user as import proposals.
+     *
+     * <p>
+     * This method must be stateless.
+     * </p>
+     *
+     * @param root
+     *            the root directory on which to start the discovery
+     * @return the children (at any depth) that this configurator suggests to import as project
+     */
+    private List<String> findAllModules(IProgressMonitor monitor) {
+        return bazelWorkspaceCmdRunner.getJavaPackages(rootDirectoryFile, new EclipseWorkProgressMonitor(monitor));
+    }
+    
+    private List<String> getConfiguredModules(IProgressMonitor monitor) {
+        File targetsFile = new File(rootDirectoryFile, BAZELTARGETSFILENAME);
+        
+        if (!targetsFile.exists()) {
+            BazelJdtPlugin.logInfo(BAZELTARGETSFILENAME + " file is missing. Importing all discovered modules.");
+            return null;
+        }
+
+        List<String> targets = Lists.newArrayList();
+
+        try (FileReader fr = new FileReader(targetsFile)) {
+            BufferedReader br = new BufferedReader(fr);
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                //  TODO: ignore #comments
+                targets.add(line);
+            }
+
+        return bazelWorkspaceCmdRunner.getPackagesForTargets(rootDirectoryFile, targets, new EclipseWorkProgressMonitor(monitor));
+            
+        } catch (IOException e) {
+            BazelJdtPlugin.logError("ERROR reading " + BAZELTARGETSFILENAME + " file:" + e.getMessage());
+            return null;
+        }
     }
 
 }

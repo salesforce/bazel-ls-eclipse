@@ -31,9 +31,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 
 import org.eclipse.core.resources.IProject;
-
 import org.eclipse.core.runtime.CoreException;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,7 +41,7 @@ import org.junit.Test;
 public class BazelImportTest extends BaseBazelImproterTest {
 
     public BazelImportTest() {
-        super.setWorkspaceRootPackage(getScanner().getProjects("projects/bazel-ls-demo-project"));
+        super("projects/bazel-ls-demo-project");
     }
 
     @Before
