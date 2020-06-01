@@ -25,20 +25,18 @@
 
 package com.salesforce.b2eclipse.importer;
 
+import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 
-import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
 import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
-import com.salesforce.b2eclipse.model.BazelPackageInfo;
-import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
+import com.salesforce.b2eclipse.managers.BazelProjectImporter;
 
 /**
  * An abstract class for importing a Bazel project.
@@ -53,14 +51,11 @@ public abstract class BaseBazelImproterTest {
 
     public static final String BAZEL_SRC_PATH_VALUE_FOR_BUILD_WITH_CLASS_TEST = "/";
 
-    private BazelPackageInfo workspaceRootPackage;
-    private IWorkspaceRoot workspaceRoot;
-    private BazelProjectImportScanner scanner;
+    private BazelProjectImporter importer = new BazelProjectImporter();
 
-    public BaseBazelImproterTest() {
-        IWorkspace workspace = ResourcesPlugin.getWorkspace();
-        this.workspaceRoot = workspace.getRoot();
-        scanner = new BazelProjectImportScanner();
+    @SuppressWarnings("restriction")
+    public BaseBazelImproterTest(String rootFolder) {
+        importer.initialize(new File(rootFolder));
     }
 
     protected void setSettings(String path) {
@@ -72,35 +67,15 @@ public abstract class BaseBazelImproterTest {
     }
 
     protected void importProject() {
-        List<BazelPackageInfo> bazelPackagesToImport =
-                workspaceRootPackage.getChildPackageInfos().stream().collect(Collectors.toList());
-
-        BazelEclipseProjectFactory.importWorkspace(workspaceRootPackage, bazelPackagesToImport,
-            new EclipseWorkProgressMonitor(), new NullProgressMonitor());
-    }
-
-    public BazelPackageInfo getWorkspaceRootPackage() {
-        return workspaceRootPackage;
-    }
-
-    public void setWorkspaceRootPackage(BazelPackageInfo workspaceRootPackage) {
-        this.workspaceRootPackage = workspaceRootPackage;
+        try {
+            importer.importToWorkspace(new NullProgressMonitor());
+        } catch (OperationCanceledException | CoreException e) {
+            e.printStackTrace();
+        }
     }
 
     public IWorkspaceRoot getWorkspaceRoot() {
-        return workspaceRoot;
-    }
-
-    public void setWorkspaceRoot(IWorkspaceRoot workspaceRoot) {
-        this.workspaceRoot = workspaceRoot;
-    }
-
-    public BazelProjectImportScanner getScanner() {
-        return scanner;
-    }
-
-    public void setScanner(BazelProjectImportScanner scanner) {
-        this.scanner = scanner;
+        return ResourcesPlugin.getWorkspace().getRoot();
     }
 
 }

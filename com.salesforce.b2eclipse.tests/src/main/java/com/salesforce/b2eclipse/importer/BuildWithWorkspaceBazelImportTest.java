@@ -34,11 +34,15 @@ import org.junit.Test;
  * A test class for importing a Bazel test project in which the BUILD file is located next to the WORKSPACE file.
  */
 public class BuildWithWorkspaceBazelImportTest extends BaseBazelImproterTest {
+    
+    public BuildWithWorkspaceBazelImportTest() {
+        super("projects/build-with-workspace");
+    }
 
     @Test()
     public void testFailImportProjectBuildWithClass() {
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            super.setWorkspaceRootPackage(getScanner().getProjects("projects/build-with-workspace"));
+            importProject();
         });
 
         assertEquals("Root package is not supported. BUILD files should be in subdirectories", exception.getMessage());

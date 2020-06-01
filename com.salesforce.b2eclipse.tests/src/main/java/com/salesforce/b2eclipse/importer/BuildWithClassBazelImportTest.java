@@ -37,7 +37,7 @@ import org.junit.Test;
 public class BuildWithClassBazelImportTest extends BaseBazelImproterTest {
 
     public BuildWithClassBazelImportTest() {
-        super.setWorkspaceRootPackage(getScanner().getProjects("projects/build-with-class"));
+        super("projects/build-with-class");
     }
 
     @Before
