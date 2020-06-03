@@ -79,7 +79,7 @@ import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
  */
 public class BazelProjectImportScanner {
 
-    private static final String BAZELTARGETSFILENAME = ".bazeltargets";
+    public static final String BAZELTARGETSFILENAME = ".bazeltargets";
     
     private BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner;
     
@@ -117,7 +117,7 @@ public class BazelProjectImportScanner {
         
         List<String> modulesToLoad = getConfiguredModules(monitor);
         
-        if (modulesToLoad != null) {
+        if (modulesToLoad != null && !modulesToLoad.isEmpty()) {
             modules = modules.stream()
                 .filter(modulesToLoad::contains)
                 .collect(Collectors.toList());
@@ -163,7 +163,9 @@ public class BazelProjectImportScanner {
             String line;
 
             while ((line = br.readLine()) != null) {
-                //  TODO: ignore #comments
+                if (line.startsWith("#") || line.isEmpty()) {
+                    continue;
+                }
                 targets.add(line);
             }
 
