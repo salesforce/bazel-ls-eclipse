@@ -24,43 +24,43 @@ jobs:
       - name: Install Bazel
         run: |
           sudo apt install curl gnupg -y
-          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > /etc/apt/trusted.gpg.d/bazel.gpg
+          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+          sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
           echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
           sudo apt update
           sudo apt install bazel-3.7.2 -y
-          bazel-3.7.2 version
           sudo ln -sfn /usr/bin/bazel-3.7.2 /usr/bin/bazel
-          bazel version
+          /usr/bin/bazel version
 
-#       - name: Check policies
-#         run: ./mvnw -B validate -f pom.xml
+      - name: Check policies
+        run: ./mvnw -B validate -f pom.xml
 
-#       - name: Test with Maven
-#         run: ./mvnw -B verify -f pom.xml
+      - name: Test with Maven
+        run: ./mvnw -B verify -f pom.xml
 
-#       - name: Build with Maven
-#         run: ./mvnw -B package -f pom.xml -DskipTests
+      - name: Build with Maven
+        run: ./mvnw -B package -f pom.xml -DskipTests
 
-#       - name: Prepare p2 repository
-#         run: |
-#           mkdir ./p2 && cp -avr ./com.salesforce.b2eclipse.repository/target/repository ./p2/master
-#           git add -f p2/*
-#           git stash
-#           git config --local user.email "action@github.com"
-#           git config --local user.name "GitHub Action"
-#           git symbolic-ref HEAD refs/heads/gh-pages
-#           rm .git/index
-#           git clean -fdx
-#           git stash pop
-#           git commit -m "Publish p2 repo to GitHub Pages" -a
+      - name: Prepare p2 repository
+        run: |
+          mkdir ./p2 && cp -avr ./com.salesforce.b2eclipse.repository/target/repository ./p2/master
+          git add -f p2/*
+          git stash
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git symbolic-ref HEAD refs/heads/gh-pages
+          rm .git/index
+          git clean -fdx
+          git stash pop
+          git commit -m "Publish p2 repo to GitHub Pages" -a
 
-#       - name: Delete remote p2 repository
-#         if: github.ref == 'refs/heads/master'
-#         run: git push origin --delete gh-pages
+      - name: Delete remote p2 repository
+        if: github.ref == 'refs/heads/master'
+        run: git push origin --delete gh-pages
 
-#       - name: Publish p2 repository
-#         if: github.ref == 'refs/heads/master'
-#         uses: ad-m/github-push-action@master
-#         with:
-#           branch: gh-pages
-#           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish p2 repository
+        if: github.ref == 'refs/heads/master'
+        uses: ad-m/github-push-action@master
+        with:
+          branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
