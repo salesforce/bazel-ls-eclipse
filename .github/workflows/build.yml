@@ -15,17 +15,22 @@ jobs:
         with:
           java-version: 1.8
 
-      - name: Mount bazel cache
-        uses: actions/cache@v1
-        with:
-          path: "/home/runner/.cache/bazel"
-          key: bazel
+#      - name: Mount bazel cache
+#        uses: actions/cache@v1
+#        with:
+#          path: "/home/runner/.cache/bazel"
+#          key: bazel
 
       - name: Install Bazel
         run: |
-          curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+          sudo apt install curl gnupg
+          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+          sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
           echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
-          sudo apt update && sudo apt install bazel
+          sudo apt update
+          sudo apt install bazel-3.7.2
+          sudo ln -sfn /usr/bin/bazel-3.7.2 /usr/bin/bazel
+          bazel version
 
       - name: Check policies
         run: ./mvnw -B validate -f pom.xml

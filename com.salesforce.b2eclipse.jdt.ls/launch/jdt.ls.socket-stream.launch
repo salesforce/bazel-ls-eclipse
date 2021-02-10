@@ -83,6 +83,7 @@
         <setEntry value="org.eclipse.jdt.junit.core@default:default"/>
         <setEntry value="org.eclipse.jdt.junit.runtime@default:default"/>
         <setEntry value="org.eclipse.jdt.launching@default:default"/>
+        <setEntry value="org.eclipse.jdt.ls.core@default:default"/>
         <setEntry value="org.eclipse.jface.text@default:default"/>
         <setEntry value="org.eclipse.jface@default:default"/>
         <setEntry value="org.eclipse.lsp4j.jsonrpc@default:default"/>
@@ -115,7 +116,6 @@
     </setAttribute>
     <setAttribute key="selected_workspace_bundles">
         <setEntry value="com.salesforce.b2eclipse.jdt.ls@default:default"/>
-        <setEntry value="org.eclipse.jdt.ls.core@default:default"/>
     </setAttribute>
     <booleanAttribute key="show_selected_only" value="false"/>
     <stringAttribute key="templateConfig" value="${target_home}/configuration/config.ini"/>
