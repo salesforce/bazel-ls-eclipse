@@ -34,6 +34,8 @@
 package com.salesforce.b2eclipse.managers;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,9 +65,12 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
             return false;
         }
         File workspaceFile = new File(rootFolder, WORKSPACE_FILE_NAME);
-        if (!workspaceFile.exists()) {
+        if (workspaceFile.exists()) {
+            directories = Arrays.asList(Path.of(rootFolder.getPath(), new String[0]));
+        } else {
             return false;
         }
+
         return true;
 
     }
