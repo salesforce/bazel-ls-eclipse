@@ -46,7 +46,7 @@ import com.google.common.collect.Lists;
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.command.BazelCommandManager;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
-import com.salesforce.b2eclipse.model.BazelPackageInfo;
+import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
 /**

@@ -77,7 +77,7 @@ import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.AspectPackageInfos;
 import com.salesforce.b2eclipse.model.BazelLabel;
-import com.salesforce.b2eclipse.model.BazelPackageInfo;
+import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
 
 /**

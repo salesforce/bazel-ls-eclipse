@@ -20,7 +20,7 @@
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
@@ -31,15 +31,14 @@
  * specific language governing permissions and limitations under the License.
  *
  */
-package com.salesforce.b2eclipse.model;
+package com.salesforce.bazel.sdk.model;
 
 import java.io.File;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Model class for a Bazel Java package. It is a node in a tree of the hierarchy of packages. The root node in this tree
@@ -56,21 +55,21 @@ import java.util.stream.StreamSupport;
  * WORKSPACE root (BazelPackageInfo instance 1)<br/>
  * //projects/libs/apple (BazelPackageInfo instance 2) <br/>
  * //projects/libs/banana (BazelPackageInfo instance 3) <br/>
- * 
+ *
  * @author plaird
  */
-public class BazelPackageInfo {
+public class BazelPackageInfo implements BazelPackageLocation {
 
     private final String relativeWorkspacePath;
     private final File directory;
 
     private BazelPackageInfo parent;
     private final boolean isWorkspaceRoot;
-    private final File workspaceRoot;
-    private BazelPackageInfo workspaceRootNode;
+    protected final File workspaceRoot;
+    protected BazelPackageInfo workspaceRootNode;
 
     public static final String WORKSPACE_FILENAME = "WORKSPACE";
-    public static final String BUILD_FILENAME = "BUILD";
+    public static final String WORKSPACE_FILENAME_ALT = "WORKSPACE.bazel";
 
     private String computedPackageName = null;
     private String computedPackageNameLastSegment = null;
@@ -80,7 +79,7 @@ public class BazelPackageInfo {
     /**
      * Creates the root info object for a Bazel workspace. This is not normally associated with an actual Bazel package
      * (hopefully not), so it is a special case node. All other info nodes descend from this node.
-     * 
+     *
      * @param rootDirectory
      *            the file system location that holds the workspace. This directory must have a WORKSPACE file.
      */
@@ -97,13 +96,11 @@ public class BazelPackageInfo {
         this.workspaceRoot = rootDirectory;
         File workspaceFile = new File(this.workspaceRoot, WORKSPACE_FILENAME);
         if (!workspaceFile.exists()) {
-            throw new IllegalArgumentException("The path [" + rootDirectory.getAbsolutePath() + "] does not contain a "
-                    + WORKSPACE_FILENAME + " file.");
-        }
-        
-        File buildFile = new File(this.workspaceRoot, BUILD_FILENAME);
-        if (buildFile.exists()) {
-            throw new IllegalStateException("Root package is not supported. BUILD files should be in subdirectories");
+            workspaceFile = new File(this.workspaceRoot, WORKSPACE_FILENAME_ALT);
+            if (!workspaceFile.exists()) {
+                throw new IllegalArgumentException("The path [" + rootDirectory.getAbsolutePath()
+                        + "] does not contain a " + WORKSPACE_FILENAME + " file.");
+            }
         }
 
         this.parent = null;
@@ -118,7 +115,7 @@ public class BazelPackageInfo {
 
     /**
      * Creates a new info object for a Bazel package
-     * 
+     *
      * @param anotherNode
      *            another node of the BazelPackageInfo tree, this cannot be null. The 'best' parent node for this new
      *            node will be found using the passed node's links to the other nodes in the tree. The parent package
@@ -161,6 +158,12 @@ public class BazelPackageInfo {
                     "The path [" + this.directory.getAbsolutePath() + "] contains a " + WORKSPACE_FILENAME
                             + " file. Nested workspaces are not supported by BazelPackageInfo at this time");
         }
+        workspaceFile = new File(this.directory, WORKSPACE_FILENAME_ALT);
+        if (workspaceFile.exists()) {
+            throw new IllegalArgumentException(
+                    "The path [" + this.directory.getAbsolutePath() + "] contains a " + WORKSPACE_FILENAME_ALT
+                            + " file. Nested workspaces are not supported by BazelPackageInfo at this time");
+        }
 
         // compute and cache the package name
         String packageName = getBazelPackageName();
@@ -197,18 +200,20 @@ public class BazelPackageInfo {
 
     /**
      * Is this node the workspace root?
-     * 
+     *
      * @return true if the root, false otherwise
      */
+    @Override
     public boolean isWorkspaceRoot() {
         return this.isWorkspaceRoot;
     }
 
     /**
      * Gets the workspace root filesystem directory.
-     * 
+     *
      * @return the root directory
      */
+    @Override
     public File getWorkspaceRootDirectory() {
         // now is a good time to check that the root directory is still there
         if (!this.workspaceRoot.exists()) {
@@ -221,7 +226,7 @@ public class BazelPackageInfo {
 
     /**
      * Gets the WORKSPACE file
-     * 
+     *
      * @return the file
      */
     public File getWorkspaceFile() {
@@ -244,7 +249,7 @@ public class BazelPackageInfo {
      * Returns the absolute file system path of the package in the workspace. The separator char will be the OS file
      * separator.
      * <p>
-     * 
+     *
      * e.g. "/home/joe/dev/projects/libs/apple" or "C:\dev\projects\libs\apple"
      */
     public String getBazelPackageFSAbsolutePath() {
@@ -256,9 +261,10 @@ public class BazelPackageInfo {
      * Returns the relative file system path of the package in the workspace. The separator char will be the OS file
      * separator.
      * <p>
-     * 
+     *
      * e.g. "projects/libs/apple" or "projects\libs\apple"
      */
+    @Override
     public String getBazelPackageFSRelativePath() {
         return relativeWorkspacePath;
     }
@@ -287,9 +293,10 @@ public class BazelPackageInfo {
     /**
      * Provides the proper Bazel label for the Bazel package.
      * <p>
-     * 
+     *
      * e.g. "//projects/libs/apple"
      */
+    @Override
     public String getBazelPackageName() {
         if (computedPackageName != null) {
             return computedPackageName;
@@ -299,18 +306,28 @@ public class BazelPackageInfo {
             // the caller is referring to the WORKSPACE root, which for build operations can
             // (but not always) means that the user wants to build the entire workspace.
 
-            // TODO refine this, so that if the root directory contains a BUILD file with a Java package to 
-            // somehow handle that workspace differently 
+            // TODO refine this, so that if the root directory contains a BUILD file with a Java package to
+            // somehow handle that workspace differently
             // Docs should indicate that a better practice is to keep the root dir free of an actual package
             // For now, assume that anything referring to the root dir is a proxy for 'whole repo'
             computedPackageName = "//...";
             return computedPackageName;
         }
 
-        // set computedPackageName only when done computing it, to avoid threading issues
-        computedPackageName = StreamSupport.stream(Paths.get(relativeWorkspacePath).spliterator(), false)
-                .map(Object::toString).collect(Collectors.joining("/", "//", ""));
+        // split the file system path by OS path separator
+        String[] pathElements = relativeWorkspacePath.split(File.separator);
 
+        // assemble the path elements into a proper Bazel package name
+        String name = "/";
+        for (String e : pathElements) {
+            if (e.isEmpty()) {
+                continue;
+            }
+            name = name + "/" + e;
+        }
+
+        // set computedPackageName only when done computing it, to avoid threading issues
+        computedPackageName = name;
         // and cache the last segment as well
         getBazelPackageNameLastSegment();
 
@@ -322,6 +339,7 @@ public class BazelPackageInfo {
      * <p>
      * e.g. if "//projects/libs/apple" is the package name, will return 'apple'
      */
+    @Override
     public String getBazelPackageNameLastSegment() {
         if (computedPackageNameLastSegment != null) {
             return computedPackageNameLastSegment;
@@ -343,7 +361,7 @@ public class BazelPackageInfo {
 
     /**
      * Find a node in the tree that has the passed Bazel package path
-     * 
+     *
      * @param bazelPackagePath
      *            path to find, such as //projects/libs/apple
      * @return the node if found, or null
@@ -392,6 +410,23 @@ public class BazelPackageInfo {
     }
 
     @Override
+    public List<BazelPackageLocation> gatherChildren() {
+        List<BazelPackageLocation> gatherList = new ArrayList<>();
+        gatherChildrenRecur(gatherList);
+        return gatherList;
+    }
+
+    public void gatherChildrenRecur(List<BazelPackageLocation> gatherList) {
+        if (!this.isWorkspaceRoot()) {
+            gatherList.add(this);
+        }
+        for (BazelPackageLocation child : this.childPackages.values()) {
+            BazelPackageInfo childInfo = (BazelPackageInfo) child;
+            childInfo.gatherChildrenRecur(gatherList);
+        }
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -401,23 +436,18 @@ public class BazelPackageInfo {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (this == obj)
             return true;
-        }
-        if (obj == null) {
+        if (obj == null)
             return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass())
             return false;
-        }
         BazelPackageInfo other = (BazelPackageInfo) obj;
         if (computedPackageName == null) {
-            if (other.computedPackageName != null) {
+            if (other.computedPackageName != null)
                 return false;
-            }
-        } else if (!computedPackageName.equals(other.computedPackageName)) {
+        } else if (!computedPackageName.equals(other.computedPackageName))
             return false;
-        }
         return true;
     }
 
