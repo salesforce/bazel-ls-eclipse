@@ -31,7 +31,7 @@ import com.google.common.graph.MutableGraph;
 import com.google.common.graph.Traverser;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.AspectPackageInfos;
-import com.salesforce.b2eclipse.model.BazelPackageInfo;
+import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 
 final class ImportOrderResolver {
 
