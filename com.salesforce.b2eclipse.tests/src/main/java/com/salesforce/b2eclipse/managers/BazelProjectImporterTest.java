@@ -155,9 +155,16 @@ public class BazelProjectImporterTest {
     @Test
     public void withQueryInTargetFile() throws CoreException, IOException {
         File projectFile = new File("projects/bazel-ls-demo-project");
-        File targetFile = new File(projectFile,  BazelProjectImportScanner.BAZELTARGETSFILENAME);
+        File targetFile = new File(projectFile,  BazelProjectImporter.BAZELPROJECT_FILE_NAME);
         
-        FileUtils.writeStringToFile(targetFile, "rdeps(//...:*, //module2/..., 1)", Charset.defaultCharset());
+        FileUtils.writeLines(
+                targetFile, 
+                Arrays.asList(
+                        "directories:",
+                        "  module1",
+                        "  module2"
+                )
+        );
 
         importer.initialize(projectFile);
         importer.importToWorkspace(new NullProgressMonitor());

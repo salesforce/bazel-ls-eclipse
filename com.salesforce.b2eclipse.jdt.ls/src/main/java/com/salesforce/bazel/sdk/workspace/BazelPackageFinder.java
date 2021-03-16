@@ -10,7 +10,7 @@ import com.salesforce.bazel.sdk.util.BazelPathHelper;
 import com.salesforce.bazel.sdk.util.WorkProgressMonitor;
 
 public class BazelPackageFinder {
-    LogHelper logger;
+    private LogHelper logger;
 
     public BazelPackageFinder() {
         logger = LogHelper.log(this.getClass());
@@ -24,27 +24,26 @@ public class BazelPackageFinder {
             return;
         }
 
-        try {
-            File[] dirFiles = dir.listFiles();
-            for (File dirFile : dirFiles) {
+        File[] dirFiles = dir.listFiles();
+        for (File dirFile : dirFiles) {
 
-                if (shouldIgnore(dirFile, depth)) {
-                    continue;
-                }
-
-                if (isBuildFile(dirFile)) {
-
-                    // great, this dir is a Bazel package (but this may be a non-Java package)
-                    // scan the BUILD file looking for java rules, only add if this is a java project
-                    if (BazelBuildFileHelper.hasJavaRules(dirFile)) {
-                        buildFileLocations.add(BazelPathHelper.getCanonicalFileSafely(dir));
-                    }
-                } else if (dirFile.isDirectory()) {
-                    findBuildFileLocations(dirFile, monitor, buildFileLocations, depth + 1);
-                }
+            if (shouldIgnore(dirFile, depth)) {
+                continue;
             }
-        } catch (Exception anyE) {
-            logger.error("ERROR scanning for Bazel packages: {}", anyE.getMessage());
+
+            if (isBuildFile(dirFile)) {
+                if (depth == 0) {
+                    throw new IllegalStateException("Root package is not supported. BUILD files should be in subdirectories");
+                }
+
+                // great, this dir is a Bazel package (but this may be a non-Java package)
+                // scan the BUILD file looking for java rules, only add if this is a java project
+                if (BazelBuildFileHelper.hasJavaRules(dirFile)) {
+                    buildFileLocations.add(BazelPathHelper.getCanonicalFileSafely(dir));
+                }
+            } else if (dirFile.isDirectory()) {
+                findBuildFileLocations(dirFile, monitor, buildFileLocations, depth + 1);
+            }
         }
     }
 
