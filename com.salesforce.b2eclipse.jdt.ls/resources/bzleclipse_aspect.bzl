@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-
 # Aspect for Bazel Eclipse Feature, taken from an early version of intellij_info.bzl
 # TODO upgrade this to their latest work
 
