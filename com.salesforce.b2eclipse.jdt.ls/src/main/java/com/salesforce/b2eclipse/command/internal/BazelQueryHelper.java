@@ -179,12 +179,12 @@ public class BazelQueryHelper {
         argBuilder.add("package");
 
         return bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, //
-                progressMonitor, //
-                argBuilder.build(), //
-                (t) -> {
-                    String line = (t == null || t.trim().isEmpty()) ? null : t.trim();
-                    return line;
-                });
+            progressMonitor, //
+            argBuilder.build(), //
+            (t) -> {
+                String line = (t == null || t.trim().isEmpty()) ? null : t.trim();
+                return line;
+            });
     }
 
 }
