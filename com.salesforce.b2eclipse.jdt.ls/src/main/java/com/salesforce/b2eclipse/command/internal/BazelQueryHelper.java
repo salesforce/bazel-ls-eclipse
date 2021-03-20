@@ -159,14 +159,24 @@ public class BazelQueryHelper {
     public synchronized List<String> getJavaPackages(File bazelWorkspaceRootDirectory, WorkProgressMonitor progressMonitor) throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
         
         ImmutableList.Builder<String> argBuilder = ImmutableList.builder();
+        final String osName = System.getProperty("os.name");
+        StringBuilder javaProjectIndicators = new StringBuilder();
+        javaProjectIndicators.append("kind('");
+        javaProjectIndicators.append(String.join("|", BazelBuildFileHelper.JAVA_PROJECT_INDICATORS));
+        javaProjectIndicators.append("', //...)");
         
         argBuilder.add("query");
-        argBuilder.add("kind(\"" + String.join("|", BazelBuildFileHelper.JAVA_PROJECT_INDICATORS) + "\", //...)");
+        // 3 types of behavior: 1. Windows (command line and java.lang.Process), 2. non-Windows command line, 3. non-Windows java.lang.Process
+        if (osName != null && osName.toLowerCase().startsWith("win")) {
+            argBuilder.add("\"" + javaProjectIndicators.toString() + "\"");
+        } else {
+            argBuilder.add(javaProjectIndicators.toString());
+        }
         argBuilder.add("--output");
         argBuilder.add("package");
         
         return bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
-            argBuilder.build(), (t) -> t.isEmpty() ? null : t);
+            argBuilder.build(), (t) -> (t == null || t.trim().isEmpty()) ? null : t.trim());
     }
 
 }
