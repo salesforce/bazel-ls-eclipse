@@ -33,6 +33,9 @@ import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
 import com.salesforce.b2eclipse.model.BazelBuildFileHelper;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
+
 /**
  * Helper that knows how to run bazel query commands.
  */
@@ -153,13 +156,12 @@ public class BazelQueryHelper {
         argBuilder.add("package");
         
         return bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
-            argBuilder.build(), (t) -> t.isEmpty() ? null : t);
+            argBuilder.build(), (t) -> StringUtils.trimToNull(t));
     }
     
     public synchronized List<String> getJavaPackages(File bazelWorkspaceRootDirectory, WorkProgressMonitor progressMonitor) throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
         
         ImmutableList.Builder<String> argBuilder = ImmutableList.builder();
-        final String osName = System.getProperty("os.name");
         StringBuilder javaProjectIndicators = new StringBuilder();
         javaProjectIndicators.append("kind('");
         javaProjectIndicators.append(String.join("|", BazelBuildFileHelper.JAVA_PROJECT_INDICATORS));
@@ -167,7 +169,7 @@ public class BazelQueryHelper {
         
         argBuilder.add("query");
         // 3 types of behavior: 1. Windows (command line and java.lang.Process), 2. non-Windows command line, 3. non-Windows java.lang.Process
-        if (osName != null && osName.toLowerCase().startsWith("win")) {
+        if (SystemUtils.IS_OS_WINDOWS) {
             argBuilder.add("\"" + javaProjectIndicators.toString() + "\"");
         } else {
             argBuilder.add(javaProjectIndicators.toString());
@@ -176,7 +178,7 @@ public class BazelQueryHelper {
         argBuilder.add("package");
         
         return bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, progressMonitor,
-            argBuilder.build(), (t) -> (t == null || t.trim().isEmpty()) ? null : t.trim());
+            argBuilder.build(), (t) -> StringUtils.trimToNull(t));
     }
 
 }
