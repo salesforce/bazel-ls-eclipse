@@ -41,6 +41,7 @@ import com.salesforce.b2eclipse.abstractions.BazelAspectLocation;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
+import com.salesforce.b2eclipse.internal.TimeTracker;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
 
 /**
@@ -218,6 +219,8 @@ public class BazelWorkspaceAspectHelper {
             WorkProgressMonitor progressMonitor)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
 
+        TimeTracker.start();    //TODO remove time tracking
+
         List<String> args =
                 ImmutableList.<String>builder().add("build").addAll(this.aspectOptions).addAll(targets).build();
 
@@ -229,6 +232,8 @@ public class BazelWorkspaceAspectHelper {
         List<String> listOfGeneratedFilePaths =
                 this.bazelCommandExecutor.runBazelAndGetErrorLines(ConsoleType.WORKSPACE,
                     this.bazelWorkspaceCommandRunner.getBazelWorkspaceRootDirectory(), progressMonitor, args, filter);
+
+        TimeTracker.finish();    //TODO remove time tracking
 
         return listOfGeneratedFilePaths;
     }
