@@ -8,6 +8,10 @@ import com.salesforce.b2eclipse.BazelJdtPlugin;
 public final class TimeTracker {
     private static final double NANO_IN_SECONDS = 1000000000d;
     private static final HashMap<String, Long> TIMES = new HashMap<String, Long>();
+    private static double total;
+    static {
+        total = 0d;
+    }
 
     private TimeTracker() {
     }
@@ -18,6 +22,23 @@ public final class TimeTracker {
         final String methodName = getMethodName(element);
         long start = System.nanoTime();
         TIMES.put(methodName, Long.valueOf(start));
+    }
+
+    public static void addAndFinish() {
+        long finish = System.nanoTime();
+        final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        final StackTraceElement element = findStackElement(stackTrace);
+        final String methodName = getMethodName(element);
+        Long start = TIMES.remove(methodName);
+        double elapsed = ((double) finish - start.doubleValue()) / NANO_IN_SECONDS;
+        if (start != null) {
+            total += elapsed;
+            BazelJdtPlugin.logInfo(String.format("TIME TRACKER: Method %s duration %f seconds", methodName, elapsed));
+        }
+    }
+
+    public static void printTotal() {
+        BazelJdtPlugin.logInfo(String.format("TIME TRACKER: Total duration %f seconds", total));
     }
 
     public static void finish() {
