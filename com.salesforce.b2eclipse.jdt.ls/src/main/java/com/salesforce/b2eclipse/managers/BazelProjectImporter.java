@@ -44,17 +44,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
+import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
+import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
+import com.salesforce.bazel.sdk.model.BazelPackageInfo;
+import com.salesforce.bazel.sdk.project.ProjectView;
+import com.salesforce.bazel.sdk.workspace.BazelWorkspaceScanner;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
-
-import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
-import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
-import com.salesforce.bazel.sdk.model.BazelPackageInfo;
-import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
-import com.salesforce.bazel.sdk.project.ProjectView;
-import com.salesforce.bazel.sdk.workspace.BazelWorkspaceScanner;
 
 @SuppressWarnings("restriction")
 public final class BazelProjectImporter extends AbstractProjectImporter {
@@ -86,6 +86,7 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
     @Override
     public void importToWorkspace(IProgressMonitor monitor) throws OperationCanceledException, CoreException {
         try {
+//            TimeTracker.start();    //TODO remove time tracker
             BazelWorkspaceScanner workspaceScanner = new BazelWorkspaceScanner();
             BazelPackageInfo workspaceRootPackage = workspaceScanner.getPackages(rootFolder);
 
@@ -116,7 +117,11 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
                     monitor);
         } catch (IOException e) {
             // TODO: proper handling here
-        }
+        } 
+//        finally {
+//            TimeTracker.printTotal();   //TODO remove time tracker
+//            TimeTracker.finish();   //TODO remove time tracker
+//        }
     }
 
     @Override

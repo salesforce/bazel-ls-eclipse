@@ -89,11 +89,22 @@ public class BazelWorkspaceAspectHelper {
             BazelAspectLocation aspectLocation, BazelCommandExecutor bazelCommandExecutor) {
         this.bazelWorkspaceCommandRunner = bazelWorkspaceCommandRunner;
         this.bazelCommandExecutor = bazelCommandExecutor;
-
+        String location = aspectLocation.getAspectDirectory().getPath();
+//        this.aspectOptions = ImmutableList.<String>builder()
+//                .add("--override_repository=local_eclipse_aspect=" + aspectLocation.getAspectDirectory(),
+//                    "--aspects=@local_eclipse_aspect" + aspectLocation.getAspectLabel(), "-k",
+//                    "--output_groups=json-files,classpath-jars,-_,-defaults", "--experimental_show_artifacts")
+//                .build();
+//
         this.aspectOptions = ImmutableList.<String>builder()
-                .add("--override_repository=local_eclipse_aspect=" + aspectLocation.getAspectDirectory(),
-                    "--aspects=@local_eclipse_aspect" + aspectLocation.getAspectLabel(), "-k",
-                    "--output_groups=json-files,classpath-jars,-_,-defaults", "--experimental_show_artifacts")
+                .add("--nobuild_event_binary_file_path_conversion") //
+                .add("--curses=no") //
+                .add("--color=yes") //
+                .add("--progress_in_terminal_title=no") //
+                .add("--noexperimental_run_validations") //
+                .add("--aspects=@intellij_aspect//:intellij_info_bundled.bzl%intellij_info_aspect")    //
+                .add("--override_repository=intellij_aspect=" + aspectLocation.getAspectDirectory())   //
+                .add("--output_groups=intellij-info-generic,intellij-info-java-direct-deps,intellij-resolve-java-direct-deps")  //
                 .build();
     }
 
@@ -217,7 +228,6 @@ public class BazelWorkspaceAspectHelper {
     private synchronized List<String> generateAspectPackageInfoFiles(Collection<String> targets,
             WorkProgressMonitor progressMonitor)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
-
         List<String> args =
                 ImmutableList.<String>builder().add("build").addAll(this.aspectOptions).addAll(targets).build();
 

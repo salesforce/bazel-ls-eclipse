@@ -1,9 +1,48 @@
-# This is a build file for creating a corresponding package. This package will be a local repository
-# added with --override_repository when using the aspect so we can load the bzleclipse_aspect.bzl Skylark
-# aspect extension when calling build from Eclipse.
+#
+# Description:
+# The final form of the BUILD file accessed at runtime as an external WORKSPACE.
+#
 
-filegroup(
-   name = "srcs",
-   srcs = glob(["**"]),
-   visibility = ["//visibility:public"],
+licenses(["notice"])  # Apache 2.0
+
+load(":intellij_info_impl.bzl",
+     "define_flag_hack")
+
+java_binary(
+    name = "JarFilter_bin",
+    main_class = "com.google.idea.blaze.aspect.JarFilter",
+    runtime_deps = [":jar_filter_lib"],
+    visibility = ["//visibility:public"],
 )
+
+java_import(
+    name = "jar_filter_lib",
+    jars = ["tools/JarFilter_deploy.jar"],
+)
+
+java_binary(
+    name = "PackageParser_bin",
+    main_class = "com.google.idea.blaze.aspect.PackageParser",
+    runtime_deps = [":package_parser_lib"],
+    visibility = ["//visibility:public"],
+)
+
+java_import(
+    name = "package_parser_lib",
+    jars = ["tools/PackageParser_deploy.jar"],
+)
+
+java_binary(
+    name = "CreateAar_bin",
+    main_class = "com.google.idea.blaze.aspect.CreateAar",
+    runtime_deps = [":jar_filter_lib"],
+    visibility = ["//visibility:public"],
+)
+
+
+java_import(
+    name = "create_aar_lib",
+    jars = ["tools/CreateAar_deploy.jar"],
+)
+
+define_flag_hack()
