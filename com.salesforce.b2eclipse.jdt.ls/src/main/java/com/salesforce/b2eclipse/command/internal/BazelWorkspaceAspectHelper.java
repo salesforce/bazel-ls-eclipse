@@ -43,6 +43,8 @@ import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationExcepti
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Manages running, collecting, and caching all of the build info aspects for a specific workspace.
  */
@@ -89,22 +91,33 @@ public class BazelWorkspaceAspectHelper {
             BazelAspectLocation aspectLocation, BazelCommandExecutor bazelCommandExecutor) {
         this.bazelWorkspaceCommandRunner = bazelWorkspaceCommandRunner;
         this.bazelCommandExecutor = bazelCommandExecutor;
-        String location = aspectLocation.getAspectDirectory().getPath();
-//        this.aspectOptions = ImmutableList.<String>builder()
-//                .add("--override_repository=local_eclipse_aspect=" + aspectLocation.getAspectDirectory(),
-//                    "--aspects=@local_eclipse_aspect" + aspectLocation.getAspectLabel(), "-k",
-//                    "--output_groups=json-files,classpath-jars,-_,-defaults", "--experimental_show_artifacts")
-//                .build();
-//
+        String aspectVersion = System.getProperty("aspectVersion");
+        if ("bef".equalsIgnoreCase(StringUtils.trimToNull(aspectVersion))) {
+            buildBefAspect(aspectLocation);
+        } else {
+            buildIntellijAspect(aspectLocation);
+        }
+    }
+
+    private void buildIntellijAspect(BazelAspectLocation aspectLocation) {
+        this.aspectOptions = ImmutableList.<String>builder().add("--nobuild_event_binary_file_path_conversion") //
+//                .add("--curses=no") //
+//                .add("--color=yes") //
+//                .add("--progress_in_terminal_title=no") //
+//                .add("--noexperimental_run_validations") //
+                .add("--aspects=@intellij_aspect//:intellij_info_bundled.bzl%intellij_info_aspect") //
+                .add("--override_repository=intellij_aspect=" + aspectLocation.getAspectDirectory()) //
+                .add(
+                    "--output_groups=intellij-info-generic,intellij-info-java-direct-deps,intellij-resolve-java-direct-deps") //
+                .add("--experimental_show_artifacts")//
+                .build();
+    }
+
+    private void buildBefAspect(BazelAspectLocation aspectLocation) {
         this.aspectOptions = ImmutableList.<String>builder()
-                .add("--nobuild_event_binary_file_path_conversion") //
-                .add("--curses=no") //
-                .add("--color=yes") //
-                .add("--progress_in_terminal_title=no") //
-                .add("--noexperimental_run_validations") //
-                .add("--aspects=@intellij_aspect//:intellij_info_bundled.bzl%intellij_info_aspect")    //
-                .add("--override_repository=intellij_aspect=" + aspectLocation.getAspectDirectory())   //
-                .add("--output_groups=intellij-info-generic,intellij-info-java-direct-deps,intellij-resolve-java-direct-deps")  //
+                .add("--override_repository=local_eclipse_aspect=" + aspectLocation.getAspectDirectory(),
+                    "--aspects=@local_eclipse_aspect" + aspectLocation.getAspectLabel(), "-k",
+                    "--output_groups=json-files,classpath-jars,-_,-defaults", "--experimental_show_artifacts")
                 .build();
     }
 
@@ -193,6 +206,8 @@ public class BazelWorkspaceAspectHelper {
             List<String> lookupTargets = new ArrayList<>();
             lookupTargets.add(target);
             List<String> discoveredAspectFilePaths = generateAspectPackageInfoFiles(lookupTargets, progressMonitor);
+            // TODO insert post command processing with JQ
+
             ImmutableMap<String, AspectPackageInfo> map =
                     AspectPackageInfo.loadAspectFilePaths(discoveredAspectFilePaths);
             resultMap.putAll(map);
@@ -229,7 +244,7 @@ public class BazelWorkspaceAspectHelper {
             WorkProgressMonitor progressMonitor)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
 
-//        TimeTracker.start(); //TODO remove time tracking
+        //        TimeTracker.start(); //TODO remove time tracking
 
         List<String> args =
                 ImmutableList.<String>builder().add("build").addAll(this.aspectOptions).addAll(targets).build();
@@ -243,7 +258,7 @@ public class BazelWorkspaceAspectHelper {
                 this.bazelCommandExecutor.runBazelAndGetErrorLines(ConsoleType.WORKSPACE,
                     this.bazelWorkspaceCommandRunner.getBazelWorkspaceRootDirectory(), progressMonitor, args, filter);
 
-//        TimeTracker.addAndFinish(); //TODO remove time tracking
+        //        TimeTracker.addAndFinish(); //TODO remove time tracking
 
         return listOfGeneratedFilePaths;
     }
