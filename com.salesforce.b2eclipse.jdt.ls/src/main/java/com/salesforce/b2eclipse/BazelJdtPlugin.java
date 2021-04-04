@@ -39,20 +39,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
-
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Plugin;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.prefs.BackingStoreException;
-import org.osgi.service.prefs.Preferences;
 
 import com.google.common.base.Throwables;
 import com.salesforce.b2eclipse.abstractions.BazelAspectLocation;
@@ -66,6 +56,18 @@ import com.salesforce.b2eclipse.runtime.api.JavaCoreHelper;
 import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
 import com.salesforce.b2eclipse.runtime.impl.EclipseJavaCoreHelper;
 import com.salesforce.b2eclipse.runtime.impl.EclipseResourceHelper;
+
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
 
 /**
  * The activator class controls the Bazel Eclipse plugin life cycle
@@ -210,6 +212,10 @@ public class BazelJdtPlugin extends Plugin {
         }
 
         return path;
+    }
+
+    public static URL findResource(String resourceName) throws IOException {
+        return FileLocator.toFileURL(context.getBundle().getEntry(resourceName));
     }
 
     // COLLABORATORS
