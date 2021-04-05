@@ -42,6 +42,7 @@ import com.salesforce.b2eclipse.abstractions.BazelAspectLocation;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
+import com.salesforce.b2eclipse.internal.TimeTracker;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
 
 import org.apache.commons.lang3.StringUtils;
@@ -248,7 +249,7 @@ public class BazelWorkspaceAspectHelper {
             WorkProgressMonitor progressMonitor)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
 
-        //        TimeTracker.start(); //TODO remove time tracking
+        TimeTracker.start(); //TODO remove time tracking
 
         List<String> args =
                 ImmutableList.<String>builder().add("build").addAll(this.aspectOptions).addAll(targets).build();
@@ -269,7 +270,7 @@ public class BazelWorkspaceAspectHelper {
             // TODO post command processing with JQ
             listOfGeneratedFilePaths = filterIntellijOutput(listOfGeneratedFilePaths, targets);
         }
-        //        TimeTracker.addAndFinish(); //TODO remove time tracking
+        TimeTracker.addAndFinish(); //TODO remove time tracking
 
         return listOfGeneratedFilePaths;
     }
@@ -311,8 +312,13 @@ public class BazelWorkspaceAspectHelper {
         return exitCode;
     }
 
-    private int generateLinuxJson(String intellijOutputModule, String jsonFile) {
-        return 0;
+    private int generateLinuxJson(String intellijOutputModule, String jsonFile)
+            throws InterruptedException, IOException {
+        URL fileUrl = BazelJdtPlugin.findResource("/resources/jq/runjq.sh");
+        String cmd = fileUrl.getPath() + " " + intellijOutputModule + " " + jsonFile;
+        Process process = Runtime.getRuntime().exec(cmd);
+        int exitCode = process.waitFor();
+        return exitCode;
     }
 
 }
