@@ -282,7 +282,7 @@ public class BazelWorkspaceAspectHelper {
         final boolean isWindows = SystemUtils.IS_OS_WINDOWS;
         final Pattern pattern = Pattern.compile(".*\\.intellij-info\\.txt");
 
-        outputLines.parallelStream().filter((line) -> {
+        outputLines.stream().filter((line) -> {
             Matcher matcher = pattern.matcher(line);
             return matcher.matches();
         }).forEach((String intellijOutputModule) -> {
