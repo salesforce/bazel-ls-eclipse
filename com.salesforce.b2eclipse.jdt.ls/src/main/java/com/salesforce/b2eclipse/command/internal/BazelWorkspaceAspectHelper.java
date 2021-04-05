@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -277,27 +279,34 @@ public class BazelWorkspaceAspectHelper {
 
     private List<String> filterIntellijOutput(List<String> outputLines, Collection<String> targets) {
         final ArrayList<String> modules = new ArrayList<String>();
-        targets.parallelStream().forEach((String targetName) -> {
-            //            String moduleName = targetName.replaceAll(":.*", "").replaceAll("//", "");
-            String pattern = ".*\\.intellij-info\\.txt"; // ".*/" + moduleName + "-\\d*\\.intellij-info\\.txt";
-            outputLines.parallelStream().filter((line) -> line.matches(pattern))
-                    .forEach((String intellijOutputModule) -> {
-                        String jsonFile = intellijOutputModule.replaceAll("\\.intellij-info\\.txt", "")
-                                + AspectPackageInfo.ASPECT_FILENAME_SUFFIX;
-                        try {
-                            int exitCode = SystemUtils.IS_OS_WINDOWS ? //
-                            generateWindowsJson(intellijOutputModule, jsonFile) : //
-                            generateLinuxJson(intellijOutputModule, jsonFile);
-                            if (0 == exitCode) {
-                                modules.add(jsonFile);
-                            }
-                        } catch (IOException exc) {
-                            BazelJdtPlugin.logException(exc);
-                        } catch (InterruptedException exc) {
-                            BazelJdtPlugin.logException(exc);
-                        }
-                    });
-        });
+        boolean isWindows = SystemUtils.IS_OS_WINDOWS;
+        
+      // String moduleName = targetName.replaceAll(":.*", "").replaceAll("//", "");
+      Pattern pattern = Pattern.compile(".*\\.intellij-info\\.txt"); // ".*/" + moduleName + "-\\d*\\.intellij-info\\.txt";
+    
+      outputLines.parallelStream().filter((line) -> {
+          Matcher matcher = pattern.matcher(line);
+          return matcher.matches();
+      })
+              .forEach((String intellijOutputModule) -> {
+                  String jsonFile = intellijOutputModule.replaceAll("\\.intellij-info\\.txt", "")
+                          + AspectPackageInfo.ASPECT_FILENAME_SUFFIX;
+                  
+                      try {
+                          int exitCode = isWindows
+                                  ? generateWindowsJson(intellijOutputModule, jsonFile)
+                                  : generateLinuxJson(intellijOutputModule, jsonFile);  
+                          
+                          if (0 == exitCode) {
+                              modules.add(jsonFile);
+                          }
+                      } catch (IOException exc) {
+                          BazelJdtPlugin.logException(exc);
+                      } catch (InterruptedException exc) {
+                          BazelJdtPlugin.logException(exc);
+                      }
+              });
+        
         return modules;
     }
 
