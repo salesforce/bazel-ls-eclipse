@@ -315,7 +315,7 @@ public class BazelWorkspaceAspectHelper {
     private int generateLinuxJson(String intellijOutputModule, String jsonFile)
             throws InterruptedException, IOException {
         URL fileUrl = BazelJdtPlugin.findResource("/resources/jq/runjq.sh");
-        String cmd = fileUrl.getPath() + " " + intellijOutputModule + " " + jsonFile;
+        String cmd = "bash " + fileUrl.getPath() + " " + intellijOutputModule + " " + jsonFile;
         Process process = Runtime.getRuntime().exec(cmd);
         int exitCode = process.waitFor();
         return exitCode;
