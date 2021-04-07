@@ -42,8 +42,9 @@ import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
-
 import org.apache.commons.lang3.StringUtils;
+import com.salesforce.b2eclipse.util.AspectRuntimeUtil;
+import com.salesforce.b2eclipse.util.IntellijAspectPackageInfoLoader;
 
 /**
  * Manages running, collecting, and caching all of the build info aspects for a specific workspace.
@@ -91,8 +92,9 @@ public class BazelWorkspaceAspectHelper {
             BazelAspectLocation aspectLocation, BazelCommandExecutor bazelCommandExecutor) {
         this.bazelWorkspaceCommandRunner = bazelWorkspaceCommandRunner;
         this.bazelCommandExecutor = bazelCommandExecutor;
-        String aspectVersion = System.getProperty("aspectVersion");
-        if ("bef".equalsIgnoreCase(StringUtils.trimToNull(aspectVersion))) {
+        //        String aspectVersion = System.getProperty("aspectVersion");
+        //        this.befVersion = "bef".equalsIgnoreCase(StringUtils.trimToNull(aspectVersion));
+        if (AspectRuntimeUtil.isBefAspectVersion()) {
             buildBefAspect(aspectLocation);
         } else {
             buildIntellijAspect(aspectLocation);
@@ -208,9 +210,11 @@ public class BazelWorkspaceAspectHelper {
             List<String> discoveredAspectFilePaths = generateAspectPackageInfoFiles(lookupTargets, progressMonitor);
             // TODO insert post command processing with JQ
 
-            ImmutableMap<String, AspectPackageInfo> map =
-                    AspectPackageInfo.loadAspectFilePaths(discoveredAspectFilePaths);
+            ImmutableMap<String, AspectPackageInfo> map = AspectRuntimeUtil.isBefAspectVersion()
+                    ? AspectPackageInfo.loadAspectFilePaths(discoveredAspectFilePaths)
+                    : IntellijAspectPackageInfoLoader.loadAspectFiles(discoveredAspectFilePaths);
             resultMap.putAll(map);
+
             for (String resultTarget : map.keySet()) {
                 BazelJdtPlugin.logInfo("ASPECT CACHE LOAD target: " + resultTarget + logstr);
                 aspectInfoCacheCurrent.put(resultTarget, map.get(resultTarget));

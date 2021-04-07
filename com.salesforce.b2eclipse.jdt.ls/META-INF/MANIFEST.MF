@@ -27,5 +27,6 @@ Export-Package: com.salesforce.b2eclipse,
  com.salesforce.b2eclipse.importer,
  com.salesforce.b2eclipse.managers,
  com.salesforce.b2eclipse.model,
- com.salesforce.b2eclipse.runtime.impl
+ com.salesforce.b2eclipse.runtime.impl,
+ com.salesforce.b2eclipse.util
 

@@ -50,6 +50,12 @@ public final class AspectOutputJars {
         this.ijar = obj.has("interface_jar") ? obj.get("interface_jar").getAsString() : null;
         this.srcjar = obj.has("source_jar") ? obj.get("source_jar").getAsString() : null;
     }
+    
+    public AspectOutputJars(String interfaceJar, String outputJar, String srcJar) {
+        ijar = interfaceJar;
+        jar = outputJar;
+        srcjar = srcJar;
+    }
 
     @Override
     public String toString() {

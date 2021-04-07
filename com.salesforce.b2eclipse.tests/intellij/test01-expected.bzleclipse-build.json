@@ -1,0 +1,24 @@
+{
+  "build_file_artifact_location": "module1/BUILD",
+  "dependencies": [
+    "@local_config_cc//:toolchain",
+    "@bazel_tools//tools/jdk:current_java_toolchain",
+    "//module2:module2",
+    "//module3:module3",
+    "@com_google_guava//:com_google_guava",
+    "//module1:mybuilder_sources"
+  ],
+  "generated_jars": [],
+  "jars": [
+    {
+      "jar": "bazel-out/x64_windows-fastbuild/bin/module1/module1.jar",
+      "source_jar": "bazel-out/x64_windows-fastbuild/bin/module1/module1-src.jar"
+    }
+  ],
+  "kind": "java_binary",
+  "label": "//module1:module1",
+  "main_class": "hello.Hello",
+  "sources": [
+    "module1/src/java/hello/Hello.java"
+  ]
+}

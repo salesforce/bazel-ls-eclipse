@@ -1,0 +1,43 @@
+{
+  "build_file_artifact_location": {
+    "is_external": true,
+    "is_new_external_version": true,
+    "is_source": true,
+    "relative_path": "tools/jdk/BUILD",
+    "root_execution_path_fragment": ""
+  },
+  "deps": [
+    {
+      "dependency_type": 0,
+      "target": {
+        "label": "@remote_java_tools_windows//:toolchain"
+      }
+    }
+  ],
+  "features": [],
+  "java_toolchain_ide_info": {
+    "javac_jars": [
+      {
+        "is_external": true,
+        "is_new_external_version": true,
+        "is_source": true,
+        "relative_path": "java_tools/java_compiler.jar",
+        "root_execution_path_fragment": "external/remote_java_tools_windows"
+      },
+      {
+        "is_external": true,
+        "is_new_external_version": true,
+        "is_source": true,
+        "relative_path": "java_tools/jdk_compiler.jar",
+        "root_execution_path_fragment": "external/remote_java_tools_windows"
+      }
+    ],
+    "source_version": "8",
+    "target_version": "8"
+  },
+  "key": {
+    "label": "@bazel_tools//tools/jdk:current_java_toolchain"
+  },
+  "kind_string": "java_toolchain_alias",
+  "tags": []
+}

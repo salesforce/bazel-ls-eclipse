@@ -239,7 +239,7 @@ public final class AspectPackageInfo {
         return info;
     }
 
-    AspectPackageInfo(File aspectDataFile, ImmutableList<AspectOutputJars> jars,
+    public AspectPackageInfo(File aspectDataFile, ImmutableList<AspectOutputJars> jars,
             ImmutableList<AspectOutputJars> generatedJars, String workspaceRelativePath, String kind, String label,
             ImmutableList<String> deps, ImmutableList<String> sources, String mainClass) {
         this.aspectDataFile = aspectDataFile;
