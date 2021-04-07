@@ -44,7 +44,6 @@ import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import org.apache.commons.lang3.StringUtils;
 import com.salesforce.b2eclipse.util.AspectRuntimeUtil;
-import com.salesforce.b2eclipse.util.IntellijAspectPackageInfoLoader;
 
 /**
  * Manages running, collecting, and caching all of the build info aspects for a specific workspace.
@@ -87,40 +86,11 @@ public class BazelWorkspaceAspectHelper {
     int numberCacheHits = 0;
 
     // CTORS
-
     public BazelWorkspaceAspectHelper(BazelWorkspaceCommandRunner bazelWorkspaceCommandRunner,
             BazelAspectLocation aspectLocation, BazelCommandExecutor bazelCommandExecutor) {
         this.bazelWorkspaceCommandRunner = bazelWorkspaceCommandRunner;
         this.bazelCommandExecutor = bazelCommandExecutor;
-        //        String aspectVersion = System.getProperty("aspectVersion");
-        //        this.befVersion = "bef".equalsIgnoreCase(StringUtils.trimToNull(aspectVersion));
-        if (AspectRuntimeUtil.isBefAspectVersion()) {
-            buildBefAspect(aspectLocation);
-        } else {
-            buildIntellijAspect(aspectLocation);
-        }
-    }
-
-    private void buildIntellijAspect(BazelAspectLocation aspectLocation) {
-        this.aspectOptions = ImmutableList.<String>builder().add("--nobuild_event_binary_file_path_conversion") //
-//                .add("--curses=no") //
-//                .add("--color=yes") //
-//                .add("--progress_in_terminal_title=no") //
-//                .add("--noexperimental_run_validations") //
-                .add("--aspects=@intellij_aspect//:intellij_info_bundled.bzl%intellij_info_aspect") //
-                .add("--override_repository=intellij_aspect=" + aspectLocation.getAspectDirectory()) //
-                .add(
-                    "--output_groups=intellij-info-generic,intellij-info-java-direct-deps,intellij-resolve-java-direct-deps") //
-                .add("--experimental_show_artifacts")//
-                .build();
-    }
-
-    private void buildBefAspect(BazelAspectLocation aspectLocation) {
-        this.aspectOptions = ImmutableList.<String>builder()
-                .add("--override_repository=local_eclipse_aspect=" + aspectLocation.getAspectDirectory(),
-                    "--aspects=@local_eclipse_aspect" + aspectLocation.getAspectLabel(), "-k",
-                    "--output_groups=json-files,classpath-jars,-_,-defaults", "--experimental_show_artifacts")
-                .build();
+        this.aspectOptions = AspectRuntimeUtil.buildAspectsOptions(aspectLocation);
     }
 
     /**
@@ -208,13 +178,9 @@ public class BazelWorkspaceAspectHelper {
             List<String> lookupTargets = new ArrayList<>();
             lookupTargets.add(target);
             List<String> discoveredAspectFilePaths = generateAspectPackageInfoFiles(lookupTargets, progressMonitor);
-            // TODO insert post command processing with JQ
-
-            ImmutableMap<String, AspectPackageInfo> map = AspectRuntimeUtil.isBefAspectVersion()
-                    ? AspectPackageInfo.loadAspectFilePaths(discoveredAspectFilePaths)
-                    : IntellijAspectPackageInfoLoader.loadAspectFiles(discoveredAspectFilePaths);
+            ImmutableMap<String, AspectPackageInfo> map =
+                    AspectRuntimeUtil.loadAspectFilePaths(discoveredAspectFilePaths);
             resultMap.putAll(map);
-
             for (String resultTarget : map.keySet()) {
                 BazelJdtPlugin.logInfo("ASPECT CACHE LOAD target: " + resultTarget + logstr);
                 aspectInfoCacheCurrent.put(resultTarget, map.get(resultTarget));
@@ -252,9 +218,7 @@ public class BazelWorkspaceAspectHelper {
 
         // Strip out the artifact list, keeping the xyz.bzleclipse-build.json files (located in subdirs in the bazel-out path)
         // Line must start with >>> and end with the aspect file suffix
-        Function<String, String> filter = t -> t.startsWith(">>>")
-                ? (t.endsWith(AspectPackageInfo.ASPECT_FILENAME_SUFFIX) ? t.replace(">>>", "") : "") : null;
-
+        Function<String, String> filter = AspectRuntimeUtil.buildAspectFilter();
         List<String> listOfGeneratedFilePaths =
                 this.bazelCommandExecutor.runBazelAndGetErrorLines(ConsoleType.WORKSPACE,
                     this.bazelWorkspaceCommandRunner.getBazelWorkspaceRootDirectory(), progressMonitor, args, filter);
