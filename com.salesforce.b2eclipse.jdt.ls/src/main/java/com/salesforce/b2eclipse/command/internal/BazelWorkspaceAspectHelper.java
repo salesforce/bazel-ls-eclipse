@@ -24,7 +24,6 @@
 package com.salesforce.b2eclipse.command.internal;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -46,9 +43,8 @@ import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationExcepti
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.internal.TimeTracker;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
+import com.salesforce.b2eclipse.util.AspectRuntimeUtil;
+import com.salesforce.b2eclipse.util.IntellijAspectPackageInfoLoader;
 
 /**
  * Manages running, collecting, and caching all of the build info aspects for a specific workspace.
@@ -62,7 +58,7 @@ public class BazelWorkspaceAspectHelper {
      */
     private List<String> aspectOptions;
 
-    private boolean befVersion;
+    //    private boolean befVersion;
 
     /**
      * Cache of the Aspect data for each target. key=String target (//a/b/c) value=AspectPackageInfo data that came from
@@ -98,9 +94,9 @@ public class BazelWorkspaceAspectHelper {
             BazelAspectLocation aspectLocation, BazelCommandExecutor bazelCommandExecutor) {
         this.bazelWorkspaceCommandRunner = bazelWorkspaceCommandRunner;
         this.bazelCommandExecutor = bazelCommandExecutor;
-        String aspectVersion = System.getProperty("aspectVersion");
-        this.befVersion = "bef".equalsIgnoreCase(StringUtils.trimToNull(aspectVersion));
-        if (this.befVersion) {
+        //        String aspectVersion = System.getProperty("aspectVersion");
+        //        this.befVersion = "bef".equalsIgnoreCase(StringUtils.trimToNull(aspectVersion));
+        if (AspectRuntimeUtil.isBefAspectVersion()) {
             buildBefAspect(aspectLocation);
         } else {
             buildIntellijAspect(aspectLocation);
@@ -215,9 +211,11 @@ public class BazelWorkspaceAspectHelper {
             lookupTargets.add(target);
             List<String> discoveredAspectFilePaths = generateAspectPackageInfoFiles(lookupTargets, progressMonitor);
 
-            ImmutableMap<String, AspectPackageInfo> map =
-                    AspectPackageInfo.loadAspectFilePaths(discoveredAspectFilePaths);
+            ImmutableMap<String, AspectPackageInfo> map = AspectRuntimeUtil.isBefAspectVersion()
+                    ? AspectPackageInfo.loadAspectFilePaths(discoveredAspectFilePaths)
+                    : IntellijAspectPackageInfoLoader.loadAspectFiles(discoveredAspectFilePaths);
             resultMap.putAll(map);
+
             for (String resultTarget : map.keySet()) {
                 BazelJdtPlugin.logInfo("ASPECT CACHE LOAD target: " + resultTarget + logstr);
                 aspectInfoCacheCurrent.put(resultTarget, map.get(resultTarget));
@@ -259,7 +257,7 @@ public class BazelWorkspaceAspectHelper {
         // Strip out the artifact list, keeping the xyz.bzleclipse-build.json files (located in subdirs in the bazel-out path)
         // Line must start with >>> and end with the aspect file suffix
         Function<String, String> filter;
-        if (this.befVersion) {
+        if (AspectRuntimeUtil.isBefAspectVersion()) {
             filter = t -> t.startsWith(">>>")
                     ? (t.endsWith(AspectPackageInfo.ASPECT_FILENAME_SUFFIX) ? t.replace(">>>", "") : "") : null;
         } else {
@@ -268,62 +266,13 @@ public class BazelWorkspaceAspectHelper {
         List<String> listOfGeneratedFilePaths =
                 this.bazelCommandExecutor.runBazelAndGetErrorLines(ConsoleType.WORKSPACE,
                     this.bazelWorkspaceCommandRunner.getBazelWorkspaceRootDirectory(), progressMonitor, args, filter);
-        if (!this.befVersion) {
-            // TODO post command processing with JQ
-            listOfGeneratedFilePaths = filterIntellijOutput(listOfGeneratedFilePaths, targets);
-        }
+        //        if (!this.befVersion) {
+        //            // TODO post command processing with JQ
+        //            listOfGeneratedFilePaths = filterIntellijOutput(listOfGeneratedFilePaths, targets);
+        //        }
         TimeTracker.addAndFinish(); //TODO remove time tracking
 
         return listOfGeneratedFilePaths;
-    }
-
-    private List<String> filterIntellijOutput(List<String> outputLines, Collection<String> targets) {
-        final ArrayList<String> modules = new ArrayList<String>();
-        final boolean isWindows = SystemUtils.IS_OS_WINDOWS;
-        final Pattern pattern = Pattern.compile(".*\\.intellij-info\\.txt");
-
-        outputLines.stream().filter((line) -> {
-            Matcher matcher = pattern.matcher(line);
-            return matcher.matches();
-        }).forEach((String intellijOutputModule) -> {
-            String jsonFile = intellijOutputModule.replaceAll("\\.intellij-info\\.txt", "")
-                    + AspectPackageInfo.ASPECT_FILENAME_SUFFIX;
-
-            try {
-                int exitCode = isWindows ? generateWindowsJson(intellijOutputModule, jsonFile)
-                        : generateLinuxJson(intellijOutputModule, jsonFile);
-
-                if (0 == exitCode) {
-                    modules.add(jsonFile);
-                }
-            } catch (IOException exc) {
-                BazelJdtPlugin.logException(exc);
-            } catch (InterruptedException exc) {
-                BazelJdtPlugin.logException(exc);
-            }
-        });
-
-        return modules;
-    }
-
-    private int generateWindowsJson(String intellijOutputModule, String jsonFile)
-            throws InterruptedException, IOException {
-        String fromFile = intellijOutputModule.replaceAll("/", "\\\\");
-        String toFile = jsonFile.replaceAll("/", "\\\\");
-        URL fileUrl = BazelJdtPlugin.findResource("/resources/jq/runjq.bat");
-        String cmd = fileUrl.getPath() + " " + fromFile + " " + toFile;
-        Process process = Runtime.getRuntime().exec(cmd);
-        int exitCode = process.waitFor();
-        return exitCode;
-    }
-
-    private int generateLinuxJson(String intellijOutputModule, String jsonFile)
-            throws InterruptedException, IOException {
-        URL fileUrl = BazelJdtPlugin.findResource("/resources/jq/runjq.sh");
-        String cmd = "bash " + fileUrl.getPath() + " " + intellijOutputModule + " " + jsonFile;
-        Process process = Runtime.getRuntime().exec(cmd);
-        int exitCode = process.waitFor();
-        return exitCode;
     }
 
 }

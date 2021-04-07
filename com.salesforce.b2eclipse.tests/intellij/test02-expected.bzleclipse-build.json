@@ -1,0 +1,19 @@
+{
+  "build_file_artifact_location": "module1/BUILD",
+  "dependencies": [
+    "@bazel_tools//tools/jdk:current_java_toolchain"
+  ],
+  "generated_jars": [],
+  "jars": [
+    {
+      "interface_jar": "bazel-out/x64_windows-fastbuild/bin/module1/libmybuilder_sources-hjar.jar",
+      "jar": "bazel-out/x64_windows-fastbuild/bin/module1/libmybuilder_sources.jar",
+      "source_jar": "bazel-out/x64_windows-fastbuild/bin/module1/libmybuilder_sources-src.jar"
+    }
+  ],
+  "kind": "mybuilder_gen",
+  "label": "//module1:mybuilder_sources",
+  "sources": [
+    "module1/src/resources/hello.txt"
+  ]
+}

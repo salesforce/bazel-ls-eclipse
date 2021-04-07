@@ -1,0 +1,109 @@
+{
+  "build_file_artifact_location": {
+    "is_external": false,
+    "is_new_external_version": true,
+    "is_source": true,
+    "relative_path": "module1/BUILD",
+    "root_execution_path_fragment": ""
+  },
+  "deps": [
+    {
+      "dependency_type": 0,
+      "target": {
+        "label": "@local_config_cc//:toolchain"
+      }
+    },
+    {
+      "dependency_type": 0,
+      "target": {
+        "label": "@bazel_tools//tools/jdk:current_java_toolchain"
+      }
+    },
+    {
+      "dependency_type": 0,
+      "target": {
+        "label": "//module2:module2"
+      }
+    },
+    {
+      "dependency_type": 0,
+      "target": {
+        "label": "//module3:module3"
+      }
+    },
+    {
+      "dependency_type": 0,
+      "target": {
+        "label": "@com_google_guava//:com_google_guava"
+      }
+    },
+    {
+      "dependency_type": 0,
+      "target": {
+        "label": "//module1:mybuilder_sources"
+      }
+    }
+  ],
+  "features": [],
+  "java_ide_info": {
+    "generated_jars": [],
+    "jars": [
+      {
+        "jar": {
+          "is_external": false,
+          "is_new_external_version": true,
+          "is_source": false,
+          "relative_path": "module1/module1.jar",
+          "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+        },
+        "source_jar": {
+          "is_external": false,
+          "is_new_external_version": true,
+          "is_source": false,
+          "relative_path": "module1/module1-src.jar",
+          "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+        },
+        "source_jars": [
+          {
+            "is_external": false,
+            "is_new_external_version": true,
+            "is_source": false,
+            "relative_path": "module1/module1-src.jar",
+            "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+          }
+        ]
+      }
+    ],
+    "jdeps": {
+      "is_external": false,
+      "is_new_external_version": true,
+      "is_source": false,
+      "relative_path": "module1/module1.jdeps",
+      "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+    },
+    "main_class": "hello.Hello",
+    "package_manifest": {
+      "is_external": false,
+      "is_new_external_version": true,
+      "is_source": false,
+      "relative_path": "module1/module1.java-manifest",
+      "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+    },
+    "sources": [
+      {
+        "is_external": false,
+        "is_new_external_version": true,
+        "is_source": true,
+        "relative_path": "module1/src/java/hello/Hello.java",
+        "root_execution_path_fragment": ""
+      }
+    ]
+  },
+  "key": {
+    "label": "//module1:module1"
+  },
+  "kind_string": "java_binary",
+  "tags": [
+    "__JAVA_RULES_MIGRATION_DO_NOT_USE_WILL_BREAK__"
+  ]
+}

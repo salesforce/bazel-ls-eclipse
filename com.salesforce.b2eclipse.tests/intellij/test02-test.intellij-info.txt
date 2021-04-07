@@ -1,0 +1,76 @@
+{
+  "build_file_artifact_location": {
+    "is_external": false,
+    "is_new_external_version": true,
+    "is_source": true,
+    "relative_path": "module1/BUILD",
+    "root_execution_path_fragment": ""
+  },
+  "deps": [
+    {
+      "dependency_type": 0,
+      "target": {
+        "label": "@bazel_tools//tools/jdk:current_java_toolchain"
+      }
+    }
+  ],
+  "features": [],
+  "java_ide_info": {
+    "generated_jars": [],
+    "jars": [
+      {
+        "interface_jar": {
+          "is_external": false,
+          "is_new_external_version": true,
+          "is_source": false,
+          "relative_path": "module1/libmybuilder_sources-hjar.jar",
+          "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+        },
+        "jar": {
+          "is_external": false,
+          "is_new_external_version": true,
+          "is_source": false,
+          "relative_path": "module1/libmybuilder_sources.jar",
+          "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+        },
+        "source_jar": {
+          "is_external": false,
+          "is_new_external_version": true,
+          "is_source": false,
+          "relative_path": "module1/libmybuilder_sources-src.jar",
+          "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+        },
+        "source_jars": [
+          {
+            "is_external": false,
+            "is_new_external_version": true,
+            "is_source": false,
+            "relative_path": "module1/libmybuilder_sources-src.jar",
+            "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+          }
+        ]
+      }
+    ],
+    "jdeps": {
+      "is_external": false,
+      "is_new_external_version": true,
+      "is_source": false,
+      "relative_path": "module1/libmybuilder_sources.jdeps",
+      "root_execution_path_fragment": "bazel-out/x64_windows-fastbuild/bin"
+    },
+    "sources": [
+      {
+        "is_external": false,
+        "is_new_external_version": true,
+        "is_source": true,
+        "relative_path": "module1/src/resources/hello.txt",
+        "root_execution_path_fragment": ""
+      }
+    ]
+  },
+  "key": {
+    "label": "//module1:mybuilder_sources"
+  },
+  "kind_string": "mybuilder_gen",
+  "tags": []
+}
