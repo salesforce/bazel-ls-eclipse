@@ -68,7 +68,12 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.WorkspaceJob;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -475,7 +480,21 @@ public class BazelClasspathContainer implements IClasspathContainer {
             if (dependencies.size() > oldSize) {
                 IProject[] dependenciesArray = dependencies.toArray(IProject[]::new);
                 projectDescription.setReferencedProjects(dependenciesArray);
-                resourceHelper.setProjectDescription(thisProject, projectDescription);
+
+                //TODO experiments
+                //resourceHelper.setProjectDescription(thisProject, projectDescription);
+                WorkspaceJob job = new WorkspaceJob("set project dependencies for " + thisProject.getName()) {
+                    @Override
+                    public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+                        try {
+                            thisProject.setDescription(projectDescription, null);
+                        } catch (CoreException ce) {
+                            BazelJdtPlugin.logException("set project dependencies for " + thisProject.getName(), ce);
+                        }
+                        return Status.OK_STATUS;
+                    }
+                };
+                job.schedule();
             }
 
         }
