@@ -226,12 +226,9 @@ public class BazelClasspathContainer implements IClasspathContainer {
 
                         // now make a project reference between this project and the other project; this allows for features like
                         // code refactoring across projects to work correctly
-                        //TODO collected into a set to add project dependencies at one time
-                        //                        addProjectReference(eclipseIProject, otherProject.getProject());
                         projectDependencies.add(otherProject.getProject());
                     }
                 }
-                //TODO a new implementation to add project dependencies at one time to avoid tree-modification lock
                 addProjectReferences(eclipseIProject, projectDependencies);
             } catch (IOException | InterruptedException e) {
                 BazelJdtPlugin.logException(
@@ -437,33 +434,6 @@ public class BazelClasspathContainer implements IClasspathContainer {
         return org.eclipse.core.runtime.Path.fromOSString(path.toString());
     }
 
-    //    /**
-    //     * Creates a project reference between this project and that project. The direction of reference goes from
-    //     * this->that References are used by Eclipse code refactoring among other things.
-    //     */
-    //    private void addProjectReference(IProject thisProject, IProject thatProject) {
-    //        ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
-    //        IProjectDescription projectDescription = resourceHelper.getProjectDescription(thisProject);
-    //        IProject[] existingRefsArray = projectDescription.getReferencedProjects();
-    //        boolean hasRef = false;
-    //        String otherProjectName = thatProject.getName();
-    //        for (IProject candidateRef : existingRefsArray) {
-    //            if (candidateRef.getName().equals(otherProjectName)) {
-    //                hasRef = true;
-    //                break;
-    //            }
-    //        }
-    //        if (!hasRef) {
-    //            // this project does not already reference the other project, we need to add the project reference
-    //            // as this make code refactoring across Eclipse projects work correctly (among other things)
-    //            List<IProject> updatedRefList = new ArrayList<>(Arrays.asList(existingRefsArray));
-    //            updatedRefList.add(thatProject.getProject());
-    //            projectDescription.setReferencedProjects(updatedRefList.toArray(new IProject[] {}));
-    //            resourceHelper.setProjectDescription(thisProject, projectDescription);
-    //        }
-    //
-    //    }
-
     /**
      * Creates a project references between this project and that project. The direction of reference goes from
      * this->that References are used by Eclipse code refactoring among other things.
@@ -481,8 +451,6 @@ public class BazelClasspathContainer implements IClasspathContainer {
                 IProject[] dependenciesArray = dependencies.toArray(IProject[]::new);
                 projectDescription.setReferencedProjects(dependenciesArray);
 
-                //TODO experiments
-                //resourceHelper.setProjectDescription(thisProject, projectDescription);
                 WorkspaceJob job = new WorkspaceJob("set project dependencies for " + thisProject.getName()) {
                     @Override
                     public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
