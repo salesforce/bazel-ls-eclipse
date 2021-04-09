@@ -67,12 +67,13 @@ public final class IntellijAspectPackageInfoLoader {
     private static JsonObject readRootJsonObject(File aspectFile) throws IOException, InterruptedException {
         JsonObject jsonRootObject = null;
         if (aspectFile.exists()) {
-            FileReader fileReader = new FileReader(aspectFile);
-            JsonReader jsonReader = new JsonReader(fileReader);
-            JsonParser parser = new JsonParser();
-            JsonElement jsonElement = parser.parse(jsonReader);
-            if (JsonObject.class.isInstance(jsonElement)) {
-                jsonRootObject = jsonElement.getAsJsonObject();
+            try (FileReader fileReader = new FileReader(aspectFile)) {
+                JsonReader jsonReader = new JsonReader(fileReader);
+                JsonParser parser = new JsonParser();
+                JsonElement jsonElement = parser.parse(jsonReader);
+                if (JsonObject.class.isInstance(jsonElement)) {
+                    jsonRootObject = jsonElement.getAsJsonObject();
+                }
             }
         }
         return jsonRootObject;
