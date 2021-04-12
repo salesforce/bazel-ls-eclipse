@@ -88,7 +88,6 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
     @Override
     public void importToWorkspace(IProgressMonitor monitor) throws OperationCanceledException, CoreException {
         try {
-            //            TimeTracker.start();    //TODO remove time tracker
             BazelWorkspaceScanner workspaceScanner = new BazelWorkspaceScanner();
             BazelPackageInfo workspaceRootPackage = workspaceScanner.getPackages(rootFolder);
 
@@ -121,10 +120,6 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
             // TODO: proper handling here
             BazelJdtPlugin.logException(e);
         }
-        //        finally {
-        //            TimeTracker.printTotal();   //TODO remove time tracker
-        //            TimeTracker.finish();   //TODO remove time tracker
-        //        }
     }
 
     private String getBazelPackageRelativePath(BazelPackageInfo bpi) {
