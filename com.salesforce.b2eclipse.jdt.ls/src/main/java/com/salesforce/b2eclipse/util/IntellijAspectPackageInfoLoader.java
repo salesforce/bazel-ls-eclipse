@@ -20,22 +20,22 @@ import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import org.apache.commons.lang3.StringUtils;
 
 public final class IntellijAspectPackageInfoLoader {
-    public static final String PROPERTY_BUILD_FILE_ARTIFACT_LOCATION = "build_file_artifact_location"; //$NON-NLS-1$
-    public static final String PROPERTY_DEPENDENCIES = "deps"; //$NON-NLS-1$
-    public static final String PROPERTY_LABEL = "label"; //$NON-NLS-1$
-    public static final String PROPERTY_TARGET = "target"; //$NON-NLS-1$
-    public static final String PROPERTY_RELATIVE_PATH = "relative_path"; //$NON-NLS-1$
-    public static final String PROPERTY_JAVA_IDE_INFO = "java_ide_info"; //$NON-NLS-1$
-    public static final String PROPERTY_JARS = "jars"; //$NON-NLS-1$
-    public static final String PROPERTY_GENERATED_JARS = "generated_jars"; //$NON-NLS-1$
-    public static final String PROPERTY_JAR = "jar"; //$NON-NLS-1$
-    public static final String PROPERTY_KEY = "key"; //$NON-NLS-1$
-    public static final String PROPERTY_SOURCE_JAR = "source_jar"; //$NON-NLS-1$
-    public static final String PROPERTY_SOURCES = "sources"; //$NON-NLS-1$
-    public static final String PROPERTY_INTERFACE_JAR = "interface_jar"; //$NON-NLS-1$
-    public static final String PROPERTY_KIND_STRING = "kind_string"; //$NON-NLS-1$
-    public static final String PROPERTY_MAIN_CLASS = "main_class"; //$NON-NLS-1$
-    public static final String PROPERTY_ROOT_EXECUTION_PATH_FRAGMENT = "root_execution_path_fragment"; //$NON-NLS-1$
+    private static final String PROPERTY_BUILD_FILE_ARTIFACT_LOCATION = "build_file_artifact_location"; //$NON-NLS-1$
+    private static final String PROPERTY_DEPENDENCIES = "deps"; //$NON-NLS-1$
+    private static final String PROPERTY_LABEL = "label"; //$NON-NLS-1$
+    private static final String PROPERTY_TARGET = "target"; //$NON-NLS-1$
+    private static final String PROPERTY_RELATIVE_PATH = "relative_path"; //$NON-NLS-1$
+    private static final String PROPERTY_JAVA_IDE_INFO = "java_ide_info"; //$NON-NLS-1$
+    private static final String PROPERTY_JARS = "jars"; //$NON-NLS-1$
+    private static final String PROPERTY_GENERATED_JARS = "generated_jars"; //$NON-NLS-1$
+    private static final String PROPERTY_JAR = "jar"; //$NON-NLS-1$
+    private static final String PROPERTY_KEY = "key"; //$NON-NLS-1$
+    private static final String PROPERTY_SOURCE_JAR = "source_jar"; //$NON-NLS-1$
+    private static final String PROPERTY_SOURCES = "sources"; //$NON-NLS-1$
+    private static final String PROPERTY_INTERFACE_JAR = "interface_jar"; //$NON-NLS-1$
+    private static final String PROPERTY_KIND_STRING = "kind_string"; //$NON-NLS-1$
+    private static final String PROPERTY_MAIN_CLASS = "main_class"; //$NON-NLS-1$
+    private static final String PROPERTY_ROOT_EXECUTION_PATH_FRAGMENT = "root_execution_path_fragment"; //$NON-NLS-1$
 
     private IntellijAspectPackageInfoLoader() {
     }
@@ -55,9 +55,8 @@ public final class IntellijAspectPackageInfoLoader {
         AspectPackageInfo buildInfo = null;
         try {
             JsonObject jsonObject = readRootJsonObject(aspectFile);
-            buildInfo =
-                    Optional.<JsonObject>ofNullable(jsonObject).filter((JsonObject rootObject) -> isValid(rootObject))
-                            .map((JsonObject rootObject) -> parseJsonObject(aspectFile, rootObject)).orElse(null);
+            buildInfo = Optional.<JsonObject>ofNullable(jsonObject).filter(IntellijAspectPackageInfoLoader::isValid)
+                    .map((JsonObject rootObject) -> parseJsonObject(aspectFile, rootObject)).orElse(null);
         } catch (Exception exc) {
             BazelJdtPlugin.logException(exc);
         }
