@@ -12,7 +12,9 @@ import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import org.apache.commons.lang3.StringUtils;
 
 public final class AspectRuntimeUtil {
-    private AspectRuntimeUtil() {}
+    private AspectRuntimeUtil() {
+        
+    }
 
     public static boolean isBefAspectVersion() {
         String aspectVersion = System.getProperty("aspectVersion");

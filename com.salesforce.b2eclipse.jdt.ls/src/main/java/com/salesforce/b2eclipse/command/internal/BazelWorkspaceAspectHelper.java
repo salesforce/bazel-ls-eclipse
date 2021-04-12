@@ -42,7 +42,6 @@ import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
-import org.apache.commons.lang3.StringUtils;
 import com.salesforce.b2eclipse.util.AspectRuntimeUtil;
 
 /**
