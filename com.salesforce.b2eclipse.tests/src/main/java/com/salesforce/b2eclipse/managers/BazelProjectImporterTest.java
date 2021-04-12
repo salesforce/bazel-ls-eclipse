@@ -107,7 +107,6 @@ public class BazelProjectImporterTest {
     public void withClass() throws CoreException {
         importer.initialize(new File("projects/build-with-class"));
         updateSrcPath("/");
-        assertEquals(0, 0);
 
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
             importer.importToWorkspace(new NullProgressMonitor());
