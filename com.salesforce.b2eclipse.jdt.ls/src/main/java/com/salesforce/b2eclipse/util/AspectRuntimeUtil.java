@@ -12,13 +12,17 @@ import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import org.apache.commons.lang3.StringUtils;
 
 public final class AspectRuntimeUtil {
+    private static final String ENV_ASPECT_VERSION = "aspectVersion"; //$NON-NLS-1$
+    private static final String BEF_ASPECT = "bef"; //$NON-NLS-1$
+    private static final String INTELLIJ_ASPECT_FILENAME_SUFFIX = ".intellij-info.txt"; //$NON-NLS-1$
+
     private AspectRuntimeUtil() {
-        
+
     }
 
     public static boolean isBefAspectVersion() {
-        String aspectVersion = System.getProperty("aspectVersion");
-        boolean isBef = "bef".equalsIgnoreCase(StringUtils.trimToNull(aspectVersion));
+        String aspectVersion = System.getProperty(ENV_ASPECT_VERSION);
+        boolean isBef = BEF_ASPECT.equalsIgnoreCase(StringUtils.trimToNull(aspectVersion));
         return isBef;
     }
 
@@ -38,7 +42,7 @@ public final class AspectRuntimeUtil {
                 (t -> t.startsWith(">>>")
                         ? (t.endsWith(AspectPackageInfo.ASPECT_FILENAME_SUFFIX) ? t.replace(">>>", "") : "") : null)
                 : //
-                (t -> t.startsWith(">>>") ? (t.endsWith(".intellij-info.txt") ? t.replace(">>>", "") : "") : null);
+                (t -> t.startsWith(">>>") ? (t.endsWith(INTELLIJ_ASPECT_FILENAME_SUFFIX) ? t.replace(">>>", "") : "") : null);
     }
 
     private static ImmutableList<String> buildIntellijAspect(BazelAspectLocation aspectLocation) {
