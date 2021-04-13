@@ -43,24 +43,11 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.jdt.core.IClasspathContainer;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaModelException;
-import org.osgi.service.prefs.BackingStoreException;
 
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.BazelNature;
@@ -75,6 +62,23 @@ import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.BazelMarkerDetails;
 import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
 import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.WorkspaceJob;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IClasspathContainer;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaModelException;
+import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * Computes the classpath for a Bazel package and provides it to the JDT tooling in Eclipse.
@@ -178,6 +182,8 @@ public class BazelClasspathContainer implements IClasspathContainer {
                 Map<String, AspectPackageInfo> packageInfos = bazelWorkspaceCmdRunner.getAspectPackageInfos(
                     eclipseIProject.getName(), bazelTargetsForProject, progressMonitor, "getClasspathEntries");
 
+                Set<IProject> projectDependencies = new HashSet<IProject>();
+
                 for (AspectPackageInfo packageInfo : packageInfos.values()) {
                     IJavaProject otherProject =
                             getSourceProjectForSourcePaths(bazelWorkspaceCmdRunner, packageInfo.getSources());
@@ -220,9 +226,10 @@ public class BazelClasspathContainer implements IClasspathContainer {
 
                         // now make a project reference between this project and the other project; this allows for features like
                         // code refactoring across projects to work correctly
-                        addProjectReference(eclipseIProject, otherProject.getProject());
+                        projectDependencies.add(otherProject.getProject());
                     }
                 }
+                addProjectReferences(eclipseIProject, projectDependencies);
             } catch (IOException | InterruptedException e) {
                 BazelJdtPlugin.logException(
                     "Unable to compute classpath containers entries for project " + eclipseProjectName, e);
@@ -428,30 +435,37 @@ public class BazelClasspathContainer implements IClasspathContainer {
     }
 
     /**
-     * Creates a project reference between this project and that project. The direction of reference goes from
+     * Creates a project references between this project and that project. The direction of reference goes from
      * this->that References are used by Eclipse code refactoring among other things.
      */
-    private void addProjectReference(IProject thisProject, IProject thatProject) {
-        ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
-        IProjectDescription projectDescription = resourceHelper.getProjectDescription(thisProject);
-        IProject[] existingRefsArray = projectDescription.getReferencedProjects();
-        boolean hasRef = false;
-        String otherProjectName = thatProject.getName();
-        for (IProject candidateRef : existingRefsArray) {
-            if (candidateRef.getName().equals(otherProjectName)) {
-                hasRef = true;
-                break;
+    private void addProjectReferences(IProject thisProject, Set<IProject> dependencies) {
+        if (dependencies != null && dependencies.size() > 0) {
+            ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
+            IProjectDescription projectDescription = resourceHelper.getProjectDescription(thisProject);
+            IProject[] existingDependencies = projectDescription.getReferencedProjects();
+            int oldSize = existingDependencies.length;
+            for (IProject prj : existingDependencies) {
+                dependencies.add(prj);
             }
-        }
-        if (!hasRef) {
-            // this project does not already reference the other project, we need to add the project reference
-            // as this make code refactoring across Eclipse projects work correctly (among other things)
-            List<IProject> updatedRefList = new ArrayList<>(Arrays.asList(existingRefsArray));
-            updatedRefList.add(thatProject.getProject());
-            projectDescription.setReferencedProjects(updatedRefList.toArray(new IProject[] {}));
-            resourceHelper.setProjectDescription(thisProject, projectDescription);
-        }
+            if (dependencies.size() > oldSize) {
+                IProject[] dependenciesArray = dependencies.toArray(IProject[]::new);
+                projectDescription.setReferencedProjects(dependenciesArray);
 
+                WorkspaceJob job = new WorkspaceJob("set project dependencies for " + thisProject.getName()) {
+                    @Override
+                    public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+                        try {
+                            thisProject.setDescription(projectDescription, null);
+                        } catch (CoreException ce) {
+                            BazelJdtPlugin.logException("set project dependencies for " + thisProject.getName(), ce);
+                        }
+                        return Status.OK_STATUS;
+                    }
+                };
+                job.schedule();
+            }
+
+        }
     }
 
     private static void printDirectoryDiagnostics(File path, String indent) {

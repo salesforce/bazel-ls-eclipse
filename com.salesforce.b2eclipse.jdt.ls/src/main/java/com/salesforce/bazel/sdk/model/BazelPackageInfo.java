@@ -317,11 +317,9 @@ public class BazelPackageInfo implements BazelPackageLocation {
             return computedPackageName;
         }
 
-        computedPackageName = StreamSupport.stream(
-                Paths.get(relativeWorkspacePath).spliterator(),
-                false
-        ).map(Object::toString).collect(Collectors.joining("/", "//", ""));
-        
+        computedPackageName = StreamSupport.stream(Paths.get(relativeWorkspacePath).spliterator(), false)
+                .map(Object::toString).collect(Collectors.joining("/", "//", ""));
+
         // and cache the last segment as well
         getBazelPackageNameLastSegment();
 
@@ -433,17 +431,17 @@ public class BazelPackageInfo implements BazelPackageLocation {
         if (this == obj) {
             return true;
         }
-        
+
         if (obj == null) {
             return false;
         }
-        
+
         if (getClass() != obj.getClass()) {
             return false;
         }
-        
+
         BazelPackageInfo other = (BazelPackageInfo) obj;
-        
+
         if (computedPackageName == null) {
             if (other.computedPackageName != null) {
                 return false;
@@ -451,8 +449,19 @@ public class BazelPackageInfo implements BazelPackageLocation {
         } else if (!computedPackageName.equals(other.computedPackageName)) {
             return false;
         }
-        
+
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "BazelPackageInfo [relativeWorkspacePath=" + relativeWorkspacePath + ", directory=" + directory
+                + ", parent=" + parent + ", isWorkspaceRoot=" + isWorkspaceRoot + ", workspaceRoot="
+                + workspaceRoot == null
+                        ? ""
+                        : workspaceRoot.getName() + ", workspaceRootNode=" + workspaceRootNode
+                                + ", computedPackageName=" + computedPackageName + ", computedPackageNameLastSegment="
+                                + computedPackageNameLastSegment + ", childPackages=" + childPackages + "]";
     }
 
 }

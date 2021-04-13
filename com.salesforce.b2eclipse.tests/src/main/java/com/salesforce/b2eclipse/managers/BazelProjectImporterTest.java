@@ -27,8 +27,8 @@ package com.salesforce.b2eclipse.managers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +37,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.salesforce.b2eclipse.importer.BazelProjectImportScanner;
+
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -45,10 +48,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.salesforce.b2eclipse.importer.BazelProjectImportScanner;
-
-import org.apache.commons.io.FileUtils;
 
 @SuppressWarnings("restriction")
 public class BazelProjectImporterTest {
@@ -62,9 +61,9 @@ public class BazelProjectImporterTest {
     private BazelProjectImporter importer;
 
     private B2EPreferncesManager preferencesManager;
-    
+
     private final Map<String, Object> settings = new HashMap<>();
-    
+
     @Before
     public void setup() {
         importer = new BazelProjectImporter();
@@ -78,7 +77,7 @@ public class BazelProjectImporterTest {
 
     @After
     public void deleteImportedProjects() throws CoreException {
-        for (IProject project: getWorkspaceRoot().getProjects()) {
+        for (IProject project : getWorkspaceRoot().getProjects()) {
             project.delete(true, null);
         }
     }
@@ -101,7 +100,7 @@ public class BazelProjectImporterTest {
 
         assertTrue("Didn't find module3 in the referenced projects list",
             Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module3Proj)));
-        
+
     }
 
     @Test
@@ -119,7 +118,7 @@ public class BazelProjectImporterTest {
     @Test
     public void withNestedWorkspace() throws CoreException {
         importer.initialize(new File("projects/build-with-workspace"));
-        
+
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
             importer.importToWorkspace(new NullProgressMonitor());
         });
@@ -131,7 +130,7 @@ public class BazelProjectImporterTest {
     public void withSubpackage() throws CoreException {
         importer.initialize(new File("projects/build-with-subpackage"));
         importer.importToWorkspace(new NullProgressMonitor());
-        
+
         IProject moduleProj = getWorkspaceRoot().getProject("module");
         IProject subModuleProj = getWorkspaceRoot().getProject("submodule");
         IProject[] referencedProjects = moduleProj.getReferencedProjects();
@@ -144,33 +143,26 @@ public class BazelProjectImporterTest {
 
     @Test
     public void withEmptyTargetFile() throws CoreException, IOException {
-        File targetFile = new File("projects/bazel-ls-demo-project",  BazelProjectImportScanner.BAZELTARGETSFILENAME);
-        
+        File targetFile = new File("projects/bazel-ls-demo-project", BazelProjectImportScanner.BAZELTARGETSFILENAME);
+
         FileUtils.writeStringToFile(targetFile, "", Charset.defaultCharset());
         basic();
-        
+
         FileUtils.forceDelete(targetFile);
     }
 
     @Test
     public void withQueryInTargetFile() throws CoreException, IOException {
         File projectFile = new File("projects/bazel-ls-demo-project");
-        File targetFile = new File(projectFile,  BazelProjectImporter.BAZELPROJECT_FILE_NAME);
-        
-        FileUtils.writeLines(
-                targetFile, 
-                Arrays.asList(
-                        "directories:",
-                        "  module1",
-                        "  module2"
-                )
-        );
+        File targetFile = new File(projectFile, BazelProjectImporter.BAZELPROJECT_FILE_NAME);
+
+        FileUtils.writeLines(targetFile, Arrays.asList("directories:", "  module1", "  module2"));
 
         importer.initialize(projectFile);
         importer.importToWorkspace(new NullProgressMonitor());
 
         FileUtils.forceDelete(targetFile);
-        
+
         IProject module1Proj = getWorkspaceRoot().getProject("module1");
         IProject module2Proj = getWorkspaceRoot().getProject("module2");
         IProject module3Proj = getWorkspaceRoot().getProject("module3");
@@ -181,14 +173,14 @@ public class BazelProjectImporterTest {
 
         assertTrue("Didn't find module2 in the referenced projects list",
             Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module2Proj)));
-        
+
         assertFalse("module3 should be excluded from import by .bazeltargets file", module3Proj.exists());
     }
 
     private IWorkspaceRoot getWorkspaceRoot() {
         return ResourcesPlugin.getWorkspace().getRoot();
     }
-    
+
     private void updateSrcPath(String path) {
         settings.put(BAZEL_SRC_PATH_KEY, path);
         preferencesManager.setConfiguration(settings);

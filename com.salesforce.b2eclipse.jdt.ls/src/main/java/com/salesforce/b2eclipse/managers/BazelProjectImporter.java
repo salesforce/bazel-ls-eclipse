@@ -44,23 +44,25 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.salesforce.b2eclipse.BazelJdtPlugin;
+import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
+import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
+import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
+import com.salesforce.bazel.sdk.model.BazelPackageInfo;
+import com.salesforce.bazel.sdk.project.ProjectView;
+import com.salesforce.bazel.sdk.workspace.BazelWorkspaceScanner;
+
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
 
-import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
-import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
-import com.salesforce.bazel.sdk.model.BazelPackageInfo;
-import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
-import com.salesforce.bazel.sdk.project.ProjectView;
-import com.salesforce.bazel.sdk.workspace.BazelWorkspaceScanner;
-
 @SuppressWarnings("restriction")
 public final class BazelProjectImporter extends AbstractProjectImporter {
 
     public static final String BAZELPROJECT_FILE_NAME = ".bazelproject";
-    
+
     private static final String WORKSPACE_FILE_NAME = "WORKSPACE";
 
     @Override
@@ -105,18 +107,25 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
                 Set<String> projectViewPaths = projectView.getDirectories().stream()
                         .map(p -> p.getBazelPackageFSRelativePath()).collect(Collectors.toSet());
 
-                bazelPackagesToImport = allBazelPackages.stream()
-                        .filter(bpi -> projectViewPaths.contains(bpi.getBazelPackageFSRelativePath()))
+                bazelPackagesToImport = allBazelPackages.stream().filter(
+                    bpi -> projectViewPaths.contains(getBazelPackageRelativePath(bpi)))
                         .collect(Collectors.toList());
             }
 
             WorkProgressMonitor progressMonitor = new EclipseWorkProgressMonitor(null);
 
             BazelEclipseProjectFactory.importWorkspace(workspaceRootPackage, bazelPackagesToImport, progressMonitor,
-                    monitor);
+                monitor);
         } catch (IOException e) {
             // TODO: proper handling here
+            BazelJdtPlugin.logException(e);
         }
+    }
+
+    private String getBazelPackageRelativePath(BazelPackageInfo bpi) {
+        return SystemUtils.IS_OS_WINDOWS ? //
+                bpi.getBazelPackageFSRelativePath().replaceAll("\\\\", "/") : //
+                bpi.getBazelPackageFSRelativePath();
     }
 
     @Override

@@ -42,6 +42,7 @@ import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
+import com.salesforce.b2eclipse.util.AspectRuntimeUtil;
 
 /**
  * Manages running, collecting, and caching all of the build info aspects for a specific workspace.
@@ -84,17 +85,11 @@ public class BazelWorkspaceAspectHelper {
     int numberCacheHits = 0;
 
     // CTORS
-
     public BazelWorkspaceAspectHelper(BazelWorkspaceCommandRunner bazelWorkspaceCommandRunner,
             BazelAspectLocation aspectLocation, BazelCommandExecutor bazelCommandExecutor) {
         this.bazelWorkspaceCommandRunner = bazelWorkspaceCommandRunner;
         this.bazelCommandExecutor = bazelCommandExecutor;
-
-        this.aspectOptions = ImmutableList.<String>builder()
-                .add("--override_repository=local_eclipse_aspect=" + aspectLocation.getAspectDirectory(),
-                    "--aspects=@local_eclipse_aspect" + aspectLocation.getAspectLabel(), "-k",
-                    "--output_groups=json-files,classpath-jars,-_,-defaults", "--experimental_show_artifacts")
-                .build();
+        this.aspectOptions = AspectRuntimeUtil.buildAspectsOptions(aspectLocation);
     }
 
     /**
@@ -183,7 +178,7 @@ public class BazelWorkspaceAspectHelper {
             lookupTargets.add(target);
             List<String> discoveredAspectFilePaths = generateAspectPackageInfoFiles(lookupTargets, progressMonitor);
             ImmutableMap<String, AspectPackageInfo> map =
-                    AspectPackageInfo.loadAspectFilePaths(discoveredAspectFilePaths);
+                    AspectRuntimeUtil.loadAspectFilePaths(discoveredAspectFilePaths);
             resultMap.putAll(map);
             for (String resultTarget : map.keySet()) {
                 BazelJdtPlugin.logInfo("ASPECT CACHE LOAD target: " + resultTarget + logstr);
@@ -217,19 +212,15 @@ public class BazelWorkspaceAspectHelper {
     private synchronized List<String> generateAspectPackageInfoFiles(Collection<String> targets,
             WorkProgressMonitor progressMonitor)
             throws IOException, InterruptedException, BazelCommandLineToolConfigurationException {
-
         List<String> args =
                 ImmutableList.<String>builder().add("build").addAll(this.aspectOptions).addAll(targets).build();
 
         // Strip out the artifact list, keeping the xyz.bzleclipse-build.json files (located in subdirs in the bazel-out path)
         // Line must start with >>> and end with the aspect file suffix
-        Function<String, String> filter = t -> t.startsWith(">>>")
-                ? (t.endsWith(AspectPackageInfo.ASPECT_FILENAME_SUFFIX) ? t.replace(">>>", "") : "") : null;
-
+        Function<String, String> filter = AspectRuntimeUtil.buildAspectFilter();
         List<String> listOfGeneratedFilePaths =
                 this.bazelCommandExecutor.runBazelAndGetErrorLines(ConsoleType.WORKSPACE,
                     this.bazelWorkspaceCommandRunner.getBazelWorkspaceRootDirectory(), progressMonitor, args, filter);
-
         return listOfGeneratedFilePaths;
     }
 

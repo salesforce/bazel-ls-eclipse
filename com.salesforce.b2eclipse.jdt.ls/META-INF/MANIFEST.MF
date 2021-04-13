@@ -17,6 +17,7 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: b2eclipse.jdt.ls
 Bundle-ActivationPolicy: lazy
+Eclipse-BundleShape: dir
 Import-Package: com.google.common.annotations,
  com.google.common.base,
  com.google.common.collect
@@ -26,5 +27,6 @@ Export-Package: com.salesforce.b2eclipse,
  com.salesforce.b2eclipse.importer,
  com.salesforce.b2eclipse.managers,
  com.salesforce.b2eclipse.model,
- com.salesforce.b2eclipse.runtime.impl
+ com.salesforce.b2eclipse.runtime.impl,
+ com.salesforce.b2eclipse.util
 
