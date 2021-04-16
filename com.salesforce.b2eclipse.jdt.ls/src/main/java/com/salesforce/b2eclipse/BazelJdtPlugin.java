@@ -39,8 +39,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.eclipse.core.runtime.CoreException;
@@ -49,7 +47,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
@@ -61,7 +58,6 @@ import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.command.CommandBuilder;
 import com.salesforce.b2eclipse.command.shell.ShellCommandBuilder;
 import com.salesforce.b2eclipse.config.BazelAspectLocationImpl;
-import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
 import com.salesforce.b2eclipse.runtime.api.JavaCoreHelper;
 import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
 import com.salesforce.b2eclipse.runtime.impl.EclipseJavaCoreHelper;
@@ -148,13 +144,6 @@ public class BazelJdtPlugin extends Plugin {
         JavaCoreHelper eclipseJavaCoreHelper = new EclipseJavaCoreHelper();
 
         startInternal(aspectLocation, commandBuilder, eclipseResourceHelper, eclipseJavaCoreHelper);
-
-        Map<String, Object> configuration = JavaLanguageServerPlugin.getPreferencesManager().getPreferences().asMap();
-        if (configuration == null) {
-            configuration = new HashMap<>();
-        }
-        B2EPreferncesManager preferencesManager = B2EPreferncesManager.getInstance();
-        preferencesManager.setConfiguration(configuration);
     }
 
     /**

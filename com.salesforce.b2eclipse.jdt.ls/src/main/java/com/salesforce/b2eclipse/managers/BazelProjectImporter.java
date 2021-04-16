@@ -40,9 +40,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.SystemUtils;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
+import org.eclipse.jdt.ls.core.internal.JavaLanguageServerPlugin;
 
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
@@ -51,12 +60,6 @@ import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 import com.salesforce.bazel.sdk.project.ProjectView;
 import com.salesforce.bazel.sdk.workspace.BazelWorkspaceScanner;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.jdt.ls.core.internal.AbstractProjectImporter;
 
 @SuppressWarnings("restriction")
 public final class BazelProjectImporter extends AbstractProjectImporter {
@@ -67,19 +70,18 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
 
     @Override
     public boolean applies(IProgressMonitor monitor) throws OperationCanceledException, CoreException {
-        B2EPreferncesManager preferencesManager = B2EPreferncesManager.getInstance();
-        if (preferencesManager != null && !preferencesManager.isImportBazelEnabled()) {
+        // Since the actual preferences come from the VSCode via LSP, it is not defined
+        // when we get them. But this is the place where we need them for sure,
+        // this is why we obtain them here. Right now the preferences have already
+        // come from VSCode.
+        final B2EPreferncesManager preferencesManager = preparePreferences();
+
+        if (!checkIsBazelImportEnabled(preferencesManager) || !checkRootFolder()) {
             return false;
         }
-        if (!rootFolder.exists() || !rootFolder.isDirectory()) {
-            return false;
-        }
-        File workspaceFile = new File(rootFolder, WORKSPACE_FILE_NAME);
-        if (workspaceFile.exists()) {
-            directories = Arrays.asList(Path.of(rootFolder.getPath(), new String[0]));
-        } else {
-            return false;
-        }
+
+        // See MavenProjectImporter for details why this side-effect is here
+        directories = Arrays.asList(Path.of(rootFolder.getPath(), new String[0]));
 
         return true;
 
@@ -107,8 +109,8 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
                 Set<String> projectViewPaths = projectView.getDirectories().stream()
                         .map(p -> p.getBazelPackageFSRelativePath()).collect(Collectors.toSet());
 
-                bazelPackagesToImport = allBazelPackages.stream().filter(
-                    bpi -> projectViewPaths.contains(getBazelPackageRelativePath(bpi)))
+                bazelPackagesToImport = allBazelPackages.stream()
+                        .filter(bpi -> projectViewPaths.contains(getBazelPackageRelativePath(bpi)))
                         .collect(Collectors.toList());
             }
 
@@ -141,4 +143,23 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
         }
     }
 
+    private B2EPreferncesManager preparePreferences() {
+        final Map<String, Object> origConfig =
+                JavaLanguageServerPlugin.getPreferencesManager().getPreferences().asMap();
+        final Map<String, Object> configuration = origConfig != null ? origConfig : new HashMap<>();
+        final B2EPreferncesManager preferencesManager = B2EPreferncesManager.getInstance();
+
+        preferencesManager.setConfiguration(configuration);
+
+        return preferencesManager;
+    }
+
+    private boolean checkRootFolder() {
+        return rootFolder != null && rootFolder.exists() && rootFolder.isDirectory()
+                && new File(rootFolder, WORKSPACE_FILE_NAME).exists();
+    }
+
+    private boolean checkIsBazelImportEnabled(final B2EPreferncesManager preferencesManager) {
+        return preferencesManager != null && preferencesManager.isImportBazelEnabled();
+    }
 }
