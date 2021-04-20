@@ -64,16 +64,13 @@ import com.salesforce.bazel.sdk.workspace.BazelWorkspaceScanner;
 @SuppressWarnings("restriction")
 public final class BazelProjectImporter extends AbstractProjectImporter {
 
-    public static final String BAZELPROJECT_FILE_NAME = ".bazelproject";
-
-    private static final String WORKSPACE_FILE_NAME = "WORKSPACE";
-
     @Override
     public boolean applies(IProgressMonitor monitor) throws OperationCanceledException, CoreException {
         // Since the actual preferences come from the VSCode via LSP, it is not defined
         // when we get them. But this is the place where we need them for sure,
         // this is why we obtain them here. Right now the preferences have already
         // come from VSCode.
+        // It will still work well for others UI clients.
         final B2EPreferncesManager preferencesManager = preparePreferences();
 
         if (!checkIsBazelImportEnabled(preferencesManager) || !checkRootFolder()) {
@@ -101,7 +98,7 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
 
             List<BazelPackageInfo> bazelPackagesToImport = allBazelPackages;
 
-            File targetsFile = new File(rootFolder, BAZELPROJECT_FILE_NAME);
+            File targetsFile = new File(rootFolder, BazelBuildSupport.BAZELPROJECT_FILE_NAME_SUFIX);
 
             if (targetsFile.exists()) {
                 ProjectView projectView = new ProjectView(rootFolder, readFile(targetsFile.getPath()));
@@ -156,7 +153,7 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
 
     private boolean checkRootFolder() {
         return rootFolder != null && rootFolder.exists() && rootFolder.isDirectory()
-                && new File(rootFolder, WORKSPACE_FILE_NAME).exists();
+                && new File(rootFolder, BazelBuildSupport.WORKSPACE_FILE_NAME).exists();
     }
 
     private boolean checkIsBazelImportEnabled(final B2EPreferncesManager preferencesManager) {

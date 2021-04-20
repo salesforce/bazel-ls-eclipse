@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -27,11 +26,12 @@ import com.salesforce.b2eclipse.BazelNature;
 
 @SuppressWarnings("restriction")
 public class BazelBuildSupport implements IBuildSupport {
-    private static final String BUILD_FILE = "BUILD";
-    private static final String WORKSPACE_FILE = "WORKSPACE";
-    private static final String BAZEL_PROJECT_FILE_SUFIX = ".bazelproject";
+    public static final String BUILD_FILE_NAME = "BUILD";
+    public static final String WORKSPACE_FILE_NAME = "WORKSPACE";
+    public static final String BAZELPROJECT_FILE_NAME_SUFIX = ".bazelproject";
     private static final List<String> WATCH_FILE_PATTERNS =
-            Arrays.asList("**/BUILD", "**/WORKSPACE", "**/*.bazelproject");
+            Arrays.asList("**/" + BUILD_FILE_NAME, "**/" + WORKSPACE_FILE_NAME, "**/*" + BAZELPROJECT_FILE_NAME_SUFIX);
+    private static final String BUILD_TOOL_NAME = "Bazel";
 
     @Override
     public boolean applies(IProject project) {
@@ -67,7 +67,7 @@ public class BazelBuildSupport implements IBuildSupport {
 
         Assert.isTrue(applies(project));
 
-        final IProjectImporter importer = obtainBazelImporter().get();
+        final IProjectImporter importer = obtainBazelImporter();
 
         //TODO is false becasue rootFolder is NULL
         Assert.isTrue(importer.applies(monitor));
@@ -78,14 +78,14 @@ public class BazelBuildSupport implements IBuildSupport {
     @Override
     public boolean isBuildFile(IResource resource) {
         return resource != null && resource.getProject() != null && resource.getType() == IResource.FILE
-                && (resource.getName().endsWith(BAZEL_PROJECT_FILE_SUFIX) || resource.getName().equals(BUILD_FILE)
-                        || resource.getName().equals(BUILD_FILE));
+                && (resource.getName().endsWith(BAZELPROJECT_FILE_NAME_SUFIX) || resource.getName().equals(BUILD_FILE_NAME)
+                        || resource.getName().equals(WORKSPACE_FILE_NAME));
     }
 
     @Override
     public boolean isBuildLikeFileName(String fileName) {
-        return fileName.endsWith(BAZEL_PROJECT_FILE_SUFIX) || fileName.equals(BUILD_FILE)
-                || fileName.equals(BUILD_FILE);
+        return fileName.endsWith(BAZELPROJECT_FILE_NAME_SUFIX) || fileName.equals(BUILD_FILE_NAME)
+                || fileName.equals(WORKSPACE_FILE_NAME);
     }
 
     @Override
@@ -102,16 +102,14 @@ public class BazelBuildSupport implements IBuildSupport {
         return IBuildSupport.super.fileChanged(resource, changeType, monitor) || isBuildFile(resource);
     }
 
-    ///////
-
-    private Optional<IProjectImporter> obtainBazelImporter() {
+    private IProjectImporter obtainBazelImporter() {
         return ExtensionsExtractor.<IProjectImporter>extractOrderedExtensions(IConstants.PLUGIN_ID, "importers")
-                .stream().filter(importer -> importer instanceof BazelProjectImporter).findFirst();
+                .stream().filter(importer -> importer instanceof BazelProjectImporter).findFirst().get();
     }
 
     @Override
     public String buildToolName() {
-        return "Bazel";
+        return BUILD_TOOL_NAME;
     }
 
     @Override
@@ -127,7 +125,6 @@ public class BazelBuildSupport implements IBuildSupport {
                 IPath projectLocation = getProjectLocation(project);
 
                 if (ResourceUtils.isContainedIn(projectLocation, rootPaths)) {
-                    // NOP - if the project is contained in the root path, it's a valid project
                     BazelJdtPlugin.logInfo("NOP - if the project is contained in the root path, it's a valid project");
                 } else {
                     try {
@@ -141,16 +138,15 @@ public class BazelBuildSupport implements IBuildSupport {
     }
 
     private IPath getProjectLocation(IProject project) {
-        IPath projectPath = project.getLocation();
-
-        if (project.getFile("WORKSPACE").isAccessible()) {
-            projectPath = project.getFile("WORKSPACE").getLocation();
+        
+        if (project.getFile(WORKSPACE_FILE_NAME).isAccessible()) {
+            return project.getFile(WORKSPACE_FILE_NAME).getLocation();
         }
 
-        if (project.getFile("BUILD").isAccessible()) {
-            projectPath = project.getFile("BUILD").getLocation();
+        if (project.getFile(BUILD_FILE_NAME).isAccessible()) {
+            return project.getFile(BUILD_FILE_NAME).getLocation();
         }
 
-        return projectPath;
+        return project.getLocation();
     }
 }
