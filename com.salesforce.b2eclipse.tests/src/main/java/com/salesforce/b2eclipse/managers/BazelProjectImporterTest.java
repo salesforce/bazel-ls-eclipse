@@ -37,8 +37,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.salesforce.b2eclipse.importer.BazelProjectImportScanner;
-
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -48,6 +46,8 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.salesforce.b2eclipse.importer.BazelProjectImportScanner;
 
 @SuppressWarnings("restriction")
 public class BazelProjectImporterTest {
@@ -154,7 +154,7 @@ public class BazelProjectImporterTest {
     @Test
     public void withQueryInTargetFile() throws CoreException, IOException {
         File projectFile = new File("projects/bazel-ls-demo-project");
-        File targetFile = new File(projectFile, BazelProjectImporter.BAZELPROJECT_FILE_NAME);
+        File targetFile = new File(projectFile, BazelBuildSupport.BAZELPROJECT_FILE_NAME_SUFIX);
 
         FileUtils.writeLines(targetFile, Arrays.asList("directories:", "  module1", "  module2"));
 
