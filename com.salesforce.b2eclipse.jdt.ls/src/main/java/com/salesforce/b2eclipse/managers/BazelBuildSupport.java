@@ -69,7 +69,8 @@ public class BazelBuildSupport implements IBuildSupport {
 
         final IProjectImporter importer = obtainBazelImporter();
 
-        //TODO is false becasue rootFolder is NULL
+        importer.initialize(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
+
         Assert.isTrue(importer.applies(monitor));
 
         importer.importToWorkspace(monitor);
@@ -78,7 +79,8 @@ public class BazelBuildSupport implements IBuildSupport {
     @Override
     public boolean isBuildFile(IResource resource) {
         return resource != null && resource.getProject() != null && resource.getType() == IResource.FILE
-                && (resource.getName().endsWith(BAZELPROJECT_FILE_NAME_SUFIX) || resource.getName().equals(BUILD_FILE_NAME)
+                && (resource.getName().endsWith(BAZELPROJECT_FILE_NAME_SUFIX)
+                        || resource.getName().equals(BUILD_FILE_NAME)
                         || resource.getName().equals(WORKSPACE_FILE_NAME));
     }
 
@@ -138,7 +140,7 @@ public class BazelBuildSupport implements IBuildSupport {
     }
 
     private IPath getProjectLocation(IProject project) {
-        
+
         if (project.getFile(WORKSPACE_FILE_NAME).isAccessible()) {
             return project.getFile(WORKSPACE_FILE_NAME).getLocation();
         }
