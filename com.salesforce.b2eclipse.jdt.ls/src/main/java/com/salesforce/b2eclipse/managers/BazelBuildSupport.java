@@ -23,6 +23,8 @@ import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager.CHANGE_TYPE;
 
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.BazelNature;
+import com.salesforce.b2eclipse.command.BazelCommandManager;
+import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 
 @SuppressWarnings("restriction")
 public class BazelBuildSupport implements IBuildSupport {
@@ -71,6 +73,12 @@ public class BazelBuildSupport implements IBuildSupport {
 
         importer.initialize(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
+        BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
+        BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
+                bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
+        
+        bazelWorkspaceCmdRunner.flushAspectInfoCache();
+        
         Assert.isTrue(importer.applies(monitor));
 
         importer.importToWorkspace(monitor);
