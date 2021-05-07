@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -77,8 +78,9 @@ import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
 import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.AspectPackageInfos;
 import com.salesforce.b2eclipse.model.BazelLabel;
-import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
+import com.salesforce.bazel.sdk.model.BazelPackageInfo;
+import com.salesforce.bazel.sdk.util.BazelConstants;
 
 /**
  * A factory class to create Eclipse projects from packages in a Bazel workspace.
@@ -112,6 +114,9 @@ public final class BazelEclipseProjectFactory {
 
     // add the directory name to the label, if it is meaningful (>3 chars)
     private static final int MIN_NUMBER_OF_CHARACTER_FOR_NAME = 3;
+    
+    private static final String[] BUILD_FILE_NAMES = ArrayUtils.addAll(BazelConstants.BUILD_FILE_NAMES.toArray(new String[0]),
+        BazelConstants.WORKSPACE_FILE_NAMES.toArray(new String[0]));
 
     private BazelEclipseProjectFactory() {
 
@@ -283,9 +288,9 @@ public final class BazelEclipseProjectFactory {
                     BazelJdtPlugin.getJavaCoreHelper().getJavaProjectForProject(eclipseProject);
             createBazelClasspathForEclipseProject(new Path(bazelWorkspaceRoot), packageFSPath, packageSourceCodeFSPaths,
                 generatedSources, eclipseJavaProject, javaLanguageVersion);
-
+            
             // lets link to (== include in the project) some well known files
-            linkFiles(bazelWorkspaceRoot, packageFSPath, eclipseProject, "WORKSPACE", "BUILD");
+            linkFiles(bazelWorkspaceRoot, packageFSPath, eclipseProject, BUILD_FILE_NAMES);
         } catch (CoreException e) {
             BazelJdtPlugin.logException(e.getMessage(), e);
             eclipseProject = null;

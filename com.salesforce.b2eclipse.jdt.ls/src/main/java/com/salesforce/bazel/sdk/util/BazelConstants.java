@@ -52,6 +52,12 @@ public final class BazelConstants {
             new HashSet<>(
                 Arrays.asList(
                     new String[]{"BUILD", "BUILD.bazel"})));
+    
+    public static final Collection<String> WORKSPACE_FILE_NAMES =
+            Collections.unmodifiableSet(
+                new HashSet<>(
+                    Arrays.asList(
+                        new String[]{"WORKSPACE", "WORKSPACE.bazel"})));
 
     /**
      * The targets configured by default for each imported Bazel package.

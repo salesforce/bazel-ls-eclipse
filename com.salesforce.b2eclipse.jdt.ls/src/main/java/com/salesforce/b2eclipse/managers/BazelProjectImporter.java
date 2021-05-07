@@ -153,7 +153,8 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
 
     private boolean checkRootFolder() {
         return rootFolder != null && rootFolder.exists() && rootFolder.isDirectory()
-                && new File(rootFolder, BazelBuildSupport.WORKSPACE_FILE_NAME).exists();
+                && (new File(rootFolder, BazelBuildSupport.WORKSPACE_FILE_NAME).exists() || new File(rootFolder,
+                        BazelBuildSupport.WORKSPACE_FILE_NAME + BazelBuildSupport.BAZEL_FILE_NAME_SUFIX).exists());
     }
 
     private boolean checkIsBazelImportEnabled(final B2EPreferncesManager preferencesManager) {

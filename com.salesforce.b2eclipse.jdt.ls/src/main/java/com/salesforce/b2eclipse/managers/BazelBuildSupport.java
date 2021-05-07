@@ -31,8 +31,9 @@ public class BazelBuildSupport implements IBuildSupport {
     public static final String BUILD_FILE_NAME = "BUILD";
     public static final String WORKSPACE_FILE_NAME = "WORKSPACE";
     public static final String BAZELPROJECT_FILE_NAME_SUFIX = ".bazelproject";
-    private static final List<String> WATCH_FILE_PATTERNS =
-            Arrays.asList("**/" + BUILD_FILE_NAME, "**/" + WORKSPACE_FILE_NAME, "**/*" + BAZELPROJECT_FILE_NAME_SUFIX);
+    public static final String BAZEL_FILE_NAME_SUFIX = ".bazel";
+    private static final List<String> WATCH_FILE_PATTERNS = Arrays.asList("**/" + BUILD_FILE_NAME,
+        "**/" + WORKSPACE_FILE_NAME, "**/*" + BAZELPROJECT_FILE_NAME_SUFIX, "**/*" + BAZEL_FILE_NAME_SUFIX);
     private static final String BUILD_TOOL_NAME = "Bazel";
 
     @Override
@@ -76,9 +77,9 @@ public class BazelBuildSupport implements IBuildSupport {
         BazelCommandManager bazelCommandManager = BazelJdtPlugin.getBazelCommandManager();
         BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
                 bazelCommandManager.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
-        
+
         bazelWorkspaceCmdRunner.flushAspectInfoCache();
-        
+
         Assert.isTrue(importer.applies(monitor));
 
         importer.importToWorkspace(monitor);
@@ -86,16 +87,17 @@ public class BazelBuildSupport implements IBuildSupport {
 
     @Override
     public boolean isBuildFile(IResource resource) {
-        return resource != null && resource.getProject() != null && resource.getType() == IResource.FILE
-                && (resource.getName().endsWith(BAZELPROJECT_FILE_NAME_SUFIX)
-                        || resource.getName().equals(BUILD_FILE_NAME)
-                        || resource.getName().equals(WORKSPACE_FILE_NAME));
+                return resource != null && resource.getProject() != null && resource.getType() == IResource.FILE
+                        && (resource.getName().endsWith(BAZELPROJECT_FILE_NAME_SUFIX)
+                                || resource.getName().endsWith(BAZEL_FILE_NAME_SUFIX)
+                                || resource.getName().equals(BUILD_FILE_NAME)
+                                || resource.getName().equals(WORKSPACE_FILE_NAME));
     }
 
     @Override
     public boolean isBuildLikeFileName(String fileName) {
         return fileName.endsWith(BAZELPROJECT_FILE_NAME_SUFIX) || fileName.equals(BUILD_FILE_NAME)
-                || fileName.equals(WORKSPACE_FILE_NAME);
+                || fileName.equals(WORKSPACE_FILE_NAME) || fileName.endsWith(BAZEL_FILE_NAME_SUFIX);
     }
 
     @Override
@@ -152,9 +154,17 @@ public class BazelBuildSupport implements IBuildSupport {
         if (project.getFile(WORKSPACE_FILE_NAME).isAccessible()) {
             return project.getFile(WORKSPACE_FILE_NAME).getLocation();
         }
+        
+        if (project.getFile(WORKSPACE_FILE_NAME + BAZEL_FILE_NAME_SUFIX).isAccessible()) {
+            return project.getFile(WORKSPACE_FILE_NAME + BAZEL_FILE_NAME_SUFIX).getLocation();
+        } 
 
         if (project.getFile(BUILD_FILE_NAME).isAccessible()) {
             return project.getFile(BUILD_FILE_NAME).getLocation();
+        }
+        
+        if (project.getFile(BUILD_FILE_NAME + BAZEL_FILE_NAME_SUFIX).isAccessible()) {
+            return project.getFile(BUILD_FILE_NAME + BAZEL_FILE_NAME_SUFIX).getLocation();
         }
 
         return project.getLocation();
