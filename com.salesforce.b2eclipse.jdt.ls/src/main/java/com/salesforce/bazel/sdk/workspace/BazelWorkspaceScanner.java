@@ -36,8 +36,6 @@ package com.salesforce.bazel.sdk.workspace;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 

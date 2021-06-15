@@ -1,15 +1,11 @@
 package com.salesforce.bazel.sdk.workspace;
 
-import static java.nio.file.Files.isDirectory;
-import static java.util.stream.Collectors.toList;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +19,6 @@ import com.salesforce.bazel.sdk.util.BazelPathHelper;
 import com.salesforce.bazel.sdk.util.WorkProgressMonitor;
 
 public class BazelPackageFinder {
-    private LogHelper logger;
-
-    public BazelPackageFinder() {
-        logger = LogHelper.log(this.getClass());
-    }
 
     // TODO our workspace scanner is looking for Java packages, but uses primitive techniques. switch to use the aspect
     // approach here, like we do with the classpath computation.
@@ -38,31 +29,34 @@ public class BazelPackageFinder {
         }
 
         // collect all BUILD files
-        List<Path> buildFiles = new ArrayList<>(1000);
+        List<Path> buildFiles = new ArrayList<>();
 
         Path start = dir.toPath();
         Files.walkFileTree(start, new FileVisitor<Path>() {
 
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                if(start.relativize(dir).toString().startsWith("bazel-"))
+                if (start.relativize(dir).toString().startsWith("bazel-")) {
                     // this is a Bazel internal directory at the root of the project dir, ignore
                     return FileVisitResult.SKIP_SUBTREE;
+                }
 
-                if(dir.getFileName().toString().equals("target"))
+                if (dir.getFileName().toString().equals("target")) {
                     // skip Maven target directories
                     return FileVisitResult.SKIP_SUBTREE;
+                }
 
-                if(dir.getFileName().toString().equals(".bazel"))
+                if (dir.getFileName().toString().equals(".bazel")) {
                     // skip Core .bazel directory
                     return FileVisitResult.SKIP_SUBTREE;
+                }
 
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if(isBuildFile(file)) {
+                if (isBuildFile(file)) {
                     buildFiles.add(file);
                 }
                 return FileVisitResult.CONTINUE;
