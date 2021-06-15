@@ -114,7 +114,7 @@ public final class BazelEclipseProjectFactory {
 
     // add the directory name to the label, if it is meaningful (>3 chars)
     private static final int MIN_NUMBER_OF_CHARACTER_FOR_NAME = 3;
-    
+
     private static final String[] BUILD_FILE_NAMES = ArrayUtils.addAll(BazelConstants.BUILD_FILE_NAMES.toArray(new String[0]),
         BazelConstants.WORKSPACE_FILE_NAMES.toArray(new String[0]));
 
@@ -288,7 +288,7 @@ public final class BazelEclipseProjectFactory {
                     BazelJdtPlugin.getJavaCoreHelper().getJavaProjectForProject(eclipseProject);
             createBazelClasspathForEclipseProject(new Path(bazelWorkspaceRoot), packageFSPath, packageSourceCodeFSPaths,
                 generatedSources, eclipseJavaProject, javaLanguageVersion);
-            
+
             // lets link to (== include in the project) some well known files
             linkFiles(bazelWorkspaceRoot, packageFSPath, eclipseProject, BUILD_FILE_NAMES);
         } catch (CoreException e) {
@@ -334,7 +334,7 @@ public final class BazelEclipseProjectFactory {
         for (String fileName : fileNames) {
             File f = new File(new File(bazelWorkspaceRoot, packageFSPath), fileName);
             IFile projectFile = resourceHelper.getProjectFile(eclipseProject, fileName);
-            if (f.exists() && !projectFile.exists()) {
+            if (f.isFile() && !projectFile.exists()) {
                 try {
                     resourceHelper.createFileLink(projectFile, Path.fromOSString(f.getAbsolutePath()),
                         IResource.REPLACE, null);
