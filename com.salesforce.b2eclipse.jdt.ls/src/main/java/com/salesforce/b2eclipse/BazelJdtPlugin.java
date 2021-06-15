@@ -171,7 +171,7 @@ public class BazelJdtPlugin extends Plugin {
 
         if (path == null) {
             path = BAZEL_EXECUTABLE_DEFAULT_PATH;
-            BazelJdtPlugin.logError("BazelJDTPlugin could not find Bazel path, was used standart path " + path);
+            BazelJdtPlugin.logWarning("BazelJDTPlugin could not find Bazel path, was used standart path " + path);
         }
 
         return path;
@@ -318,6 +318,12 @@ public class BazelJdtPlugin extends Plugin {
     public static void logInfo(String message) {
         if (context != null) {
             log(new Status(IStatus.INFO, context.getBundle().getSymbolicName(), message));
+        }
+    }
+
+    public static void logWarning(String message) {
+        if (context != null) {
+            log(new Status(IStatus.WARNING, context.getBundle().getSymbolicName(), message));
         }
     }
 
