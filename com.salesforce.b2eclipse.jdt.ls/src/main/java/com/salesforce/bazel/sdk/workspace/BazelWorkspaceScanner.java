@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 
@@ -46,7 +47,7 @@ import com.salesforce.bazel.sdk.model.BazelPackageInfo;
  * subtree below that.
  */
 public class BazelWorkspaceScanner {
-    
+
     private static final int MEANINGFUL_DIR_NAME_THRESHOLD = 3;
 
     public static String getBazelWorkspaceName(String bazelWorkspaceRootDirectory) {
@@ -118,9 +119,9 @@ public class BazelWorkspaceScanner {
         // TODO the correct way to do this is put the scan on another thread, and allow it to update the progress monitor.
         // Do it on-thread for now as it is easiest.
 
-        Set<File> projects = new TreeSet<>();
         BazelPackageFinder packageFinder = new BazelPackageFinder();
-        packageFinder.findBuildFileLocations(rootDirectoryFile, null, projects, 0);
+        Set<File> projects = packageFinder.findBuildFileLocations(rootDirectoryFile);
+
 
         int sizeOfWorkspacePath = rootDirectory.length();
         for (File project : projects) {
