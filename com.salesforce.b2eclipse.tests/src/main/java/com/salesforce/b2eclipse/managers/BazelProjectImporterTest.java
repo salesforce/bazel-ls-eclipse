@@ -96,10 +96,10 @@ public class BazelProjectImporterTest {
         assertEquals(2, referencedProjects.length);
 
         assertTrue("Didn't find module2 in the referenced projects list",
-            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module2Proj)));
+                Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module2Proj)));
 
         assertTrue("Didn't find module3 in the referenced projects list",
-            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module3Proj)));
+                Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module3Proj)));
 
     }
 
@@ -116,17 +116,6 @@ public class BazelProjectImporterTest {
     }
 
     @Test
-    public void withNestedWorkspace() throws CoreException {
-        importer.initialize(new File("projects/build-with-workspace"));
-
-        assertThrows(IllegalStateException.class, () -> {
-            importer.importToWorkspace(new NullProgressMonitor());
-        });
-
-        // FIXME assertEquals("Root package is not supported. BUILD files should be in subdirectories", exception.getMessage());
-    }
-
-    @Test
     public void withSubpackage() throws CoreException {
         importer.initialize(new File("projects/build-with-subpackage"));
         importer.importToWorkspace(new NullProgressMonitor());
@@ -138,7 +127,7 @@ public class BazelProjectImporterTest {
         assertEquals(0, referencedProjects.length);
 
         assertFalse("Find submodule in the referenced projects list",
-            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(subModuleProj)));
+                Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(subModuleProj)));
     }
 
     @Test
@@ -172,7 +161,7 @@ public class BazelProjectImporterTest {
         assertEquals(1, referencedProjects.length);
 
         assertTrue("Didn't find module2 in the referenced projects list",
-            Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module2Proj)));
+                Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module2Proj)));
 
         assertFalse("module3 should be excluded from import by .bazeltargets file", module3Proj.exists());
     }
