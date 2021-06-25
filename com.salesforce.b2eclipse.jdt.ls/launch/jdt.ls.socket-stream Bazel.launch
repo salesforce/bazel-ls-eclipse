@@ -15,14 +15,6 @@
     <booleanAttribute key="default" value="false"/>
     <setAttribute key="deselected_workspace_bundles">
         <setEntry value="com.salesforce.b2eclipse.tests"/>
-        <setEntry value="com.salesforce.bazel-java-sdk"/>
-        <setEntry value="com.salesforce.bazel-java-sdk.tests"/>
-        <setEntry value="com.salesforce.bazel-java-testframework"/>
-        <setEntry value="com.salesforce.bazel.eclipse.core"/>
-        <setEntry value="com.salesforce.bazel.eclipse.core.tests"/>
-        <setEntry value="com.salesforce.bazel.eclipse.deps"/>
-        <setEntry value="org.eclipse.jdt.ls.tests"/>
-        <setEntry value="org.eclipse.jdt.ls.tests.syntaxserver"/>
     </setAttribute>
     <stringAttribute key="featureDefaultLocation" value="workspace"/>
     <stringAttribute key="featurePluginResolution" value="workspace"/>
@@ -48,7 +40,8 @@
         <setEntry value="ch.qos.logback.classic@default:default"/>
         <setEntry value="ch.qos.logback.core@default:default"/>
         <setEntry value="ch.qos.logback.slf4j@default:false"/>
-        <setEntry value="com.google.gson@default:default"/>
+        <setEntry value="com.google.gson*2.7.0.v20170129-0911@default:default"/>
+        <setEntry value="com.google.gson*2.8.6.v20201231-1626@default:default"/>
         <setEntry value="com.google.guava*27.1.0.v20190517-1946@default:default"/>
         <setEntry value="com.google.guava*30.1.0.v20210127-2300@default:default"/>
         <setEntry value="com.ibm.icu@default:default"/>
@@ -98,6 +91,7 @@
         <setEntry value="org.eclipse.jdt.junit.core@default:default"/>
         <setEntry value="org.eclipse.jdt.junit.runtime@default:default"/>
         <setEntry value="org.eclipse.jdt.launching@default:default"/>
+        <setEntry value="org.eclipse.jdt.ls.core@default:default"/>
         <setEntry value="org.eclipse.jface.text@default:default"/>
         <setEntry value="org.eclipse.jface@default:default"/>
         <setEntry value="org.eclipse.lsp4j.jsonrpc@default:default"/>
@@ -130,7 +124,6 @@
     </setAttribute>
     <setAttribute key="selected_workspace_bundles">
         <setEntry value="com.salesforce.b2eclipse.jdt.ls@default:default"/>
-        <setEntry value="org.eclipse.jdt.ls.core@default:default"/>
     </setAttribute>
     <booleanAttribute key="show_selected_only" value="false"/>
     <stringAttribute key="templateConfig" value="${target_home}/configuration/config.ini"/>
