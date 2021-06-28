@@ -46,25 +46,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.core.resources.ICommand;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.osgi.service.prefs.BackingStoreException;
-import org.osgi.service.prefs.Preferences;
-
 import com.google.common.collect.ImmutableList;
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.BazelNature;
@@ -82,11 +63,32 @@ import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
 import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 import com.salesforce.bazel.sdk.util.BazelConstants;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.core.resources.ICommand;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.ls.core.internal.ProjectUtils;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
+
 /**
  * A factory class to create Eclipse projects from packages in a Bazel workspace.
  * <p>
  * TODO add test coverage.
  */
+@SuppressWarnings("restriction")
 public final class BazelEclipseProjectFactory {
 
     // TODO do an analysis of the workspace to determine the correct JDK to bind
@@ -114,8 +116,9 @@ public final class BazelEclipseProjectFactory {
     // add the directory name to the label, if it is meaningful (>3 chars)
     private static final int MIN_NUMBER_OF_CHARACTER_FOR_NAME = 3;
 
-    private static final String[] BUILD_FILE_NAMES = ArrayUtils.addAll(BazelConstants.BUILD_FILE_NAMES.toArray(new String[0]),
-        BazelConstants.WORKSPACE_FILE_NAMES.toArray(new String[0]));
+    private static final String[] BUILD_FILE_NAMES =
+            ArrayUtils.addAll(BazelConstants.BUILD_FILE_NAMES.toArray(new String[0]),
+                BazelConstants.WORKSPACE_FILE_NAMES.toArray(new String[0]));
 
     private BazelEclipseProjectFactory() {
 
@@ -159,7 +162,7 @@ public final class BazelEclipseProjectFactory {
 
         // TODO send this message to the EclipseConsole so the user actually sees it
         BazelJdtPlugin.logInfo("Starting import of [" + eclipseProjectNameForBazelWorkspace
-                + "]. This may take some time, please be patient.");
+            + "]. This may take some time, please be patient.");
 
         // create the Eclipse project for the Bazel workspace (directory that contains the WORKSPACE file)
         IProject rootEclipseProject = BazelEclipseProjectFactory.createEclipseProjectForBazelPackage(
@@ -192,8 +195,8 @@ public final class BazelEclipseProjectFactory {
             }
             List<String> generatedSources =
                     aspects.lookByPackageName(childPackageInfo.getBazelPackageName()).getSources().stream()
-                            .filter(fileName -> !fileName.startsWith(childPackageInfo.getBazelPackageNameLastSegment()))
-                            .collect(Collectors.toList());
+                    .filter(fileName -> !fileName.startsWith(childPackageInfo.getBazelPackageNameLastSegment()))
+                    .collect(Collectors.toList());
 
             importBazelWorkspacePackagesAsProjects(childPackageInfo, bazelWorkspaceRoot, importedProjectsList,
                 generatedSources);
@@ -259,8 +262,8 @@ public final class BazelEclipseProjectFactory {
             addNatureToEclipseProject(eclipseProject, BazelNature.BAZEL_NATURE_ID);
             addNatureToEclipseProject(eclipseProject, JavaCore.NATURE_ID);
             addSettingsToEclipseProject(eclipseProject, bazelWorkspaceRoot, bazelTargets, ImmutableList.of()); // TODO
-                                                                                                               // pass
-                                                                                                               // buildFlags
+            // pass
+            // buildFlags
 
             // this may throw if the user has deleted the .project file on disk while the
             // project is open for import
@@ -351,6 +354,91 @@ public final class BazelEclipseProjectFactory {
         }
     }
 
+    private static List<IClasspathEntry> buildClasspathEntries(IPath bazelWorkspacePath, String bazelPackageFSPath,
+            List<String> packageSourceCodeFSRelativePaths, IJavaProject eclipseJavaProject, int javaLanguageLevel) {
+
+        ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
+
+        List<IClasspathEntry> classpathEntries = new LinkedList<>();
+        for (String path : packageSourceCodeFSRelativePaths) {
+            IPath realSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
+            IFolder projectSourceFolder = createFoldersForRelativePackagePath(eclipseJavaProject.getProject(),
+                bazelPackageFSPath, path, false);
+            try {
+                resourceHelper.createFolderLink(projectSourceFolder, realSourceDir, IResource.NONE, null);
+            } catch (IllegalArgumentException e) {
+                BazelJdtPlugin.logInfo("Folder link " + projectSourceFolder + " already exists");
+            }
+            IPath outputDir = null; // null is a legal value, it means use the default
+            boolean isTestSource = false;
+            if (path.endsWith("src/test/java")) { // NON_CONFORMING PROJECT SUPPORT
+                isTestSource = true;
+                outputDir = new Path(eclipseJavaProject.getPath().toOSString() + "/testbin");
+            }
+
+            IPath sourceDir = projectSourceFolder.getFullPath();
+            IClasspathEntry sourceClasspathEntry =
+                    BazelJdtPlugin.getJavaCoreHelper().newSourceEntry(sourceDir, outputDir, isTestSource);
+            classpathEntries.add(sourceClasspathEntry);
+        }
+
+        IClasspathEntry bazelClasspathContainerEntry =
+                BazelJdtPlugin.getJavaCoreHelper().newContainerEntry(new Path(BazelClasspathContainer.CONTAINER_NAME));
+        classpathEntries.add(bazelClasspathContainerEntry);
+
+        // add in a JDK to the classpath
+        classpathEntries.add(BazelJdtPlugin.getJavaCoreHelper()
+            .newContainerEntry(new Path(STANDARD_VM_CONTAINER_PREFIX + javaLanguageLevel)));
+        return classpathEntries;
+    }
+
+    private static void buildLinkedResources(IPath bazelWorkspacePath, String bazelPackageFSPath,
+            List<String> generatedSources, IJavaProject eclipseJavaProject, List<IClasspathEntry> classpathEntries) {
+        ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
+
+        IFolder linkHiddenFolder = eclipseJavaProject.getProject().getFolder(ProjectUtils.WORKSPACE_LINK);
+        resourceHelper.createFolderLink(linkHiddenFolder, bazelWorkspacePath, IResource.NONE, null);
+
+        for (String path : generatedSources) {
+            IPath generatedSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
+            if (generatedSourceDir.toFile().exists() && generatedSourceDir.toFile().isDirectory()) {
+                IFolder projectSourceFolder = createFoldersForRelativePackagePath(eclipseJavaProject.getProject(),
+                    bazelPackageFSPath, path, true);
+                try {
+                    resourceHelper.createFolderLink(projectSourceFolder, generatedSourceDir, IResource.NONE, null);
+                } catch (IllegalArgumentException e) {
+                    BazelJdtPlugin.logInfo("Folder link " + projectSourceFolder + " already exists");
+                }
+
+                IClasspathEntry sourceClasspathEntry = BazelJdtPlugin.getJavaCoreHelper()
+                        .newSourceEntry(projectSourceFolder.getFullPath(), null, false);
+                classpathEntries.add(sourceClasspathEntry);
+            }
+        }
+    }
+
+    //    // bazelPackageFSPath: the relative path from the Bazel WORKSPACE root, to the
+    //    // Bazel Package being processed
+    //    // packageSourceCodeFSRelativePaths: the relative paths from the WORKSPACE root
+    //    // to the Java Source directories
+    //    // where the Java Package structure starts
+    //    private static void createBazelClasspathForEclipseProject(IPath bazelWorkspacePath, String bazelPackageFSPath,
+    //            List<String> packageSourceCodeFSRelativePaths, List<String> generatedSources, IJavaProject eclipseProject,
+    //            int javaLanguageLevel) throws CoreException {
+    //
+    //        // add in a JDK to the classpath
+    //        classpathEntries.add(BazelJdtPlugin.getJavaCoreHelper()
+    //            .newContainerEntry(new Path(STANDARD_VM_CONTAINER_PREFIX)));
+    //        List<IClasspathEntry> classpathEntries = buildClasspathEntries(bazelWorkspacePath, bazelPackageFSPath,
+    //            packageSourceCodeFSRelativePaths, eclipseProject, javaLanguageLevel);
+    //
+    //        buildLinkedResources(bazelWorkspacePath, bazelPackageFSPath, generatedSources, eclipseProject,
+    //            classpathEntries);
+    //
+    //        IClasspathEntry[] newClasspath = classpathEntries.toArray(new IClasspathEntry[classpathEntries.size()]);
+    //        eclipseProject.setRawClasspath(newClasspath, null);
+    //    }
+
     // bazelPackageFSPath: the relative path from the Bazel WORKSPACE root, to the
     // Bazel Package being processed
     // packageSourceCodeFSRelativePaths: the relative paths from the WORKSPACE root
@@ -407,8 +495,10 @@ public final class BazelEclipseProjectFactory {
 
         // add in a JDK to the classpath
         classpathEntries.add(BazelJdtPlugin.getJavaCoreHelper()
-                .newContainerEntry(new Path(STANDARD_VM_CONTAINER_PREFIX)));
+            .newContainerEntry(new Path(STANDARD_VM_CONTAINER_PREFIX)));
 
+        buildLinkedResources(bazelWorkspacePath, bazelPackageFSPath, generatedSources, eclipseProject,
+            classpathEntries);
         IClasspathEntry[] newClasspath = classpathEntries.toArray(new IClasspathEntry[classpathEntries.size()]);
         eclipseProject.setRawClasspath(newClasspath, null);
     }
@@ -504,7 +594,7 @@ public final class BazelEclipseProjectFactory {
             }
         } else {
             BazelJdtPlugin.logError("Project [" + eclipseProjectName
-                    + "] already exists, which is unexpected. Project initialization will not occur.");
+                + "] already exists, which is unexpected. Project initialization will not occur.");
             createdEclipseProject = newEclipseProject;
         }
 
@@ -561,18 +651,17 @@ public final class BazelEclipseProjectFactory {
             foundSourceCodePaths = true;
         }
 
-        if (foundSourceCodePaths) {
-            BazelLabel packageTarget = new BazelLabel(packageNode.getBazelPackageName());
-            if (packageTarget.isPackageDefault()) {
-                // if the label is //foo, we want foo:* so that we pick up all targets in the
-                // BUILD file, instead of only the default package target
-                packageTarget = packageTarget.toPackageWildcardLabel();
-            }
-            bazelTargets.add(packageTarget.getLabel());
-        } else {
+        if (!foundSourceCodePaths) {
             throw new IllegalStateException(
-                    "Couldn't find sources for the following package: " + packageNode.getBazelPackageName());
+                "Couldn't find sources for the following package: " + packageNode.getBazelPackageName());
         }
+        BazelLabel packageTarget = new BazelLabel(packageNode.getBazelPackageName());
+        if (packageTarget.isPackageDefault()) {
+            // if the label is //foo, we want foo:* so that we pick up all targets in the
+            // BUILD file, instead of only the default package target
+            packageTarget = packageTarget.toPackageWildcardLabel();
+        }
+        bazelTargets.add(packageTarget.getLabel());
     }
 
     /**

@@ -43,12 +43,14 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 
 import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.BazelNature;
@@ -64,6 +66,8 @@ import com.salesforce.b2eclipse.model.BazelMarkerDetails;
 import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
 import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -79,11 +83,13 @@ import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * Computes the classpath for a Bazel package and provides it to the JDT tooling in Eclipse.
  */
+@SuppressWarnings("restriction")
 public class BazelClasspathContainer implements IClasspathContainer {
     public static final String CONTAINER_NAME = "com.salesforce.b2eclipse.BAZEL_CONTAINER";
 
@@ -116,6 +122,42 @@ public class BazelClasspathContainer implements IClasspathContainer {
             instance.cachedEntries = null;
             instance.cachePutTimeMillis = 0;
         }
+    }
+
+    private Set<IClasspathEntry> calculateAdditionalClasspath(BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner,
+            IProject eclipseProject) {
+        Set<IClasspathEntry> additionalClasspath = new HashSet<IClasspathEntry>();
+
+        try {
+            Optional<IClasspathEntry> optionalProjectClassPath =
+                    bazelWorkspaceCmdRunner.getProjectClasspath(eclipseProject.getName());
+            optionalProjectClassPath.ifPresent(entry -> additionalClasspath.add(entry));
+
+            IResource[] members = eclipseProject.members(IResource.NONE);
+            Stack<IResource> resourcesStack = new Stack<IResource>();
+            resourcesStack.addAll(Arrays.asList(members));
+            while (!resourcesStack.isEmpty()) {
+                IResource item = resourcesStack.pop();
+                boolean isValid = ObjectUtils.notEqual(ProjectUtils.WORKSPACE_LINK, item.getName());
+                isValid &= ObjectUtils.notEqual(".settings", item.getName());
+                if (isValid) {
+                    if (item.isLinked() && IFolder.class.isInstance(item)) {
+                        IPath location = item.getLocation();
+                        IClasspathEntry classpathEntry =
+                                BazelJdtPlugin.getJavaCoreHelper().newLibraryEntry(location, null, null);
+                        Optional<IClasspathEntry> optionalClasspathEntry =
+                                Optional.<IClasspathEntry>ofNullable(classpathEntry);
+                        optionalClasspathEntry.ifPresent(entry -> additionalClasspath.add(entry));
+                    } else if (IFolder.class.isInstance(item)) {
+                        IResource[] children = IFolder.class.cast(item).members(IResource.NONE);
+                        resourcesStack.addAll(Arrays.asList(children));
+                    }
+                }
+            }
+        } catch (CoreException exc) {
+            BazelJdtPlugin.logException("Exception in calculating additional classpath", exc);
+        }
+        return additionalClasspath;
     }
 
     @Override
@@ -174,10 +216,8 @@ public class BazelClasspathContainer implements IClasspathContainer {
             BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
                     commandFacade.getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
 
-            Set<IClasspathEntry> additionalClasspath = new HashSet<IClasspathEntry>();
-            Optional<IClasspathEntry> optionalProjectClassPath =
-                    bazelWorkspaceCmdRunner.getProjectClasspath(eclipseProject.getName());
-            optionalProjectClassPath.ifPresent(entry -> additionalClasspath.add(entry));
+            Set<IClasspathEntry> additionalClasspath =
+                    calculateAdditionalClasspath(bazelWorkspaceCmdRunner, eclipseProject);
 
             try {
                 IProject eclipseIProject = eclipseProject.getProject();
