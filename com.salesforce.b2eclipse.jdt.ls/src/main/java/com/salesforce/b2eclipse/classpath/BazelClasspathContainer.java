@@ -211,12 +211,10 @@ public class BazelClasspathContainer implements IClasspathContainer {
                     IJavaProject otherProject =
                             getSourceProjectForSourcePaths(bazelWorkspaceCmdRunner, packageInfo.getSources());
 
-                    if (otherProject == null) {
-                    } else if (eclipseProject.getProject().getFullPath()
-                            .equals(otherProject.getProject().getFullPath())) {
+                    if (eclipseProject.getProject().getFullPath().equals(otherProject.getProject().getFullPath())) {
                         BazelJdtPlugin.logInfo(
                                 "the project referenced is actually the the current project that this classpath container is for - nothing to do");
-                    } else {
+                    } else if (otherProject != null) {
                         // otherProject != null
                         // add the referenced project to the classpath, directly as a project classpath entry
                         IPath projectFullPath = otherProject.getProject().getFullPath();
