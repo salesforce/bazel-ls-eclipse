@@ -397,7 +397,9 @@ public final class BazelEclipseProjectFactory {
         ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
 
         IFolder linkHiddenFolder = eclipseJavaProject.getProject().getFolder(ProjectUtils.WORKSPACE_LINK);
-        resourceHelper.createFolderLink(linkHiddenFolder, bazelWorkspacePath, IResource.NONE, null);
+        if (!linkHiddenFolder.exists()) {
+            resourceHelper.createFolderLink(linkHiddenFolder, bazelWorkspacePath, IResource.NONE, null);
+        }
 
         for (String path : generatedSources) {
             IPath generatedSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
