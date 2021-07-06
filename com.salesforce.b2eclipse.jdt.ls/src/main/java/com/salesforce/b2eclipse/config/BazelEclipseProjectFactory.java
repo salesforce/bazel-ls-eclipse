@@ -396,9 +396,11 @@ public final class BazelEclipseProjectFactory {
             List<String> generatedSources, IJavaProject eclipseJavaProject, List<IClasspathEntry> classpathEntries) {
         ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
 
-        IFolder linkHiddenFolder = eclipseJavaProject.getProject().getFolder(ProjectUtils.WORKSPACE_LINK);
-        if (!linkHiddenFolder.exists()) {
-            resourceHelper.createFolderLink(linkHiddenFolder, bazelWorkspacePath, IResource.NONE, null);
+        if (! eclipseJavaProject.getProject().getName().startsWith(BazelNature.BAZELWORKSPACE_PROJECT_BASENAME)) {
+            IFolder linkHiddenFolder = eclipseJavaProject.getProject().getFolder(ProjectUtils.WORKSPACE_LINK);
+            if (!linkHiddenFolder.exists()) {
+                resourceHelper.createFolderLink(linkHiddenFolder, bazelWorkspacePath, IResource.NONE, null);
+            }
         }
 
         for (String path : generatedSources) {
