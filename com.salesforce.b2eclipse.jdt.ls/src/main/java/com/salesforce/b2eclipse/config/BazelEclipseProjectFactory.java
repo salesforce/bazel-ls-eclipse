@@ -165,9 +165,10 @@ public final class BazelEclipseProjectFactory {
             + "]. This may take some time, please be patient.");
 
         // create the Eclipse project for the Bazel workspace (directory that contains the WORKSPACE file)
-        IProject rootEclipseProject = BazelEclipseProjectFactory.createEclipseProjectForBazelPackage(
-            eclipseProjectNameForBazelWorkspace, eclipseProjectLocation, bazelWorkspaceRoot, "",
-            Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), JAVA_LANG_VERSION);
+        IProject rootEclipseProject =
+                BazelEclipseProjectFactory.createEclipseProjectForBazelPackage(eclipseProjectNameForBazelWorkspace,
+                    eclipseProjectLocation, bazelWorkspaceRoot, "", Collections.emptyList(), Collections.emptyList(),
+                    Collections.emptyList(), Collections.emptyList(), JAVA_LANG_VERSION);
         if (rootEclipseProject == null) {
             throw new RuntimeException(
                     "Could not create the root workspace project. Look back in the log for more details.");
@@ -212,16 +213,17 @@ public final class BazelEclipseProjectFactory {
 
     private static void importBazelWorkspacePackagesAsProjects(BazelPackageInfo packageInfo, String bazelWorkspaceRoot,
             List<IProject> importedProjectsList, List<String> generatedSources) {
-        List<String> packageSourceCodeFSPaths = new ArrayList<>();
+        List<String> mainSrcPaths = new ArrayList<>();
+        List<String> testSrcPaths = new ArrayList<>();
         List<String> packageBazelTargets = new ArrayList<>();
-        BazelEclipseProjectFactory.computePackageSourceCodePaths(packageInfo, packageSourceCodeFSPaths,
+        BazelEclipseProjectFactory.computePackageSourceCodePaths(packageInfo, mainSrcPaths, testSrcPaths,
             packageBazelTargets);
 
         String eclipseProjectNameForBazelPackage = packageInfo.getBazelPackageNameLastSegment();
         URI eclipseProjectLocation = null; // let Eclipse use the default location
         IProject eclipseProject = createEclipseProjectForBazelPackage(eclipseProjectNameForBazelPackage,
-            eclipseProjectLocation, bazelWorkspaceRoot, packageInfo.getBazelPackageFSRelativePath(),
-            packageSourceCodeFSPaths, generatedSources, packageBazelTargets, JAVA_LANG_VERSION);
+            eclipseProjectLocation, bazelWorkspaceRoot, packageInfo.getBazelPackageFSRelativePath(), mainSrcPaths,
+            testSrcPaths, generatedSources, packageBazelTargets, JAVA_LANG_VERSION);
 
         if (eclipseProject != null) {
             importedProjectsList.add(eclipseProject);
@@ -246,7 +248,7 @@ public final class BazelEclipseProjectFactory {
      *            the absolute file system path to the Bazel workspace being imported
      * @param packageFSPath
      *            the relative path from the Bazel workspace root to the Bazel package this project belongs to
-     * @param packageSourceCodeFSPaths
+     * @param mainSrcPaths
      *            the relative paths from the Bazel workspace root to each source directory in this project
      * @param bazelTargets
      *            the list of Bazel targets for a build/test of this project
@@ -254,7 +256,7 @@ public final class BazelEclipseProjectFactory {
      *            the Java version to use in the classpath
      */
     public static IProject createEclipseProjectForBazelPackage(String projectName, URI eclipseProjectLocation,
-            String bazelWorkspaceRoot, String packageFSPath, List<String> packageSourceCodeFSPaths,
+            String bazelWorkspaceRoot, String packageFSPath, List<String> mainSrcPaths, List<String> testSrcPaths,
             List<String> generatedSources, List<String> bazelTargets, int javaLanguageVersion) {
 
         IProject eclipseProject = createBaseEclipseProject(projectName, eclipseProjectLocation, bazelWorkspaceRoot);
@@ -288,8 +290,8 @@ public final class BazelEclipseProjectFactory {
             // configuration part of this createProject() method
             IJavaProject eclipseJavaProject =
                     BazelJdtPlugin.getJavaCoreHelper().getJavaProjectForProject(eclipseProject);
-            createBazelClasspathForEclipseProject(new Path(bazelWorkspaceRoot), packageFSPath, packageSourceCodeFSPaths,
-                generatedSources, eclipseJavaProject, javaLanguageVersion);
+            createBazelClasspathForEclipseProject(new Path(bazelWorkspaceRoot), packageFSPath, mainSrcPaths,
+                testSrcPaths, generatedSources, eclipseJavaProject, javaLanguageVersion);
 
             // lets link to (== include in the project) some well known files
             linkFiles(bazelWorkspaceRoot, packageFSPath, eclipseProject, BUILD_FILE_NAMES);
@@ -355,32 +357,13 @@ public final class BazelEclipseProjectFactory {
     }
 
     private static List<IClasspathEntry> buildClasspathEntries(IPath bazelWorkspacePath, String bazelPackageFSPath,
-            List<String> packageSourceCodeFSRelativePaths, IJavaProject eclipseJavaProject, int javaLanguageLevel) {
-
-        ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
-
+            List<String> mainSrcPaths, List<String> testSrcPaths, IJavaProject eclipseJavaProject,
+            int javaLanguageLevel) {
         List<IClasspathEntry> classpathEntries = new LinkedList<>();
-        for (String path : packageSourceCodeFSRelativePaths) {
-            IPath realSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
-            IFolder projectSourceFolder = createFoldersForRelativePackagePath(eclipseJavaProject.getProject(),
-                bazelPackageFSPath, path, false);
-            try {
-                resourceHelper.createFolderLink(projectSourceFolder, realSourceDir, IResource.NONE, null);
-            } catch (IllegalArgumentException e) {
-                BazelJdtPlugin.logInfo("Folder link " + projectSourceFolder + " already exists");
-            }
-            IPath outputDir = null; // null is a legal value, it means use the default
-            boolean isTestSource = false;
-            if (path.endsWith("src/test/java")) { // NON_CONFORMING PROJECT SUPPORT
-                isTestSource = true;
-                outputDir = new Path(eclipseJavaProject.getPath().toOSString() + "/testbin");
-            }
-
-            IPath sourceDir = projectSourceFolder.getFullPath();
-            IClasspathEntry sourceClasspathEntry =
-                    BazelJdtPlugin.getJavaCoreHelper().newSourceEntry(sourceDir, outputDir, isTestSource);
-            classpathEntries.add(sourceClasspathEntry);
-        }
+        buildClasspathEntries(bazelWorkspacePath, bazelPackageFSPath, mainSrcPaths, eclipseJavaProject,
+            classpathEntries, false);
+        buildClasspathEntries(bazelWorkspacePath, bazelPackageFSPath, testSrcPaths, eclipseJavaProject,
+            classpathEntries, true);
 
         IClasspathEntry bazelClasspathContainerEntry =
                 BazelJdtPlugin.getJavaCoreHelper().newContainerEntry(new Path(BazelClasspathContainer.CONTAINER_NAME));
@@ -392,11 +375,32 @@ public final class BazelEclipseProjectFactory {
         return classpathEntries;
     }
 
+    private static void buildClasspathEntries(IPath bazelWorkspacePath, String bazelPackageFSPath,
+            List<String> srcPaths, IJavaProject eclipseJavaProject, List<IClasspathEntry> classpathEntries,
+            boolean isTest) {
+        ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
+        for (String path : srcPaths) {
+            IPath realSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
+            IFolder projectSourceFolder = createFoldersForRelativePackagePath(eclipseJavaProject.getProject(),
+                bazelPackageFSPath, path, false);
+            try {
+                resourceHelper.createFolderLink(projectSourceFolder, realSourceDir, IResource.NONE, null);
+            } catch (IllegalArgumentException e) {
+                BazelJdtPlugin.logInfo("Folder link " + projectSourceFolder + " already exists");
+            }
+            IPath outputDir = isTest ? new Path(eclipseJavaProject.getPath().toOSString() + "/testbin") : null; // null is a legal value, it means use the default
+            IPath sourceDir = projectSourceFolder.getFullPath();
+            IClasspathEntry sourceClasspathEntry =
+                    BazelJdtPlugin.getJavaCoreHelper().newSourceEntry(sourceDir, outputDir, isTest);
+            classpathEntries.add(sourceClasspathEntry);
+        }
+    }
+
     private static void buildLinkedResources(IPath bazelWorkspacePath, String bazelPackageFSPath,
             List<String> generatedSources, IJavaProject eclipseJavaProject, List<IClasspathEntry> classpathEntries) {
         ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
 
-        if (! eclipseJavaProject.getProject().getName().startsWith(BazelNature.BAZELWORKSPACE_PROJECT_BASENAME)) {
+        if (!eclipseJavaProject.getProject().getName().startsWith(BazelNature.BAZELWORKSPACE_PROJECT_BASENAME)) {
             IFolder linkHiddenFolder = eclipseJavaProject.getProject().getFolder(ProjectUtils.WORKSPACE_LINK);
             if (!linkHiddenFolder.exists()) {
                 resourceHelper.createFolderLink(linkHiddenFolder, bazelWorkspacePath, IResource.NONE, null);
@@ -449,8 +453,8 @@ public final class BazelEclipseProjectFactory {
     // to the Java Source directories
     // where the Java Package structure starts
     private static void createBazelClasspathForEclipseProject(IPath bazelWorkspacePath, String bazelPackageFSPath,
-            List<String> packageSourceCodeFSRelativePaths, List<String> generatedSources, IJavaProject eclipseProject,
-            int javaLanguageLevel) throws CoreException {
+            List<String> packageSourceCodeFSRelativePaths, List<String> testSrcPaths, List<String> generatedSources,
+            IJavaProject eclipseProject, int javaLanguageLevel) throws CoreException {
         List<IClasspathEntry> classpathEntries = new LinkedList<>();
         ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
 
@@ -631,8 +635,8 @@ public final class BazelEclipseProjectFactory {
      *
      * bazelTargets: the list of Bazel labels to associate with the given packageNode
      */
-    private static void computePackageSourceCodePaths(BazelPackageInfo packageNode,
-            List<String> packageSourceCodeFSPaths, List<String> bazelTargets) {
+    private static void computePackageSourceCodePaths(BazelPackageInfo packageNode, List<String> mainSrcPaths,
+            List<String> testSrcPaths, List<String> bazelTargets) {
         boolean foundSourceCodePaths = false;
 
         // add this node buildable target
@@ -644,14 +648,14 @@ public final class BazelEclipseProjectFactory {
                 packageNode.getBazelPackageFSRelativePath() + preferencesManager.getImportBazelSrcPath();
         File mainSrcDir = new File(bazelPackageRootDirectory + File.separator + mainSrcRelPath);
         if (mainSrcDir.exists()) {
-            packageSourceCodeFSPaths.add(mainSrcRelPath);
+            mainSrcPaths.add(mainSrcRelPath);
             foundSourceCodePaths = true;
         }
         String testSrcRelPath =
                 packageNode.getBazelPackageFSRelativePath() + preferencesManager.getImportBazelTestPath();
         File testSrcDir = new File(bazelPackageRootDirectory + File.separator + testSrcRelPath);
         if (testSrcDir.exists()) {
-            packageSourceCodeFSPaths.add(testSrcRelPath);
+            testSrcPaths.add(testSrcRelPath);
             foundSourceCodePaths = true;
         }
 
@@ -685,7 +689,7 @@ public final class BazelEclipseProjectFactory {
         List<String> packageBazelTargets = new ArrayList<>();
         for (BazelPackageInfo childPackageInfo : selectedBazelPackages) {
             BazelEclipseProjectFactory.computePackageSourceCodePaths(childPackageInfo, new ArrayList<>(),
-                packageBazelTargets);
+                new ArrayList<>(), packageBazelTargets);
         }
 
         // run the aspect for specified targets and get an AspectPackageInfo for each
