@@ -123,7 +123,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
     }
 
     private IClasspathEntry computeFilePathForRunnerJar(WorkProgressMonitor progressMonitor) {
-        final String runner_jar = "Runner_deploy-ijar.jar";
+        final String runnerJarName = "Runner_deploy-ijar.jar";
 
         BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = BazelJdtPlugin.getBazelCommandManager()
                 .getWorkspaceCommandRunner(BazelJdtPlugin.getBazelWorkspaceRootDirectory());
@@ -141,7 +141,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
         if (!javaToolsDir.exists()) {
             return null;
         }
-        File runnerJar = new File(javaToolsDir, RUNNER_JAR);
+        File runnerJar = new File(javaToolsDir, runnerJarName);
         if (!runnerJar.exists()) {
             return null;
         }
