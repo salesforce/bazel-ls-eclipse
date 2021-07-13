@@ -60,6 +60,7 @@ import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.BazelMarkerDetails;
 import com.salesforce.b2eclipse.model.BazelOutputParser;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -497,6 +498,19 @@ public class BazelWorkspaceCommandRunner {
             e.printStackTrace();
             return Lists.newArrayList();
         }
+    }
+
+    public String getOperatingSystemDirectoryName() {
+        if (SystemUtils.IS_OS_MAC) {
+            return "darwin";
+        }
+        if (SystemUtils.IS_OS_WINDOWS) {
+            return "windows";
+        }
+        if (SystemUtils.IS_OS_LINUX) {
+            return "linux";
+        }
+        return null;
     }
 
     // HELPERS
