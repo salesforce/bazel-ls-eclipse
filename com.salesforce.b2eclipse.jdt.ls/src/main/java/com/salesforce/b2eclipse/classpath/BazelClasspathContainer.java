@@ -166,14 +166,6 @@ public class BazelClasspathContainer implements IClasspathContainer {
         .filter(Objects::nonNull) //
         .forEachOrdered(classpathEntries::add); //
 
-        boolean isImport = aspectPackageInfos.parallelStream()
-                .anyMatch((AspectPackageInfo packageInfo) -> StringUtils.isNotBlank(packageInfo.getMainClass()));
-        if (isImport) {
-            IClasspathEntry runnerJar = computeFilePathForRunnerJar(progressMonitor);
-            if (Objects.nonNull(runnerJar)) {
-                classpathEntries.add(runnerJar);
-            }
-        }
         return classpathEntries;
     }
 
@@ -247,6 +239,8 @@ public class BazelClasspathContainer implements IClasspathContainer {
                 List<IClasspathEntry> additionalClasspath =
                         calculateBazelClasspath(packageInfos.values(), progressMonitor);
 
+                List<IClasspathEntry> projectClasspathDependencies = new ArrayList<IClasspathEntry>();
+
                 for (AspectPackageInfo packageInfo : packageInfos.values()) {
                     IJavaProject otherProject =
                             getSourceProjectForSourcePaths(bazelWorkspaceCmdRunner, packageInfo.getSources());
@@ -260,7 +254,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
                         // add the referenced project to the classpath, directly as a project classpath entry
                         IPath projectFullPath = otherProject.getProject().getFullPath();
                         if (!projectsAddedToClasspath.contains(projectFullPath)) {
-                            classpathEntries.add(BazelJdtPlugin.getJavaCoreHelper().newProjectEntry(projectFullPath));
+                            projectClasspathDependencies.add(BazelJdtPlugin.getJavaCoreHelper().newProjectEntry(projectFullPath));
                         }
                         projectsAddedToClasspath.add(projectFullPath);
 
@@ -270,6 +264,17 @@ public class BazelClasspathContainer implements IClasspathContainer {
                     }
                 }
                 classpathEntries.addAll(additionalClasspath);
+                classpathEntries.addAll(projectClasspathDependencies);
+                boolean isRunner = packageInfos.values().parallelStream()
+                        .anyMatch((AspectPackageInfo packageInfo) -> (StringUtils.isNotBlank(packageInfo.getMainClass())
+                                || "java_import".equalsIgnoreCase(packageInfo.getKind())));
+                if (isRunner) {
+                    IClasspathEntry runnerJar = computeFilePathForRunnerJar(progressMonitor);
+                    if (Objects.nonNull(runnerJar)) {
+                        classpathEntries.add(runnerJar);
+                    }
+                }
+
                 addProjectReferences(eclipseIProject, projectDependencies);
 
             } catch (IOException | InterruptedException e) {
