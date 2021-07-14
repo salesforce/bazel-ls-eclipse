@@ -91,8 +91,7 @@ public final class BazelEclipseProjectFactory {
 
     // TODO do an analysis of the workspace to determine the correct JDK to bind
     // into the bazel project
-    static final String STANDARD_VM_CONTAINER_PREFIX = "org.eclipse.jdt.launching.JRE_CONTAINER/"
-            + "org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.";
+    public static final String STANDARD_VM_CONTAINER_PREFIX = "org.eclipse.jdt.launching.JRE_CONTAINER";
 
     /**
      * The Java version to assign to the classpath of each created Java Eclipse project.
@@ -408,7 +407,7 @@ public final class BazelEclipseProjectFactory {
 
         // add in a JDK to the classpath
         classpathEntries.add(BazelJdtPlugin.getJavaCoreHelper()
-                .newContainerEntry(new Path(STANDARD_VM_CONTAINER_PREFIX + javaLanguageLevel)));
+                .newContainerEntry(new Path(STANDARD_VM_CONTAINER_PREFIX)));
 
         IClasspathEntry[] newClasspath = classpathEntries.toArray(new IClasspathEntry[classpathEntries.size()]);
         eclipseProject.setRawClasspath(newClasspath, null);
