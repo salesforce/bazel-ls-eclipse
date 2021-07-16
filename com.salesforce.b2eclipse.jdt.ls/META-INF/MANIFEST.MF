@@ -14,7 +14,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.google.guava;bundle-version="27.1.0",
  org.eclipse.jdt.ls.core,
  org.apache.commons.lang3;bundle-version="3.1.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: b2eclipse.jdt.ls
 Bundle-ActivationPolicy: lazy
 Eclipse-BundleShape: dir
@@ -29,4 +29,3 @@ Export-Package: com.salesforce.b2eclipse,
  com.salesforce.b2eclipse.model,
  com.salesforce.b2eclipse.runtime.impl,
  com.salesforce.b2eclipse.util
-

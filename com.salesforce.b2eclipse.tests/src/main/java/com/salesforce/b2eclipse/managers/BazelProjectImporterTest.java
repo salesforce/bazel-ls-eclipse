@@ -33,9 +33,12 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IProject;
@@ -43,10 +46,15 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
 import com.salesforce.b2eclipse.importer.BazelProjectImportScanner;
 
 @SuppressWarnings("restriction")
@@ -88,19 +96,27 @@ public class BazelProjectImporterTest {
         importer.importToWorkspace(new NullProgressMonitor());
 
         IProject module1Proj = getWorkspaceRoot().getProject("module1");
+        JavaCore.create(module1Proj);
+        List<ClasspathEntryMeta> module1CpEntriesMeta = new ArrayList<>(getVMContainerCPEntriesMeta(module1Proj));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_SOURCE, BAZEL_SRC_PATH_VALUE));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_PROJECT, "module2"));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_PROJECT, "module3"));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "guava"));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "mybuilder_sources"));
+        assertHasDependencies(module1Proj, Arrays.asList("module2", "module3"), module1CpEntriesMeta);
+
         IProject module2Proj = getWorkspaceRoot().getProject("module2");
+        List<ClasspathEntryMeta> module2CpEntriesMeta = new ArrayList<>(getVMContainerCPEntriesMeta(module2Proj));
+        module2CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_SOURCE, BAZEL_SRC_PATH_VALUE));
+        module2CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_PROJECT, "module3"));
+        module2CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "junit"));
+        module2CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "module2-test"));
+        assertHasDependencies(module2Proj, Arrays.asList("module3"), module2CpEntriesMeta);
+
         IProject module3Proj = getWorkspaceRoot().getProject("module3");
-
-        IProject[] referencedProjects = module1Proj.getReferencedProjects();
-
-        assertEquals(2, referencedProjects.length);
-
-        assertTrue("Didn't find module2 in the referenced projects list",
-                Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module2Proj)));
-
-        assertTrue("Didn't find module3 in the referenced projects list",
-                Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module3Proj)));
-
+        List<ClasspathEntryMeta> module3CpEntriesMeta = new ArrayList<>(getVMContainerCPEntriesMeta(module3Proj));
+        module3CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_SOURCE, BAZEL_SRC_PATH_VALUE));
+        assertHasDependencies(module3Proj, Arrays.asList(), module3CpEntriesMeta);
     }
 
     @Test
@@ -153,17 +169,21 @@ public class BazelProjectImporterTest {
         FileUtils.forceDelete(targetFile);
 
         IProject module1Proj = getWorkspaceRoot().getProject("module1");
+        List<ClasspathEntryMeta> module1CpEntriesMeta = new ArrayList<>(getVMContainerCPEntriesMeta(module1Proj));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_SOURCE, BAZEL_SRC_PATH_VALUE));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_PROJECT, "module2"));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "module3"));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "guava"));
+        module1CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "mybuilder_sources"));
+        assertHasDependencies(module1Proj, Arrays.asList("module2"), module1CpEntriesMeta);
+
         IProject module2Proj = getWorkspaceRoot().getProject("module2");
-        IProject module3Proj = getWorkspaceRoot().getProject("module3");
-
-        IProject[] referencedProjects = module1Proj.getReferencedProjects();
-
-        assertEquals(1, referencedProjects.length);
-
-        assertTrue("Didn't find module2 in the referenced projects list",
-                Arrays.stream(referencedProjects).anyMatch(proj -> proj.equals(module2Proj)));
-
-        assertFalse("module3 should be excluded from import by .bazeltargets file", module3Proj.exists());
+        List<ClasspathEntryMeta> module2CpEntriesMeta = new ArrayList<>(getVMContainerCPEntriesMeta(module2Proj));
+        module2CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_SOURCE, BAZEL_SRC_PATH_VALUE));
+        module2CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "module3"));
+        module2CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "junit"));
+        module2CpEntriesMeta.add(new ClasspathEntryMeta(IClasspathEntry.CPE_LIBRARY, "module2-test"));
+        assertHasDependencies(module2Proj, Arrays.asList(), module2CpEntriesMeta);
     }
 
     private IWorkspaceRoot getWorkspaceRoot() {
@@ -173,6 +193,68 @@ public class BazelProjectImporterTest {
     private void updateSrcPath(String path) {
         settings.put(BAZEL_SRC_PATH_KEY, path);
         preferencesManager.setConfiguration(settings);
+    }
+
+    private List<ClasspathEntryMeta> getVMContainerCPEntriesMeta(IProject project) throws CoreException {
+        IJavaProject javaProject = JavaCore.create(project);
+
+        IClasspathEntry[] vmContainerCpEntries = JavaCore
+                .getClasspathContainer(new Path(BazelEclipseProjectFactory.STANDARD_VM_CONTAINER_PREFIX), javaProject)
+                .getClasspathEntries();
+
+        return Arrays.stream(vmContainerCpEntries)
+                .map(cpEntry -> new ClasspathEntryMeta(cpEntry.getEntryKind(), cpEntry.getPath().toString()))
+                .collect(Collectors.toList());
+    }
+
+    private void assertHasDependencies(IProject proj, List<String> expectedRefProjectNames,
+            List<ClasspathEntryMeta> expectedCPEntries) throws CoreException {
+        List<IProject> referencedProjects = Arrays.asList(proj.getReferencedProjects());
+
+        assertEquals(expectedRefProjectNames.size(), referencedProjects.size());
+
+        expectedRefProjectNames.forEach(expectedRefProjectName -> {
+            assertTrue(
+                    String.format("Didn't find %s in the referenced projects list of %s", expectedRefProjectName,
+                            proj.getName()),
+                    referencedProjects.stream().anyMatch(refProj -> expectedRefProjectName.equals(refProj.getName())));
+        });
+
+        IJavaProject javaProj = JavaCore.create(proj);
+        List<IClasspathEntry> projCpEntries = Arrays.asList(javaProj.getResolvedClasspath(false));
+
+        assertEquals(expectedCPEntries.size(), projCpEntries.size());
+
+        expectedCPEntries.forEach(cpeMeta -> {
+            int cpeKind = cpeMeta.getKind();
+            String cpePathSubstring = cpeMeta.getPathSubstring();
+
+            assertTrue(
+                    String.format("Didn't find (%s, %s) in the classpath of %s", cpeKind, cpePathSubstring,
+                            proj.getName()),
+                    projCpEntries.stream().anyMatch(projCpEntry -> projCpEntry.getEntryKind() == cpeKind
+                    && projCpEntry.getPath().toString().contains(cpePathSubstring)));
+        });
+    }
+
+    private static final class ClasspathEntryMeta {
+
+        private final int kind;
+
+        private final String pathSubstring;
+
+        ClasspathEntryMeta(int kind, String pathSubstring) {
+            this.kind = kind;
+            this.pathSubstring = pathSubstring;
+        }
+
+        public int getKind() {
+            return kind;
+        }
+
+        public String getPathSubstring() {
+            return pathSubstring;
+        }
     }
 
 }
