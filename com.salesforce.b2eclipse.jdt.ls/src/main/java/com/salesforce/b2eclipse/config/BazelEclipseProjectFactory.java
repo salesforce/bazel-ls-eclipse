@@ -84,7 +84,8 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 /**
- * A factory class to create Eclipse projects from packages in a Bazel workspace.
+ * A factory class to create Eclipse projects from packages in a Bazel
+ * workspace.
  * <p>
  * TODO add test coverage.
  */
