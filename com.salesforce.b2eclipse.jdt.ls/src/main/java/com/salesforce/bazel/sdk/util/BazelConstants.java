@@ -38,37 +38,30 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 
+import com.salesforce.bazel.sdk.model.BazelLabel;
+
 public final class BazelConstants {
-    
+
     private BazelConstants() {
-        
+
     }
-    
+
+    /**
+     * The Bazel BUILD files BEF looks for.
+     */
+    public static final Collection<String> WORKSPACE_FILE_NAMES =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList("WORKSPACE", "WORKSPACE.bazel")));
+
     /**
      * The Bazel BUILD files BEF looks for.
      */
     public static final Collection<String> BUILD_FILE_NAMES =
-        Collections.unmodifiableSet(
-            new HashSet<>(
-                Arrays.asList(
-                    new String[]{"BUILD", "BUILD.bazel"})));
-    
-    public static final Collection<String> WORKSPACE_FILE_NAMES =
-            Collections.unmodifiableSet(
-                new HashSet<>(
-                    Arrays.asList(
-                        new String[]{"WORKSPACE", "WORKSPACE.bazel"})));
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList("BUILD", "BUILD.bazel")));
 
     /**
      * The targets configured by default for each imported Bazel package.
      */
     public static final Collection<String> DEFAULT_PACKAGE_TARGETS =
-        Collections.unmodifiableSet(
-            new HashSet<>(
-                Arrays.asList(
-                    // "*" includes test _deploy jars, which we currently need for our Eclipse JUnit
-                    // integration to work - unfortunately building those jars can be slow if there
-                    // are many test targets
-                    new String[]{"*"})));
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(BazelLabel.BAZEL_WILDCARD_ALLTARGETS_STAR)));
 
 }

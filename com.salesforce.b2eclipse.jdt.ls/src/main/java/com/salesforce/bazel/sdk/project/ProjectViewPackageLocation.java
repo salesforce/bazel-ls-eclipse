@@ -62,9 +62,9 @@ public class ProjectViewPackageLocation implements BazelPackageLocation {
             // somehow handle that workspace differently
             // Docs should indicate that a better practice is to keep the root dir free of an actual package
             // For now, assume that anything referring to the root dir is a proxy for 'whole repo'
-            return "//...";
+            return BazelLabel.BAZEL_ALL_REPO_PACKAGES;
         }
-        return "//" + packagePath;
+        return BazelLabel.BAZEL_ROOT_SLASHES + packagePath;
     }
 
     @Override
@@ -92,6 +92,12 @@ public class ProjectViewPackageLocation implements BazelPackageLocation {
 
     @Override
     public List<BazelPackageLocation> gatherChildren() {
+        // TODO hard to implement, this class is planned for a rework
+        return null;
+    }
+
+    @Override
+    public List<BazelPackageLocation> gatherChildren(String pathFilter) {
         // TODO hard to implement, this class is planned for a rework
         return null;
     }
