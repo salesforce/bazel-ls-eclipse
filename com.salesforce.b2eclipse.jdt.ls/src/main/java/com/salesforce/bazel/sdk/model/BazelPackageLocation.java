@@ -7,8 +7,6 @@ import java.util.List;
  * Minimal representation of a Bazel Package location on the file system.
  *
  * @see BazelLabel for a container that is also Bazel Target aware.
- * @author stoens
- * @since March 2020
  */
 public interface BazelPackageLocation {
 
@@ -53,6 +51,14 @@ public interface BazelPackageLocation {
      * Builds a list containing this node, plus all children (recursively)
      */
     List<BazelPackageLocation> gatherChildren();
+
+    /**
+     * Builds a list containing this node, plus all children (recursively). The pathFilter must be in the form
+     * "projects/libs/foo" and will limit the gathering to that path and descendents of that path.
+     * <p>
+     * TODO convert pathFilter to a BazelLabel; SDK Issue #37
+     */
+    List<BazelPackageLocation> gatherChildren(String pathFilter);
 
     /**
      * Returns the targets configured for this Bazel Package, at import time.

@@ -34,18 +34,16 @@ import com.salesforce.bazel.sdk.util.BazelConstants;
  * </pre>
  *
  * Exclusions are not supported yet.
- *
- * @author stoens
- * @since March 2020
  */
 public class ProjectView {
-    
-    private static final int INIT_INDENT = 3;
 
-    private static final String DIRECTORIES_SECTION = "directories:";
-    private static final String TARGETS_SECTION = "targets:";
-    private static final String DIRECTORIES_COMMENT = "# Add the directories you want added as source here";
-    private static final String INDENT = "  ";
+    static final int INIT_INDENT = 3;
+    static final String DIRECTORIES_SECTION = "directories:";
+    static final String TARGETS_SECTION = "targets:";
+    static final String DIRECTORIES_COMMENT = "# Add the directories you want added as source here";
+    static final String INDENT = "  ";
+    static final String SECTION_COLON = ":"; // section headers have a trailing colon
+    static final String COMMENT_PREFIX = "#";
 
     private final File rootWorkspaceDirectory;
     private final Map<BazelPackageLocation, Integer> packageToLineNumber;
@@ -59,9 +57,9 @@ public class ProjectView {
         Map<BazelPackageLocation, Integer> pl = new LinkedHashMap<>();
         Map<BazelLabel, Integer> tl = new LinkedHashMap<>();
         initSections(directories, targets, pl, tl);
-        this.packageToLineNumber = Collections.unmodifiableMap(pl);
+        packageToLineNumber = Collections.unmodifiableMap(pl);
         // this may get modified, so the map has to be mutable
-        this.targetToLineNumber = tl;
+        targetToLineNumber = tl;
     }
 
     /**
@@ -72,9 +70,9 @@ public class ProjectView {
         Map<BazelPackageLocation, Integer> pl = new LinkedHashMap<>();
         Map<BazelLabel, Integer> tl = new LinkedHashMap<>();
         parseSections(content, rootWorkspaceDirectory, pl, tl);
-        this.packageToLineNumber = Collections.unmodifiableMap(pl);
+        packageToLineNumber = Collections.unmodifiableMap(pl);
         // this may get modified, so the map has to be mutable
-        this.targetToLineNumber = tl;
+        targetToLineNumber = tl;
     }
 
     /**
@@ -91,7 +89,7 @@ public class ProjectView {
             sb.append(System.lineSeparator());
             sb.append(TARGETS_SECTION).append(System.lineSeparator());
             for (BazelLabel target : targetToLineNumber.keySet()) {
-                sb.append(INDENT).append(target.getLabel()).append(System.lineSeparator());
+                sb.append(INDENT).append(target.getLabelPath()).append(System.lineSeparator());
             }
         }
         return sb.toString();
@@ -130,8 +128,7 @@ public class ProjectView {
     }
 
     /**
-     * Adds the default targets for each directory that does not have one (or more) entries
-     * in the "targets:" section.
+     * Adds the default targets for each directory that does not have one (or more) entries in the "targets:" section.
      */
     public void addDefaultTargets() {
         List<BazelLabel> defaultLabels = new ArrayList<>();
@@ -175,7 +172,7 @@ public class ProjectView {
             return false;
         }
         ProjectView o = (ProjectView) other;
-        return packageToLineNumber.keySet().equals(o.packageToLineNumber.keySet()) 
+        return packageToLineNumber.keySet().equals(o.packageToLineNumber.keySet())
                 && targetToLineNumber.keySet().equals(o.targetToLineNumber.keySet());
     }
 
@@ -194,8 +191,7 @@ public class ProjectView {
     }
 
     private static void initSections(List<BazelPackageLocation> packages, List<BazelLabel> targets,
-            Map<BazelPackageLocation, Integer> packageToLineNumber,
-            Map<BazelLabel, Integer> targetToLineNumber) {
+            Map<BazelPackageLocation, Integer> packageToLineNumber, Map<BazelLabel, Integer> targetToLineNumber) {
         // directories:
         //   # comment
         // therefore:
@@ -213,8 +209,7 @@ public class ProjectView {
     }
 
     private static void parseSections(String content, File rootWorkspaceDirectory,
-            Map<BazelPackageLocation, Integer> packageToLineNumber,
-            Map<BazelLabel, Integer> targetToLineNumber) {
+            Map<BazelPackageLocation, Integer> packageToLineNumber, Map<BazelLabel, Integer> targetToLineNumber) {
         boolean withinDirectoriesSection = false;
         boolean withinTargetsSection = false;
         int lineNumber = 0;
@@ -224,7 +219,7 @@ public class ProjectView {
             if (line.isEmpty()) {
                 continue;
             }
-            if (line.startsWith("#")) {
+            if (line.startsWith(COMMENT_PREFIX)) {
                 continue;
             }
             if (line.equals(DIRECTORIES_SECTION)) {
@@ -235,7 +230,7 @@ public class ProjectView {
                 withinDirectoriesSection = false;
                 withinTargetsSection = true;
                 continue;
-            } else if (line.endsWith(":")) {
+            } else if (line.endsWith(SECTION_COLON)) {
                 // some other yet unknown section
                 withinDirectoriesSection = false;
                 withinTargetsSection = false;
@@ -248,6 +243,5 @@ public class ProjectView {
             }
         }
     }
-
 
 }

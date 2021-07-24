@@ -20,7 +20,7 @@
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
@@ -57,7 +57,10 @@ import com.salesforce.b2eclipse.BazelJdtPlugin;
 import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.config.BazelEclipseProjectFactory;
 import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
+import com.salesforce.bazel.sdk.init.BazelJavaSDKInit;
+import com.salesforce.bazel.sdk.init.JvmRuleInit;
 import com.salesforce.bazel.sdk.model.BazelPackageInfo;
+import com.salesforce.bazel.sdk.model.BazelPackageLocation;
 import com.salesforce.bazel.sdk.project.ProjectView;
 import com.salesforce.bazel.sdk.workspace.BazelWorkspaceScanner;
 
@@ -87,8 +90,13 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
     @Override
     public void importToWorkspace(IProgressMonitor monitor) throws OperationCanceledException, CoreException {
         try {
+            // TODO the SDK now has pluggable lang support (alas, java is the only option now)
+            // which means at some point you need to initialize the Java features of the SDK
+            BazelJavaSDKInit.initialize("Bazel Language Server", "bzl_ls");
+            JvmRuleInit.initialize();
+
             BazelWorkspaceScanner workspaceScanner = new BazelWorkspaceScanner();
-            BazelPackageInfo workspaceRootPackage = workspaceScanner.getPackages(rootFolder);
+            BazelPackageInfo workspaceRootPackage = workspaceScanner.getPackages(rootFolder.getAbsolutePath());
 
             if (workspaceRootPackage == null) {
                 throw new IllegalArgumentException();
@@ -104,7 +112,7 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
                 ProjectView projectView = new ProjectView(rootFolder, readFile(targetsFile.getPath()));
 
                 Set<String> projectViewPaths = projectView.getDirectories().stream()
-                        .map(p -> p.getBazelPackageFSRelativePath()).collect(Collectors.toSet());
+                        .map(BazelPackageLocation::getBazelPackageFSRelativePath).collect(Collectors.toSet());
 
                 bazelPackagesToImport = allBazelPackages.stream()
                         .filter(bpi -> projectViewPaths.contains(getBazelPackageRelativePath(bpi)))
@@ -124,7 +132,7 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
     private String getBazelPackageRelativePath(BazelPackageInfo bpi) {
         return SystemUtils.IS_OS_WINDOWS ? //
                 bpi.getBazelPackageFSRelativePath().replaceAll("\\\\", "/") : //
-                bpi.getBazelPackageFSRelativePath();
+                    bpi.getBazelPackageFSRelativePath();
     }
 
     @Override
@@ -154,7 +162,7 @@ public final class BazelProjectImporter extends AbstractProjectImporter {
     private boolean checkRootFolder() {
         return rootFolder != null && rootFolder.exists() && rootFolder.isDirectory()
                 && (new File(rootFolder, BazelBuildSupport.WORKSPACE_FILE_NAME).exists() || new File(rootFolder,
-                        BazelBuildSupport.WORKSPACE_FILE_NAME + BazelBuildSupport.BAZEL_FILE_NAME_SUFIX).exists());
+                    BazelBuildSupport.WORKSPACE_FILE_NAME + BazelBuildSupport.BAZEL_FILE_NAME_SUFIX).exists());
     }
 
     private boolean checkIsBazelImportEnabled(final B2EPreferncesManager preferencesManager) {

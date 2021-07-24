@@ -86,13 +86,13 @@ public interface WorkProgressMonitor {
 
     WorkProgressMonitor NOOP = new WorkProgressMonitor() {
         @Override
-        public void worked(int work) { }
+        public void worked(int work) {}
 
         @Override
-        public void subTask(String name) { }
+        public void subTask(String name) {}
 
         @Override
-        public void setCanceled(boolean value) { }
+        public void setCanceled(boolean value) {}
 
         @Override
         public boolean isCanceled() {
@@ -100,9 +100,9 @@ public interface WorkProgressMonitor {
         }
 
         @Override
-        public void done() { }
+        public void done() {}
 
         @Override
-        public void beginTask(String name, int totalWork) { }
+        public void beginTask(String name, int totalWork) {}
     };
 }

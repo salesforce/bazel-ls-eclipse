@@ -36,7 +36,9 @@ package com.salesforce.bazel.sdk.workspace;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+import java.util.TreeSet;
 
+import com.salesforce.bazel.sdk.logging.LogHelper;
 import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 
 /**
@@ -45,6 +47,7 @@ import com.salesforce.bazel.sdk.model.BazelPackageInfo;
  * subtree below that.
  */
 public class BazelWorkspaceScanner {
+    private static final LogHelper LOG = LogHelper.log(BazelWorkspaceScanner.class);
 
     private static final int MEANINGFUL_DIR_NAME_THRESHOLD = 3;
 
@@ -52,12 +55,15 @@ public class BazelWorkspaceScanner {
         // TODO pull the workspace name out of the WORKSPACE file, until then use the directory name (e.g. bazel-demo)
         String bazelWorkspaceName = "workspace";
         if (bazelWorkspaceRootDirectory != null) {
+            bazelWorkspaceName = bazelWorkspaceRootDirectory;
+
             int lastSlash = bazelWorkspaceRootDirectory.lastIndexOf(File.separator);
-            if (lastSlash >= 0 && (bazelWorkspaceRootDirectory.length() - lastSlash) > MEANINGFUL_DIR_NAME_THRESHOLD) {
-                // add the directory name to the label, if it is meaningful (>3 chars)
-                bazelWorkspaceName = bazelWorkspaceRootDirectory.substring(lastSlash + 1);
-            } else {
-                bazelWorkspaceName = bazelWorkspaceRootDirectory;
+            if (lastSlash >= 0) {
+                int dirNameLength = bazelWorkspaceRootDirectory.length() - lastSlash;
+                if (dirNameLength > MEANINGFUL_DIR_NAME_THRESHOLD) {
+                    // add the directory name to the label, if it is meaningful (>3 chars)
+                    bazelWorkspaceName = bazelWorkspaceRootDirectory.substring(lastSlash + 1);
+                }
             }
         }
         return bazelWorkspaceName;
@@ -78,7 +84,7 @@ public class BazelWorkspaceScanner {
      * @return the workspace root BazelPackageInfo
      */
     public BazelPackageInfo getPackages(String rootDirectory) throws IOException {
-        if (rootDirectory == null || rootDirectory.isEmpty()) {
+        if ((rootDirectory == null) || rootDirectory.isEmpty()) {
             // this is the initialization state of the wizard
             return null;
         }
@@ -86,10 +92,10 @@ public class BazelWorkspaceScanner {
         try {
             workspaceRootDir = workspaceRootDir.getCanonicalFile();
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            LOG.error("error locating path [{}] on the file system", ioe, rootDirectory);
             return null;
         }
-        return getPackages(workspaceRootDir);
+        return getPackages(workspaceRootDir, null);
     }
 
     /**
@@ -104,10 +110,13 @@ public class BazelWorkspaceScanner {
      *
      * @param rootDirectory
      *            the directory to scan, which must be the root node of a Bazel workspace
+     * @param excludes
+     *            paths to ignore during the scan, these are typically packages with problematic builds (e.g. require
+     *            enormous docker base image to be downloaded)
      * @return the workspace root BazelPackageInfo
      */
-    public BazelPackageInfo getPackages(File rootDirectoryFile) throws IOException {
-        if (rootDirectoryFile == null || !rootDirectoryFile.exists() || !rootDirectoryFile.isDirectory()) {
+    public BazelPackageInfo getPackages(File rootDirectoryFile, Set<String> excludes) throws IOException {
+        if ((rootDirectoryFile == null) || !rootDirectoryFile.exists() || !rootDirectoryFile.isDirectory()) {
             // this is the initialization state of the wizard
             return null;
         }
@@ -117,9 +126,9 @@ public class BazelWorkspaceScanner {
         // TODO the correct way to do this is put the scan on another thread, and allow it to update the progress monitor.
         // Do it on-thread for now as it is easiest.
 
+        Set<File> projects = new TreeSet<>();
         BazelPackageFinder packageFinder = new BazelPackageFinder();
-        Set<File> projects = packageFinder.findBuildFileLocations(rootDirectoryFile);
-
+        packageFinder.findBuildFileLocations(rootDirectoryFile, null, projects, 0);
 
         int sizeOfWorkspacePath = rootDirectory.length();
         for (File project : projects) {
@@ -129,9 +138,11 @@ public class BazelWorkspaceScanner {
                 // root path, already created the root node
                 continue;
             }
-
-            // TODO ooh, this bazel package path manipulation seems error prone
             String relativePath = projectPath.substring(sizeOfWorkspacePath + 1);
+            if ((excludes != null) && excludes.contains(relativePath)) {
+                LOG.debug("Ignoring path while scanning for packages: [{}]", relativePath);
+                continue;
+            }
 
             // instantiate the project info object, which will automatically hook itself to the appropriate parents
             new BazelPackageInfo(workspace, relativePath);
