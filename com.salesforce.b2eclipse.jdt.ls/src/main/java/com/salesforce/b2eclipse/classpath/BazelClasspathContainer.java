@@ -110,8 +110,8 @@ public class BazelClasspathContainer implements IClasspathContainer {
             BazelCommandLineToolConfigurationException {
         this.eclipseProject = eclipseProject;
         this.eclipseJavaProject = eclipseJavaProject;
-        eclipseProjectName = eclipseProject.getName();
-        eclipseProjectPath = eclipseProject.getLocation();
+        this.eclipseProjectName = eclipseProject.getName();
+        this.eclipseProjectPath = eclipseProject.getLocation();
 
         instances.add(this);
     }
@@ -206,15 +206,15 @@ public class BazelClasspathContainer implements IClasspathContainer {
          */
         synchronized (this) {
 
-            if (cachedEntries != null) {
+            if (this.cachedEntries != null) {
                 long now = System.currentTimeMillis();
-                if ((now - cachePutTimeMillis) > CLASSPATH_CACHE_TIMEOUT_MS) {
-                    cachedEntries = null;
+                if ((now - this.cachePutTimeMillis) > CLASSPATH_CACHE_TIMEOUT_MS) {
+                    this.cachedEntries = null;
                 } else {
                     foundCachedEntries = true;
                     if (!BazelEclipseProjectFactory.getImportInProgress().get()) {
                         BazelJdtPlugin.logInfo("  Using cached classpath for project " + eclipseProjectName);
-                        return cachedEntries;
+                        return this.cachedEntries;
                     }
                     // classpath computation is iterative right now during import, each project's
                     // classpath is computed many times.
@@ -230,9 +230,8 @@ public class BazelClasspathContainer implements IClasspathContainer {
             }
 
             WorkProgressMonitor progressMonitor = new EclipseWorkProgressMonitor(null);
-            if (eclipseJavaProject.getElementName().startsWith(BazelNature.BAZELWORKSPACE_PROJECT_BASENAME)) {
-                // this project is the artificial container to hold Bazel workspace scoped
-                // assets (e.g. the WORKSPACE file)
+            if (this.eclipseJavaProject.getElementName().startsWith(BazelNature.BAZELWORKSPACE_PROJECT_BASENAME)) {
+                // this project is the artificial container to hold Bazel workspace scoped assets (e.g. the WORKSPACE file)
                 return new IClasspathEntry[] {};
             }
 
@@ -313,8 +312,8 @@ public class BazelClasspathContainer implements IClasspathContainer {
             }
 
             // cache the entries
-            cachePutTimeMillis = System.currentTimeMillis();
-            cachedEntries = classpathEntries.toArray(new IClasspathEntry[] {});
+            this.cachePutTimeMillis = System.currentTimeMillis();
+            this.cachedEntries = classpathEntries.toArray(new IClasspathEntry[] {});
             BazelJdtPlugin.logInfo("Cached the classpath for project " + eclipseProjectName);
         }
         return cachedEntries;
@@ -346,11 +345,11 @@ public class BazelClasspathContainer implements IClasspathContainer {
                 bazelCommandManager.getWorkspaceCommandRunner(bazelWorkspaceRootDirectory);
 
         if (bazelWorkspaceCmdRunner != null) {
-            if (eclipseProject.getName().startsWith(BazelNature.BAZELWORKSPACE_PROJECT_BASENAME)) {
+            if (this.eclipseProject.getName().startsWith(BazelNature.BAZELWORKSPACE_PROJECT_BASENAME)) {
                 return true;
             }
-            List<String> targets =
-                    BazelEclipseProjectSupport.getBazelTargetsForEclipseProject(eclipseProject.getProject(), false);
+            List<String> targets = BazelEclipseProjectSupport
+                    .getBazelTargetsForEclipseProject(this.eclipseProject.getProject(), false);
             List<BazelMarkerDetails> details =
                     bazelWorkspaceCmdRunner.runBazelBuild(targets, null, Collections.emptyList());
             return details.isEmpty();
@@ -378,8 +377,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
     private IJavaProject getSourceProjectForSourcePath(BazelWorkspaceCommandRunner bazelCommandRunner,
             String sourcePath) {
 
-        // TODO this code is messy, why get workspace root two different ways, and is
-        // there a better way to handle source paths?
+        // TODO this code is messy, why get workspace root two different ways, and is there a better way to handle source paths?
         ResourceHelper resourceHelper = BazelJdtPlugin.getResourceHelper();
         IWorkspaceRoot eclipseWorkspaceRoot = resourceHelper.getEclipseWorkspaceRoot();
         IWorkspace eclipseWorkspace = resourceHelper.getEclipseWorkspace();
@@ -468,8 +466,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
             path = Paths.get(bazelExecRoot.toString(), file);
         }
 
-        // We have had issues with Eclipse complaining about symlinks in the Bazel
-        // output directories not being real,
+        // We have had issues with Eclipse complaining about symlinks in the Bazel output directories not being real,
         // so we resolve them before handing them back to Eclipse.
         if (Files.isSymbolicLink(path)) {
             try {
