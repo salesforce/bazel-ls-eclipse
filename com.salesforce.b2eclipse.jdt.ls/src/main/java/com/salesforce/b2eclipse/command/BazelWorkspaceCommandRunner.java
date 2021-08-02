@@ -274,8 +274,7 @@ public class BazelWorkspaceCommandRunner {
             List<String> outputLines = bazelCommandExecutor.runBazelAndGetOutputLines(bazelWorkspaceRootDirectory, null,
                 argBuilder.build(), (t) -> t);
             outputLines = BazelCommandExecutor.stripInfoLines(outputLines);
-            File dir = new File(String.join("", outputLines));
-            return dir;
+            return new File(String.join("", outputLines));
         } catch (Exception exc) {
             throw new IllegalStateException(exc);
         }
@@ -519,7 +518,7 @@ public class BazelWorkspaceCommandRunner {
         if (SystemUtils.IS_OS_LINUX) {
             return "linux";
         }
-        return null;
+        return "";
     }
 
     // HELPERS
