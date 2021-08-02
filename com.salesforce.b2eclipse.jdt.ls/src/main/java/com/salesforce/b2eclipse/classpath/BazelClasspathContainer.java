@@ -40,6 +40,7 @@ import static com.salesforce.b2eclipse.BazelJdtPlugin.getBazelWorkspaceRootDirec
 import static com.salesforce.b2eclipse.BazelJdtPlugin.getJavaCoreHelper;
 import static com.salesforce.b2eclipse.BazelJdtPlugin.getResourceHelper;
 import static com.salesforce.b2eclipse.BazelJdtPlugin.hasBazelWorkspaceRootDirectory;
+import static org.eclipse.core.runtime.Path.fromOSString;
 
 import java.io.File;
 import java.io.IOException;
@@ -151,8 +152,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
         if (!runnerJar.exists()) {
             return null;
         }
-        return getJavaCoreHelper().newLibraryEntry(org.eclipse.core.runtime.Path.fromOSString(
-            runnerJar.toString()), null, null);
+        return getJavaCoreHelper().newLibraryEntry(fromOSString(runnerJar.toString()), null, null);
     }
 
     private IClasspathEntry jarsToClasspathEntry(BazelWorkspaceCommandRunner bazelCommandRunner,
