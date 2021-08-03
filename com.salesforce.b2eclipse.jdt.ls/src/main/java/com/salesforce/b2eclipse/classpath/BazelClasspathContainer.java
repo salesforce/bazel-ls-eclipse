@@ -50,6 +50,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -97,13 +98,7 @@ public class BazelClasspathContainer implements IClasspathContainer {
     public static final String CONTAINER_NAME = "com.salesforce.b2eclipse.BAZEL_CONTAINER";
     private static final String IMPLICIT_RUNNER_PATH = "external/bazel_tools/tools/jdk/_ijar/TestRunner";
     private static final String ASPECT_PACKAGE_KIND_JAVA_IMPORT = "java_import";
-    private static final List<String> EXCLUDE_FROM_CLASSPATH_ASPECTS = new ArrayList<String>();
-    static {
-        EXCLUDE_FROM_CLASSPATH_ASPECTS.add("java_library");
-        EXCLUDE_FROM_CLASSPATH_ASPECTS.add("java_binary");
-        EXCLUDE_FROM_CLASSPATH_ASPECTS.add("java_test");
-    }
-
+    private static final List<String> EXCLUDE_FROM_CLASSPATH_ASPECTS = Arrays.asList("java_library", "java_binary", "java_test");
 
     // TODO make classpath cache timeout configurable
     private static final long CLASSPATH_CACHE_TIMEOUT_MS = 30000;
