@@ -72,7 +72,6 @@ import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.BazelMarkerDetails;
 import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -96,7 +95,15 @@ import org.osgi.service.prefs.BackingStoreException;
  */
 public class BazelClasspathContainer implements IClasspathContainer {
     public static final String CONTAINER_NAME = "com.salesforce.b2eclipse.BAZEL_CONTAINER";
-    private static final String IMPLICIT_RUNNER = "external/bazel_tools/tools/jdk/_ijar/TestRunner";
+    private static final String IMPLICIT_RUNNER_PATH = "external/bazel_tools/tools/jdk/_ijar/TestRunner";
+    private static final String ASPECT_PACKAGE_KIND_JAVA_IMPORT = "java_import";
+    private static final List<String> EXCLUDE_FROM_CLASSPATH_ASPECTS = new ArrayList<String>();
+    static {
+        EXCLUDE_FROM_CLASSPATH_ASPECTS.add("java_library");
+        EXCLUDE_FROM_CLASSPATH_ASPECTS.add("java_binary");
+        EXCLUDE_FROM_CLASSPATH_ASPECTS.add("java_test");
+    }
+
 
     // TODO make classpath cache timeout configurable
     private static final long CLASSPATH_CACHE_TIMEOUT_MS = 30000;
@@ -129,13 +136,13 @@ public class BazelClasspathContainer implements IClasspathContainer {
         }
     }
 
-    private IClasspathEntry computeFilePathForRunnerJar(WorkProgressMonitor progressMonitor) {
+    private IClasspathEntry getRunnerJarClasspathEntry(WorkProgressMonitor progressMonitor) {
         final String runnerJarName = "Runner_deploy-ijar.jar";
 
         BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner = getBazelCommandManager()
                 .getWorkspaceCommandRunner(getBazelWorkspaceRootDirectory());
         File bazelBinDir = bazelWorkspaceCmdRunner.getBazelWorkspaceBin(progressMonitor);
-        File testRunnerDir = new File(bazelBinDir, IMPLICIT_RUNNER.replaceAll("/", File.separator));
+        File testRunnerDir = new File(bazelBinDir, IMPLICIT_RUNNER_PATH);
 
         if (!testRunnerDir.exists()) {
             return null;
@@ -175,14 +182,13 @@ public class BazelClasspathContainer implements IClasspathContainer {
                 .getWorkspaceCommandRunner(getBazelWorkspaceRootDirectory());
         // filter-out main modules and
         List<IClasspathEntry> classpathEntries = aspectPackageInfos.stream() //
-                .filter((AspectPackageInfo info) -> ObjectUtils.notEqual("java_library", info.getKind())
-                        && ObjectUtils.notEqual("java_binary", info.getKind())
-                        && ObjectUtils.notEqual("java_test", info.getKind()))//
+                .filter((AspectPackageInfo info) -> ! EXCLUDE_FROM_CLASSPATH_ASPECTS.contains(info.getKind()))//
                 .map(AspectPackageInfo::getJars) //
                 .flatMap(List::stream) //
                 .map((AspectOutputJars jars) -> jarsToClasspathEntry(bazelWorkspaceCmdRunner, progressMonitor, jars)) //
                 .filter(Objects::nonNull) //
                 .collect(Collectors.toList()); //
+
         aspectPackageInfos.stream()//
                 .map(AspectPackageInfo::getGeneratedJars) //
                 .flatMap(List::stream) //
@@ -296,10 +302,12 @@ public class BazelClasspathContainer implements IClasspathContainer {
                 classpathEntries.addAll(additionalClasspath);
                 classpathEntries.addAll(projectClasspathDependencies);
                 boolean isRunner = packageInfos.values().parallelStream()
-                        .anyMatch((AspectPackageInfo packageInfo) -> (StringUtils.isNotBlank(packageInfo.getMainClass())
-                                || "java_import".equalsIgnoreCase(packageInfo.getKind())));
+                        .anyMatch((AspectPackageInfo packageInfo) -> {
+                            return (StringUtils.isNotBlank(packageInfo.getMainClass())
+                                    || ASPECT_PACKAGE_KIND_JAVA_IMPORT.equalsIgnoreCase(packageInfo.getKind()));
+                        });
                 if (isRunner) {
-                    IClasspathEntry runnerJar = computeFilePathForRunnerJar(progressMonitor);
+                    IClasspathEntry runnerJar = getRunnerJarClasspathEntry(progressMonitor);
                     if (Objects.nonNull(runnerJar)) {
                         classpathEntries.add(runnerJar);
                     }
