@@ -35,14 +35,21 @@
  */
 package com.salesforce.b2eclipse.config;
 
+import static com.salesforce.b2eclipse.BazelJdtPlugin.getBazelCommandManager;
+import static com.salesforce.b2eclipse.BazelJdtPlugin.getBazelWorkspaceRootDirectory;
+import static com.salesforce.b2eclipse.BazelJdtPlugin.getResourceHelper;
+
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -54,6 +61,7 @@ import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
 import com.salesforce.b2eclipse.builder.BazelBuilder;
 import com.salesforce.b2eclipse.classpath.BazelClasspathContainer;
 import com.salesforce.b2eclipse.classpath.BazelClasspathContainerInitializer;
+import com.salesforce.b2eclipse.command.BazelCommandLineToolConfigurationException;
 import com.salesforce.b2eclipse.command.BazelCommandManager;
 import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
 import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
@@ -61,6 +69,8 @@ import com.salesforce.b2eclipse.model.AspectPackageInfo;
 import com.salesforce.b2eclipse.model.AspectPackageInfos;
 import com.salesforce.b2eclipse.model.BazelLabel;
 import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
+import com.salesforce.b2eclipse.runtime.impl.EclipseWorkProgressMonitor;
+import com.salesforce.b2eclipse.util.ClasspathUtils;
 import com.salesforce.bazel.sdk.model.BazelPackageInfo;
 import com.salesforce.bazel.sdk.util.BazelConstants;
 
@@ -72,10 +82,13 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -118,8 +131,9 @@ public final class BazelEclipseProjectFactory {
     // add the directory name to the label, if it is meaningful (>3 chars)
     private static final int MIN_NUMBER_OF_CHARACTER_FOR_NAME = 3;
 
-    private static final String[] BUILD_FILE_NAMES = ArrayUtils.addAll(BazelConstants.BUILD_FILE_NAMES.toArray(new String[0]),
-        BazelConstants.WORKSPACE_FILE_NAMES.toArray(new String[0]));
+    private static final String[] BUILD_FILE_NAMES =
+            ArrayUtils.addAll(BazelConstants.BUILD_FILE_NAMES.toArray(new String[0]),
+                BazelConstants.WORKSPACE_FILE_NAMES.toArray(new String[0]));
 
     private BazelEclipseProjectFactory() {
 
@@ -166,10 +180,10 @@ public final class BazelEclipseProjectFactory {
                 + "]. This may take some time, please be patient.");
 
         // create the Eclipse project for the Bazel workspace (directory that contains the WORKSPACE file)
-        IProject rootEclipseProject = BazelEclipseProjectFactory.createEclipseProjectForBazelPackage(
-            eclipseProjectNameForBazelWorkspace, eclipseProjectLocation, bazelWorkspaceRoot, "",
-            Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-            JAVA_LANG_VERSION);
+        IProject rootEclipseProject =
+                BazelEclipseProjectFactory.createEclipseProjectForBazelPackage(eclipseProjectNameForBazelWorkspace,
+                    eclipseProjectLocation, bazelWorkspaceRoot, "", Collections.emptyList(), Collections.emptyList(),
+                    Collections.emptyList(), Collections.emptyList(), JAVA_LANG_VERSION);
         if (rootEclipseProject == null) {
             throw new RuntimeException(
                     "Could not create the root workspace project. Look back in the log for more details.");
@@ -225,7 +239,6 @@ public final class BazelEclipseProjectFactory {
         IProject eclipseProject = createEclipseProjectForBazelPackage(eclipseProjectNameForBazelPackage,
             eclipseProjectLocation, bazelWorkspaceRoot, packageInfo.getBazelPackageFSRelativePath(), mainSrcPaths,
             testSrcPaths, generatedSources, packageBazelTargets, JAVA_LANG_VERSION);
-
         if (eclipseProject != null) {
             importedProjectsList.add(eclipseProject);
         }
@@ -276,7 +289,8 @@ public final class BazelEclipseProjectFactory {
             // was missing. This file contains important information about the project.
             // A new project description file has been created, but some information about
             // the project may have been lost."
-            setBuildersOnEclipseProject(eclipseProject);
+            Set<IProject> dependencies = calculateProjectReferences(eclipseProject);
+            setProjectDescription(eclipseProject, dependencies);
         } catch (CoreException e) {
             BazelJdtPlugin.logException(e.getMessage(), e);
         } catch (BackingStoreException e) {
@@ -324,11 +338,14 @@ public final class BazelEclipseProjectFactory {
         eclipseProjectBazelPrefs.flush();
     }
 
-    private static void setBuildersOnEclipseProject(IProject eclipseProject) throws CoreException {
+    private static void setProjectDescription(IProject eclipseProject, Set<IProject> dependencies) throws CoreException {
         IProjectDescription eclipseProjectDescription = eclipseProject.getDescription();
         final ICommand buildCommand = eclipseProjectDescription.newCommand();
+        
         buildCommand.setBuilderName(BazelBuilder.BUILDER_NAME);
         eclipseProjectDescription.setBuildSpec(new ICommand[] {buildCommand});
+        eclipseProjectDescription.setReferencedProjects(dependencies.toArray(IProject[]::new));                
+
         eclipseProject.setDescription(eclipseProjectDescription, null);
     }
 
@@ -443,12 +460,12 @@ public final class BazelEclipseProjectFactory {
                     BazelJdtPlugin.getJavaCoreHelper().newSourceEntry(sourceDir, null, false);
             classpathEntries.add(sourceClasspathEntry);
         }
-        
+
         IPath testBinPath = new Path(eclipseProject.getPath().toOSString() + TEST_BIN_FOLDER);
         for (String path : testSrcPaths) {
             IPath realSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
-            IFolder projectSourceFolder = createFoldersForRelativePackagePath(eclipseProject.getProject(),
-                bazelPackageFSPath, path, false);
+            IFolder projectSourceFolder =
+                    createFoldersForRelativePackagePath(eclipseProject.getProject(), bazelPackageFSPath, path, false);
             try {
                 resourceHelper.createFolderLink(projectSourceFolder, realSourceDir, IResource.NONE, null);
             } catch (IllegalArgumentException e) {
@@ -459,10 +476,10 @@ public final class BazelEclipseProjectFactory {
                     BazelJdtPlugin.getJavaCoreHelper().newSourceEntry(sourceDir, testBinPath, true);
             classpathEntries.add(sourceClasspathEntry);
         }
-        
+
         buildBinLinkFolder(eclipseProject);
         buildTestBinLinkFolder(eclipseProject);
-        
+
         for (String path : generatedSources) {
             IPath generatedSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
             if (generatedSourceDir.toFile().exists() && generatedSourceDir.toFile().isDirectory()) {
@@ -692,4 +709,74 @@ public final class BazelEclipseProjectFactory {
         return importInProgress;
     }
 
+    private static Set<IProject> calculateProjectReferences(IProject eclipseProject) {
+        Set<IProject> projectDependencies = new HashSet<IProject>();
+        try {
+            if (eclipseProject.getName().startsWith(BazelNature.BAZELWORKSPACE_PROJECT_BASENAME)) {
+                return projectDependencies;
+            }
+            BazelWorkspaceCommandRunner bazelWorkspaceCmdRunner =
+                    getBazelCommandManager().getWorkspaceCommandRunner(getBazelWorkspaceRootDirectory());
+            List<String> bazelTargetsForProject =
+                    BazelEclipseProjectSupport.getBazelTargetsForEclipseProject(eclipseProject, false);
+
+            Map<String, AspectPackageInfo> packageInfos =
+                    bazelWorkspaceCmdRunner.getAspectPackageInfos(eclipseProject.getName(), bazelTargetsForProject,
+                        new EclipseWorkProgressMonitor(null), "calculateProjectReferences");
+
+
+            for (AspectPackageInfo packageInfo : packageInfos.values()) {
+                IJavaProject otherProject = ClasspathUtils.getSourceProjectForSourcePaths(bazelWorkspaceCmdRunner,
+                    packageInfo.getSources());
+
+                if (otherProject != null
+                        && eclipseProject.getProject().getFullPath().equals(otherProject.getProject().getFullPath())) {
+                    continue;
+                } else if (otherProject != null) {
+                    // now make a project reference between this project and the other project; this
+                    // allows for features like
+                    // code refactoring across projects to work correctly
+                    projectDependencies.add(otherProject.getProject());
+                }
+            }
+
+        } catch (BazelCommandLineToolConfigurationException e) {
+            BazelJdtPlugin.logError("Bazel not found: " + e.getMessage());
+        } catch (IOException | InterruptedException e) {
+            BazelJdtPlugin.logException(
+                "Unable to compute classpath containers entries for project " + eclipseProject.getName(), e);
+        }
+        return projectDependencies;
+    }
+
+//    /**
+//     * Creates a project references between this project and that project. The direction of reference goes from
+//     * this->that References are used by Eclipse code refactoring among other things.
+//     */
+//    private static void addProjectReferences(IProject thisProject, Set<IProject> dependencies) {
+//        if (dependencies != null && dependencies.size() > 0) {
+//            IProjectDescription projectDescription = getResourceHelper().getProjectDescription(thisProject);
+//            IProject[] existingDependencies = projectDescription.getReferencedProjects();
+//            int oldSize = existingDependencies.length;
+//            Collections.addAll(dependencies, existingDependencies);
+//            if (dependencies.size() > oldSize) {
+//                IProject[] dependenciesArray = dependencies.toArray(IProject[]::new);
+//                projectDescription.setReferencedProjects(dependenciesArray);
+//
+//                WorkspaceJob job = new WorkspaceJob("set project dependencies for " + thisProject.getName()) {
+//                    @Override
+//                    public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+//                        try {
+//                            thisProject.setDescription(projectDescription, null);
+//                        } catch (CoreException ce) {
+//                            BazelJdtPlugin.logException("set project dependencies for " + thisProject.getName(), ce);
+//                        }
+//                        return Status.OK_STATUS;
+//                    }
+//                };
+//                job.schedule();
+//            }
+//
+//        }
+//    }
 }
