@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Assert;
@@ -35,6 +36,8 @@ public class BazelBuildSupport implements IBuildSupport {
     private static final List<String> WATCH_FILE_PATTERNS = Arrays.asList("**/" + BUILD_FILE_NAME,
         "**/" + WORKSPACE_FILE_NAME, "**/*" + BAZELPROJECT_FILE_NAME_SUFIX, "**/*" + BAZEL_FILE_NAME_SUFIX);
     private static final String BUILD_TOOL_NAME = "Bazel";
+    private static final List<String> EXCLUDED_FILE_PATTERN = Arrays.asList(
+        StringUtils.join("**", BazelJdtPlugin.getBazelWorkspaceRootDirectory().getAbsolutePath(), "/bazel-*/**"));
 
     @Override
     public boolean applies(IProject project) {
@@ -103,6 +106,11 @@ public class BazelBuildSupport implements IBuildSupport {
     @Override
     public List<String> getWatchPatterns() {
         return WATCH_FILE_PATTERNS;
+    }
+
+    @Override
+    public List<String> getExcludedFilePatterns() {
+        return EXCLUDED_FILE_PATTERN;
     }
 
     @Override
