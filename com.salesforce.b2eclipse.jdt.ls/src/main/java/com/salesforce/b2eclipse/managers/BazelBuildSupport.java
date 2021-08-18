@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IProject;
@@ -36,8 +37,9 @@ public class BazelBuildSupport implements IBuildSupport {
     private static final List<String> WATCH_FILE_PATTERNS = Arrays.asList("**/" + BUILD_FILE_NAME,
         "**/" + WORKSPACE_FILE_NAME, "**/*" + BAZELPROJECT_FILE_NAME_SUFIX, "**/*" + BAZEL_FILE_NAME_SUFIX);
     private static final String BUILD_TOOL_NAME = "Bazel";
-    private static final List<String> EXCLUDED_FILE_PATTERN = Arrays.asList(
-        StringUtils.join("**", BazelJdtPlugin.getBazelWorkspaceRootDirectory().getAbsolutePath(), "/bazel-*/**"));
+    private static final List<String> EXCLUDED_FILE_PATTERN = Arrays.asList("/bazel-*/**");
+
+    private static List<String> calculatedExcludedFilePatterns = new ArrayList<>();
 
     @Override
     public boolean applies(IProject project) {
@@ -90,11 +92,11 @@ public class BazelBuildSupport implements IBuildSupport {
 
     @Override
     public boolean isBuildFile(IResource resource) {
-                return resource != null && resource.getProject() != null && resource.getType() == IResource.FILE
-                        && (resource.getName().endsWith(BAZELPROJECT_FILE_NAME_SUFIX)
-                                || resource.getName().endsWith(BAZEL_FILE_NAME_SUFIX)
-                                || resource.getName().equals(BUILD_FILE_NAME)
-                                || resource.getName().equals(WORKSPACE_FILE_NAME));
+        return resource != null && resource.getProject() != null && resource.getType() == IResource.FILE
+                && (resource.getName().endsWith(BAZELPROJECT_FILE_NAME_SUFIX)
+                        || resource.getName().endsWith(BAZEL_FILE_NAME_SUFIX)
+                        || resource.getName().equals(BUILD_FILE_NAME)
+                        || resource.getName().equals(WORKSPACE_FILE_NAME));
     }
 
     @Override
@@ -110,7 +112,7 @@ public class BazelBuildSupport implements IBuildSupport {
 
     @Override
     public List<String> getExcludedFilePatterns() {
-        return EXCLUDED_FILE_PATTERN;
+        return calculatedExcludedFilePatterns;
     }
 
     @Override
@@ -157,20 +159,28 @@ public class BazelBuildSupport implements IBuildSupport {
         }
     }
 
+    public static void calculateExcludedFilePatterns(String bazelWorkspaceRootDirectoryPath) {
+        if (calculatedExcludedFilePatterns.isEmpty()) {
+            calculatedExcludedFilePatterns.addAll(EXCLUDED_FILE_PATTERN.stream()
+                .map(path -> StringUtils.join("**" + bazelWorkspaceRootDirectoryPath, path))
+                .collect(Collectors.toList()));
+        }
+    }
+
     private IPath getProjectLocation(IProject project) {
 
         if (project.getFile(WORKSPACE_FILE_NAME).isAccessible()) {
             return project.getFile(WORKSPACE_FILE_NAME).getLocation();
         }
-        
+
         if (project.getFile(WORKSPACE_FILE_NAME + BAZEL_FILE_NAME_SUFIX).isAccessible()) {
             return project.getFile(WORKSPACE_FILE_NAME + BAZEL_FILE_NAME_SUFIX).getLocation();
-        } 
+        }
 
         if (project.getFile(BUILD_FILE_NAME).isAccessible()) {
             return project.getFile(BUILD_FILE_NAME).getLocation();
         }
-        
+
         if (project.getFile(BUILD_FILE_NAME + BAZEL_FILE_NAME_SUFIX).isAccessible()) {
             return project.getFile(BUILD_FILE_NAME + BAZEL_FILE_NAME_SUFIX).getLocation();
         }

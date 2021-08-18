@@ -47,23 +47,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
-import com.salesforce.b2eclipse.BazelJdtPlugin;
-import com.salesforce.b2eclipse.BazelNature;
-import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
-import com.salesforce.b2eclipse.builder.BazelBuilder;
-import com.salesforce.b2eclipse.classpath.BazelClasspathContainer;
-import com.salesforce.b2eclipse.classpath.BazelClasspathContainerInitializer;
-import com.salesforce.b2eclipse.command.BazelCommandManager;
-import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
-import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
-import com.salesforce.b2eclipse.model.AspectPackageInfo;
-import com.salesforce.b2eclipse.model.AspectPackageInfos;
-import com.salesforce.b2eclipse.model.BazelLabel;
-import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
-import com.salesforce.bazel.sdk.model.BazelPackageInfo;
-import com.salesforce.bazel.sdk.util.BazelConstants;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
@@ -83,6 +66,24 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
+
+import com.google.common.collect.ImmutableList;
+import com.salesforce.b2eclipse.BazelJdtPlugin;
+import com.salesforce.b2eclipse.BazelNature;
+import com.salesforce.b2eclipse.abstractions.WorkProgressMonitor;
+import com.salesforce.b2eclipse.builder.BazelBuilder;
+import com.salesforce.b2eclipse.classpath.BazelClasspathContainer;
+import com.salesforce.b2eclipse.classpath.BazelClasspathContainerInitializer;
+import com.salesforce.b2eclipse.command.BazelCommandManager;
+import com.salesforce.b2eclipse.command.BazelWorkspaceCommandRunner;
+import com.salesforce.b2eclipse.managers.B2EPreferncesManager;
+import com.salesforce.b2eclipse.managers.BazelBuildSupport;
+import com.salesforce.b2eclipse.model.AspectPackageInfo;
+import com.salesforce.b2eclipse.model.AspectPackageInfos;
+import com.salesforce.b2eclipse.model.BazelLabel;
+import com.salesforce.b2eclipse.runtime.api.ResourceHelper;
+import com.salesforce.bazel.sdk.model.BazelPackageInfo;
+import com.salesforce.bazel.sdk.util.BazelConstants;
 
 /**
  * A factory class to create Eclipse projects from packages in a Bazel workspace.
@@ -118,8 +119,9 @@ public final class BazelEclipseProjectFactory {
     // add the directory name to the label, if it is meaningful (>3 chars)
     private static final int MIN_NUMBER_OF_CHARACTER_FOR_NAME = 3;
 
-    private static final String[] BUILD_FILE_NAMES = ArrayUtils.addAll(BazelConstants.BUILD_FILE_NAMES.toArray(new String[0]),
-        BazelConstants.WORKSPACE_FILE_NAMES.toArray(new String[0]));
+    private static final String[] BUILD_FILE_NAMES =
+            ArrayUtils.addAll(BazelConstants.BUILD_FILE_NAMES.toArray(new String[0]),
+                BazelConstants.WORKSPACE_FILE_NAMES.toArray(new String[0]));
 
     private BazelEclipseProjectFactory() {
 
@@ -147,6 +149,8 @@ public final class BazelEclipseProjectFactory {
         // currently we only support one Bazel workspace in an Eclipse workspace
         BazelJdtPlugin.setBazelWorkspaceRootDirectory(bazelWorkspaceRootDirectory);
 
+        BazelBuildSupport.calculateExcludedFilePatterns(bazelWorkspaceRootDirectory.getAbsolutePath());
+
         // Set the flag that an import is in progress
         importInProgress.set(true);
 
@@ -166,10 +170,10 @@ public final class BazelEclipseProjectFactory {
                 + "]. This may take some time, please be patient.");
 
         // create the Eclipse project for the Bazel workspace (directory that contains the WORKSPACE file)
-        IProject rootEclipseProject = BazelEclipseProjectFactory.createEclipseProjectForBazelPackage(
-            eclipseProjectNameForBazelWorkspace, eclipseProjectLocation, bazelWorkspaceRoot, "",
-            Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-            JAVA_LANG_VERSION);
+        IProject rootEclipseProject =
+                BazelEclipseProjectFactory.createEclipseProjectForBazelPackage(eclipseProjectNameForBazelWorkspace,
+                    eclipseProjectLocation, bazelWorkspaceRoot, "", Collections.emptyList(), Collections.emptyList(),
+                    Collections.emptyList(), Collections.emptyList(), JAVA_LANG_VERSION);
         if (rootEclipseProject == null) {
             throw new RuntimeException(
                     "Could not create the root workspace project. Look back in the log for more details.");
@@ -443,12 +447,12 @@ public final class BazelEclipseProjectFactory {
                     BazelJdtPlugin.getJavaCoreHelper().newSourceEntry(sourceDir, null, false);
             classpathEntries.add(sourceClasspathEntry);
         }
-        
+
         IPath testBinPath = new Path(eclipseProject.getPath().toOSString() + TEST_BIN_FOLDER);
         for (String path : testSrcPaths) {
             IPath realSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
-            IFolder projectSourceFolder = createFoldersForRelativePackagePath(eclipseProject.getProject(),
-                bazelPackageFSPath, path, false);
+            IFolder projectSourceFolder =
+                    createFoldersForRelativePackagePath(eclipseProject.getProject(), bazelPackageFSPath, path, false);
             try {
                 resourceHelper.createFolderLink(projectSourceFolder, realSourceDir, IResource.NONE, null);
             } catch (IllegalArgumentException e) {
@@ -459,10 +463,10 @@ public final class BazelEclipseProjectFactory {
                     BazelJdtPlugin.getJavaCoreHelper().newSourceEntry(sourceDir, testBinPath, true);
             classpathEntries.add(sourceClasspathEntry);
         }
-        
+
         buildBinLinkFolder(eclipseProject);
         buildTestBinLinkFolder(eclipseProject);
-        
+
         for (String path : generatedSources) {
             IPath generatedSourceDir = Path.fromOSString(bazelWorkspacePath + File.separator + path);
             if (generatedSourceDir.toFile().exists() && generatedSourceDir.toFile().isDirectory()) {
